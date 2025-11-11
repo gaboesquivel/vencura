@@ -68,7 +68,10 @@ See [ADRs](./.adrs/) for detailed architecture decision records:
 - [005: Package Manager](./.adrs/005-package-manager.md)
 - [006: Linters](./.adrs/006-linters.md)
 - [007: Vencura API Infrastructure](./.adrs/007-vencura-api-infrastructure.md)
+- [008: Frontend Infrastructure](./.adrs/008-frontend-infrastructure.md)
+- [009: Viem vs Ethers](./.adrs/009-viem-vs-ethers.md)
 - [010: Vencura Infrastructure Orchestration](./.adrs/010-vencura-infra-orchestration.md)
+- [011: Vencura API ORM Selection](./.adrs/011-vencura-api-orm.md)
 
 ## Todo
 
@@ -112,6 +115,6 @@ See [ADRs](./.adrs/) for detailed architecture decision records:
 
 ### Shared
 
-- [ ] Document security considerations
-- [ ] Add deployment configuration (Cloud Run + Cloudflare)
-- [ ] Review architecture documentation
+- [x] Document security considerations (see [Vencura SECURITY.md](./apps/vencura/SECURITY.md))
+- [x] Add deployment configuration (Cloud Run + Cloudflare via Pulumi)
+- [x] Review architecture documentation
