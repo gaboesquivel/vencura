@@ -7,13 +7,15 @@ Full-stack monorepo project for Dynamic.xyz take-home assignment featuring custo
 ```
 dynamic/
 ├── apps/
-│   ├── vencura/          # NestJS backend API (custodial wallet platform)
-│   ├── vecura-ui/        # Next.js frontend for Vencura API
+│   ├── vencura/          # NestJS backend API (multichain custodial wallet platform)
+│   ├── vencura-ui/       # Next.js frontend for Vencura API (multichain support)
 │   └── mathler/          # Next.js Mathler game (Wordle with numbers)
-└── packages/
-    ├── ui/               # Shared Shadcn/ui component library
-    ├── eslint-config/    # Shared ESLint configuration
-    └── typescript-config/ # Shared TypeScript configuration
+├── packages/
+│   ├── ui/               # Shared Shadcn/ui component library
+│   ├── eslint-config/    # Shared ESLint configuration
+│   └── typescript-config/ # Shared TypeScript configuration
+└── infra/
+    └── vencura/          # Pulumi infrastructure for Vencura API
 ```
 
 ## Tech Stack
@@ -26,12 +28,13 @@ dynamic/
 - **Authentication**: Dynamic SDK
 - **Linting**: ESLint + Prettier
 - **Vencura Deployment**: Google Cloud Run (Docker) + Cloudflare
+- **Infrastructure**: Pulumi (TypeScript) for GCP resources
 - **Frontend Deployment**: Vercel
 
 ## Projects
 
-- **[Vencura API](./apps/vencura/README.md)** - NestJS backend for custodial wallet management
-- **[Vecura UI](./apps/vecura-ui/README.md)** - Next.js frontend for Vencura API
+- **[Vencura API](./apps/vencura/README.md)** - NestJS backend for multichain custodial wallet management (EVM chains + Solana)
+- **[Vencura UI](./apps/vencura-ui/README.md)** - Next.js frontend for Vencura API with multichain support
 - **[Mathler](./apps/mathler/README.md)** - Next.js Mathler game with Dynamic SDK
 - **[UI Package](./packages/ui/README.md)** - Shared Shadcn/ui component library
 
@@ -47,8 +50,11 @@ pnpm dev
 # Build all apps
 pnpm build
 
-# Lint all packages
+# Lint all packages and infrastructure
 pnpm lint
+
+# Type check all packages and infrastructure
+pnpm check-types
 ```
 
 ## Architecture Decisions
@@ -62,30 +68,36 @@ See [ADRs](./.adrs/) for detailed architecture decision records:
 - [005: Package Manager](./.adrs/005-package-manager.md)
 - [006: Linters](./.adrs/006-linters.md)
 - [007: Vencura API Infrastructure](./.adrs/007-vencura-api-infrastructure.md)
+- [010: Vencura Infrastructure Orchestration](./.adrs/010-vencura-infra-orchestration.md)
 
 ## Todo
 
 ### Vencura API (Backend)
 
-- [ ] Integrate Dynamic SDK for authentication
-- [ ] Implement wallet creation endpoint
-- [ ] Implement `getBalance()` endpoint
-- [ ] Implement `signMessage()` endpoint
-- [ ] Implement `sendTransaction()` endpoint
-- [ ] Add security considerations and documentation
-- [ ] Write unit tests
+- [x] Integrate Dynamic SDK for authentication
+- [x] Implement wallet creation endpoint
+- [x] Implement `getBalance()` endpoint
+- [x] Implement `signMessage()` endpoint
+- [x] Implement `sendTransaction()` endpoint
+- [x] Add security considerations and documentation
+- [x] Write unit tests
 - [ ] Write integration tests
-- [ ] Add API documentation
+- [x] Add API documentation
+- [x] **Multichain support** - Support for EVM chains (Ethereum, Arbitrum, Base, Polygon, Optimism) and Solana
+- [x] **Chain-agnostic architecture** - Wallet client factory pattern for multiple blockchain types
+- [x] **Dynamic network ID support** - Uses Dynamic SDK's network ID format
 
-### Vecura UI (Frontend)
+### Vencura UI (Frontend)
 
-- [ ] Integrate Dynamic SDK for authentication
-- [ ] Build wallet creation UI
-- [ ] Build balance display component
-- [ ] Build message signing interface
-- [ ] Build transaction sending interface
-- [ ] Add error handling and loading states
-- [ ] Implement responsive design
+- [x] Integrate Dynamic SDK for authentication
+- [x] Build wallet creation UI
+- [x] Build balance display component
+- [x] Build message signing interface
+- [x] Build transaction sending interface
+- [x] Add error handling and loading states
+- [x] Implement responsive design
+- [x] **Multichain support** - Chain selector for creating wallets on different networks
+- [x] **Chain-aware UI** - Currency display and address validation based on chain type
 
 ### Mathler (Frontend)
 

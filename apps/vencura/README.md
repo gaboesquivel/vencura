@@ -1,98 +1,584 @@
-<p align="center">
-  <a href="http://nestjs.com/" target="blank"><img src="https://nestjs.com/img/logo-small.svg" width="120" alt="Nest Logo" /></a>
-</p>
+# Vencura API
 
-[circleci-image]: https://img.shields.io/circleci/build/github/nestjs/nest/master?token=abc123def456
-[circleci-url]: https://circleci.com/gh/nestjs/nest
+A multichain custodial wallet backend API built with NestJS, Dynamic authentication, and PGLite.
 
-  <p align="center">A progressive <a href="http://nodejs.org" target="_blank">Node.js</a> framework for building efficient and scalable server-side applications.</p>
-    <p align="center">
-<a href="https://www.npmjs.com/~nestjscore" target="_blank"><img src="https://img.shields.io/npm/v/@nestjs/core.svg" alt="NPM Version" /></a>
-<a href="https://www.npmjs.com/~nestjscore" target="_blank"><img src="https://img.shields.io/npm/l/@nestjs/core.svg" alt="Package License" /></a>
-<a href="https://www.npmjs.com/~nestjscore" target="_blank"><img src="https://img.shields.io/npm/dm/@nestjs/common.svg" alt="NPM Downloads" /></a>
-<a href="https://circleci.com/gh/nestjs/nest" target="_blank"><img src="https://img.shields.io/circleci/build/github/nestjs/nest/master" alt="CircleCI" /></a>
-<a href="https://discord.gg/G7Qnnhy" target="_blank"><img src="https://img.shields.io/badge/discord-online-brightgreen.svg" alt="Discord"/></a>
-<a href="https://opencollective.com/nest#backer" target="_blank"><img src="https://opencollective.com/nest/backers/badge.svg" alt="Backers on Open Collective" /></a>
-<a href="https://opencollective.com/nest#sponsor" target="_blank"><img src="https://opencollective.com/nest/sponsors/badge.svg" alt="Sponsors on Open Collective" /></a>
-  <a href="https://paypal.me/kamilmysliwiec" target="_blank"><img src="https://img.shields.io/badge/Donate-PayPal-ff3f59.svg" alt="Donate us"/></a>
-    <a href="https://opencollective.com/nest#sponsor"  target="_blank"><img src="https://img.shields.io/badge/Support%20us-Open%20Collective-41B883.svg" alt="Support us"></a>
-  <a href="https://twitter.com/nestframework" target="_blank"><img src="https://img.shields.io/twitter/follow/nestframework.svg?style=social&label=Follow" alt="Follow us on Twitter"></a>
-</p>
-  <!--[![Backers on Open Collective](https://opencollective.com/nest/backers/badge.svg)](https://opencollective.com/nest#backer)
-  [![Sponsors on Open Collective](https://opencollective.com/nest/sponsors/badge.svg)](https://opencollective.com/nest#sponsor)-->
+## Overview
 
-## Description
+Vencura is a backend API that enables users to create and manage custodial wallets across multiple blockchain networks. It provides secure wallet operations including balance queries, message signing, and transaction sending on supported chains including EVM chains (Ethereum, Arbitrum, Base, Polygon, Optimism) and Solana.
 
-[Nest](https://github.com/nestjs/nest) framework TypeScript starter repository.
+## Features
 
-## Project setup
+- **Multichain Support**: Create and manage wallets on multiple blockchain networks
+  - **EVM Chains**: Ethereum, Arbitrum, Base, Polygon, Optimism, and all viem-supported EVM chains
+  - **Solana**: Mainnet, Devnet, and Testnet
+  - **Future Support**: Cosmos, Bitcoin, Flow, StarkNet, Algorand, Sui, Spark, Tron
+- **Dynamic Authentication**: Secure user authentication using `@dynamic-labs/sdk-api`
+- **Dynamic Wallets**: Server-side wallet management using Dynamic SDK
+  - `@dynamic-labs-wallet/node-evm` for EVM chains
+  - `@dynamic-labs-wallet/node-svm` for Solana
+- **Custodial Wallets**: Create and manage wallets on the backend with 2-of-2 threshold signatures
+- **Blockchain Operations**:
+  - Get wallet balance (chain-agnostic)
+  - Sign messages with wallet private keys
+  - Send transactions on any supported chain
+- **RPC Configuration**: Uses Dynamic's default RPC URLs with optional per-chain overrides
+- **Database**: PGLite with DrizzleORM for lightweight, embedded database
+- **API Documentation**: Interactive Swagger UI at `/api`
+- **Security**:
+  - AES-256-GCM encryption for private key storage
+  - Rate limiting on all endpoints
+  - Input validation
+  - DDoS protection via Cloudflare
+- **Testing**: Comprehensive unit and E2E tests
+
+## Tech Stack
+
+- **Framework**: NestJS
+- **Authentication**: Dynamic Labs SDK Client
+- **Blockchain**:
+  - Viem for EVM chains
+  - @solana/web3.js for Solana
+  - Dynamic SDK for wallet operations
+- **Database**: PGLite with DrizzleORM
+- **API Documentation**: Swagger/OpenAPI
+
+## Getting Started
+
+### Prerequisites
+
+- Node.js >= 20.0.0
+- pnpm (package manager)
+
+### Installation
 
 ```bash
-$ npm install
+pnpm install
 ```
 
-## Compile and run the project
+### Environment Variables
+
+Create a `.env` file in the root directory:
+
+```env
+PORT=3000
+DYNAMIC_ENVIRONMENT_ID=your_dynamic_environment_id
+DYNAMIC_API_TOKEN=your_dynamic_api_token
+ENCRYPTION_KEY=your_encryption_key_32_chars_minimum
+
+# Optional: Per-chain RPC URL overrides
+# Format: RPC_URL_<CHAIN_ID>=... or RPC_URL_<DYNAMIC_NETWORK_ID>=...
+RPC_URL_421614=https://arbitrum-sepolia.infura.io/v3/your_key
+RPC_URL_84532=https://base-sepolia.infura.io/v3/your_key
+SOLANA_RPC_URL=https://api.mainnet-beta.solana.com
+
+# Backward compatibility: ARBITRUM_SEPOLIA_RPC_URL still works
+ARBITRUM_SEPOLIA_RPC_URL=https://arbitrum-sepolia.infura.io/v3/your_key
+```
+
+**Required Environment Variables:**
+
+- `DYNAMIC_ENVIRONMENT_ID`: Your Dynamic environment ID from the Dynamic dashboard
+- `DYNAMIC_API_TOKEN`: Your Dynamic API token for server-side authentication
+- `ENCRYPTION_KEY`: Encryption key for private keys (minimum 32 characters)
+
+**Optional RPC Configuration:**
+
+- `RPC_URL_<CHAIN_ID>`: Custom RPC URL for a specific chain (e.g., `RPC_URL_421614` for Arbitrum Sepolia)
+- `RPC_URL_<DYNAMIC_NETWORK_ID>`: Custom RPC URL using Dynamic network ID (e.g., `RPC_URL_solana-mainnet`)
+- `SOLANA_RPC_URL`: Custom Solana RPC URL (applies to all Solana networks)
+- `ARBITRUM_SEPOLIA_RPC_URL`: Backward compatibility for Arbitrum Sepolia (maps to `RPC_URL_421614`)
+
+**Note**: If no custom RPC URL is provided, Vencura uses Dynamic's default public RPC URLs or viem/Solana defaults. Custom RPCs are only needed for production environments requiring higher reliability or custom networks.
+
+### Running the Application
 
 ```bash
-# development
-$ npm run start
+# Development mode
+pnpm run start:dev
 
-# watch mode
-$ npm run start:dev
-
-# production mode
-$ npm run start:prod
+# Production mode
+pnpm run build
+pnpm run start:prod
 ```
 
-## Run tests
+The API will be available at `http://localhost:3000`
+
+### Access Swagger UI
+
+Once the server is running, visit `http://localhost:3000/api` to access the interactive Swagger UI documentation and test the API endpoints.
+
+## Supported Chains
+
+Vencura supports multiple blockchain networks using Dynamic's network ID format:
+
+### EVM Chains
+
+- **Ethereum**: `1` (Mainnet), `11155111` (Sepolia)
+- **Arbitrum**: `42161` (One), `421614` (Sepolia)
+- **Base**: `8453` (Mainnet), `84532` (Sepolia)
+- **Polygon**: `137` (Mainnet), `80002` (Amoy)
+- **Optimism**: `10` (Mainnet), `11155420` (Sepolia)
+- **All viem-supported EVM chains**: Use the chain ID number
+
+### Solana
+
+- **Mainnet**: `"solana-mainnet"` or `"mainnet-beta"`
+- **Devnet**: `"solana-devnet"` or `"devnet"`
+- **Testnet**: `"solana-testnet"` or `"testnet"`
+
+### Future Support
+
+- Cosmos, Bitcoin, Flow, StarkNet, Algorand, Sui, Spark, Tron (as Dynamic SDK support becomes available)
+
+## API Endpoints
+
+All endpoints require Bearer token authentication (Dynamic auth token).
+
+### Create Wallet
+
+Create a wallet on any supported chain by providing a chain ID (number for EVM) or Dynamic network ID (string for non-EVM):
+
+**EVM Chain Example:**
+
+```http
+POST /wallets
+Authorization: Bearer <dynamic-auth-token>
+Content-Type: application/json
+
+{
+  "chainId": 421614
+}
+```
+
+**Solana Example:**
+
+```http
+POST /wallets
+Authorization: Bearer <dynamic-auth-token>
+Content-Type: application/json
+
+{
+  "chainId": "solana-mainnet"
+}
+```
+
+**Response:**
+
+```json
+{
+  "id": "wallet-uuid",
+  "address": "0x...",
+  "network": "421614",
+  "chainType": "evm"
+}
+```
+
+### Get Balance
+
+```http
+GET /wallets/:id/balance
+Authorization: Bearer <dynamic-auth-token>
+```
+
+**Response:**
+
+```json
+{
+  "balance": 0.5
+}
+```
+
+### Sign Message
+
+```http
+POST /wallets/:id/sign
+Authorization: Bearer <dynamic-auth-token>
+Content-Type: application/json
+
+{
+  "message": "Hello, World!"
+}
+```
+
+**Response:**
+
+```json
+{
+  "signedMessage": "0x..."
+}
+```
+
+### Send Transaction
+
+```http
+POST /wallets/:id/send
+Authorization: Bearer <dynamic-auth-token>
+Content-Type: application/json
+
+{
+  "to": "0x742d35Cc6634C0532925a3b844Bc9e7595f0bEb0",
+  "amount": 0.001
+}
+```
+
+**Response:**
+
+```json
+{
+  "transactionHash": "0x..."
+}
+```
+
+## Testing
 
 ```bash
-# unit tests
-$ npm run test
+# Unit tests
+pnpm run test
 
-# e2e tests
-$ npm run test:e2e
+# Watch mode
+pnpm run test:watch
 
-# test coverage
-$ npm run test:cov
+# E2E tests
+pnpm run test:e2e
+
+# Test coverage
+pnpm run test:cov
 ```
+
+## Database
+
+The application supports two database modes:
+
+- **Development/Local**: Uses PGLite, an embedded PostgreSQL database
+- **Production/Cloud**: Uses Google Cloud SQL Postgres (managed PostgreSQL)
+
+Database schemas are defined using DrizzleORM and work with both database providers.
+
+### Database Commands
+
+```bash
+# Generate migrations
+pnpm run db:generate
+
+# Run migrations
+pnpm run db:migrate
+```
+
+### Environment-Based Database Selection
+
+The application automatically selects the database provider based on the `USE_PGLITE` environment variable:
+
+- `USE_PGLITE=true` or unset: Uses PGLite (embedded database)
+- `USE_PGLITE=false`: Uses Cloud SQL Postgres (requires connection configuration)
 
 ## Deployment
 
-When you're ready to deploy your NestJS application to production, there are some key steps you can take to ensure it runs as efficiently as possible. Check out the [deployment documentation](https://docs.nestjs.com/deployment) for more information.
+The Vencura API is deployed to **Google Cloud Run** with infrastructure managed by **Pulumi**. See [ADR 010](../../.adrs/010-vencura-infra-orchestration.md) for infrastructure orchestration details.
 
-If you are looking for a cloud-based platform to deploy your NestJS application, check out [Mau](https://mau.nestjs.com), our official platform for deploying NestJS applications on AWS. Mau makes deployment straightforward and fast, requiring just a few simple steps:
+### Environments
+
+#### Development Environment (`vencura-dev`)
+
+- **Deployment**: Automatic on merge to `main` branch
+- **Database**: Cloud SQL Postgres (dev instance)
+- **Service**: Persistent Cloud Run service
+- **URL**: Managed via Pulumi outputs
+
+#### Production Environment (`vencura-prod`)
+
+- **Deployment**: Manual (workflow dispatch)
+- **Database**: Cloud SQL Postgres (prod instance with HA)
+- **Service**: Persistent Cloud Run service
+- **URL**: Managed via Pulumi outputs
+- **Note**: Code provided but not auto-deployed in demo
+
+#### Ephemeral PR Deployments (`vencura-pr-{number}`)
+
+- **Deployment**: Automatic on PR creation/update
+- **Database**: PGLite (embedded, no Cloud SQL)
+- **Service**: Ephemeral Cloud Run service
+- **Lifetime**: Auto-deleted on PR close/merge
+- **Purpose**: Preview deployments for PR review
+
+### Docker Build
+
+The application includes a multi-stage Dockerfile optimized for Cloud Run:
 
 ```bash
-$ npm install -g @nestjs/mau
-$ mau deploy
+# Build from monorepo root
+docker build -f apps/vencura/Dockerfile -t vencura:latest .
 ```
 
-With Mau, you can deploy your application in just a few clicks, allowing you to focus on building features rather than managing infrastructure.
+### Manual Deployment
 
-## Resources
+For manual deployment to Cloud Run:
 
-Check out a few resources that may come in handy when working with NestJS:
+```bash
+# Authenticate to GCP
+gcloud auth login
 
-- Visit the [NestJS Documentation](https://docs.nestjs.com) to learn more about the framework.
-- For questions and support, please visit our [Discord channel](https://discord.gg/G7Qnnhy).
-- To dive deeper and get more hands-on experience, check out our official video [courses](https://courses.nestjs.com/).
-- Deploy your application to AWS with the help of [NestJS Mau](https://mau.nestjs.com) in just a few clicks.
-- Visualize your application graph and interact with the NestJS application in real-time using [NestJS Devtools](https://devtools.nestjs.com).
-- Need help with your project (part-time to full-time)? Check out our official [enterprise support](https://enterprise.nestjs.com).
-- To stay in the loop and get updates, follow us on [X](https://x.com/nestframework) and [LinkedIn](https://linkedin.com/company/nestjs).
-- Looking for a job, or have a job to offer? Check out our official [Jobs board](https://jobs.nestjs.com).
+# Configure Docker for Artifact Registry
+gcloud auth configure-docker REGION-docker.pkg.dev
 
-## Support
+# Build and push image
+docker build -f apps/vencura/Dockerfile -t REGION-docker.pkg.dev/PROJECT_ID/REPOSITORY/vencura:TAG .
+docker push REGION-docker.pkg.dev/PROJECT_ID/REPOSITORY/vencura:TAG
 
-Nest is an MIT-licensed open source project. It can grow thanks to the sponsors and support by the amazing backers. If you'd like to join them, please [read more here](https://docs.nestjs.com/support).
+# Deploy to Cloud Run
+gcloud run deploy vencura-dev \
+  --image REGION-docker.pkg.dev/PROJECT_ID/REPOSITORY/vencura:TAG \
+  --region REGION \
+  --platform managed
+```
 
-## Stay in touch
+## CI/CD
 
-- Author - [Kamil Myśliwiec](https://twitter.com/kammysliwiec)
-- Website - [https://nestjs.com](https://nestjs.com/)
-- Twitter - [@nestframework](https://twitter.com/nestframework)
+The project uses GitHub Actions for continuous integration and deployment.
+
+### Quality Checks Workflow
+
+Runs on all PRs and pushes to `main`:
+
+- Lint (ESLint)
+- Type check (TypeScript)
+- Unit tests
+- E2E tests
+- Build verification
+
+### Dev Deployment Workflow
+
+**Triggers:**
+
+- PRs to `main` → Ephemeral deployment with PGLite
+- Direct pushes to `main` → Persistent dev deployment with Cloud SQL
+
+**Features:**
+
+- Automatic Docker image build and push to Artifact Registry
+- Ephemeral PR deployments with unique service names
+- PR comments with deployment URLs
+- Auto-cleanup of ephemeral deployments
+
+### Prod Deployment Workflow
+
+**Triggers:**
+
+- Manual workflow dispatch (requires confirmation)
+
+**Features:**
+
+- Full production deployment
+- Database migrations
+- Health checks
+- Manual approval required
+
+### Required GitHub Secrets
+
+For CI/CD to work, configure these secrets in GitHub:
+
+**GCP Authentication:**
+
+- `GCP_PROJECT_ID`: Google Cloud project ID
+- `GCP_REGION`: Deployment region (default: `us-central1`)
+- `GCP_ARTIFACT_REGISTRY`: Artifact Registry repository name
+- `WIF_PROVIDER`: Workload Identity Federation provider
+- `WIF_SERVICE_ACCOUNT`: Service account for WIF
+
+**Application Secrets:**
+
+- `DYNAMIC_ENVIRONMENT_ID`: Dynamic environment ID
+- `DYNAMIC_API_TOKEN`: Dynamic API token
+- `ARBITRUM_SEPOLIA_RPC_URL`: RPC endpoint URL
+- `ENCRYPTION_KEY`: Encryption key (32+ characters)
+
+**Infrastructure (Dev):**
+
+- `CLOUD_SQL_CONNECTION_NAME`: Cloud SQL connection name for dev
+- `VPC_CONNECTOR_NAME`: VPC Connector name for dev
+- `CLOUD_RUN_SERVICE_ACCOUNT`: Service account email for Cloud Run
+
+**Infrastructure (Prod):**
+
+- `CLOUD_SQL_CONNECTION_NAME_PROD`: Cloud SQL connection name for prod
+- `VPC_CONNECTOR_NAME_PROD`: VPC Connector name for prod
+- `CLOUD_RUN_SERVICE_ACCOUNT_PROD`: Service account email for Cloud Run (prod)
+
+### Environment Setup
+
+#### Local Development
+
+Uses PGLite (embedded database):
+
+```env
+PORT=3000
+DYNAMIC_ENVIRONMENT_ID=your_environment_id
+DYNAMIC_API_TOKEN=your_api_token
+ARBITRUM_SEPOLIA_RPC_URL=https://arbitrum-sepolia.infura.io/v3/...
+ENCRYPTION_KEY=your_32_char_encryption_key
+# USE_PGLITE=true (default, can be omitted)
+```
+
+#### Cloud Deployment (Dev/Prod)
+
+Uses Cloud SQL Postgres:
+
+```env
+PORT=3000
+USE_PGLITE=false
+# Secrets loaded from Google Cloud Secret Manager:
+# - DYNAMIC_ENVIRONMENT_ID
+# - DYNAMIC_API_TOKEN
+# - ARBITRUM_SEPOLIA_RPC_URL
+# - ENCRYPTION_KEY
+# - DATABASE_URL (Cloud SQL connection)
+```
+
+Secrets are managed via Google Cloud Secret Manager and referenced in Cloud Run service configuration.
+
+## Project Structure
+
+```
+src/
+├── auth/              # Authentication module
+│   ├── auth.service.ts
+│   ├── auth.guard.ts
+│   └── decorators/
+├── wallet/            # Wallet module
+│   ├── wallet.service.ts
+│   ├── wallet.controller.ts
+│   └── dto/
+├── database/          # Database module
+│   ├── database.module.ts
+│   └── schema/
+├── common/            # Shared services
+│   └── encryption.service.ts
+├── config/            # Configuration
+│   └── configuration.ts
+└── main.ts           # Application entry point
+```
+
+## Wallet Security
+
+Vencura implements a comprehensive two-layer security model for custodial wallet protection. For detailed security documentation, see [SECURITY.md](./SECURITY.md).
+
+### Two-Layer Security Model
+
+#### Layer 1: Dynamic Authentication
+
+All API requests require a valid Dynamic Labs JWT token:
+
+1. **Client Authentication**: Client obtains JWT token from Dynamic Labs
+2. **Token Verification**: Server fetches Dynamic's public key and verifies JWT signature using RS256
+3. **User Identification**: User ID extracted from token's `sub` claim
+4. **User Isolation**: All wallet operations are scoped to the authenticated user ID
+
+This layer ensures that only authenticated users can access the API and that users can only access their own wallets.
+
+#### Layer 2: Application-Level Encryption
+
+Private keys are encrypted before storage in the database:
+
+1. **Wallet Creation**: When a wallet is created, Dynamic SDK generates a 2-of-2 threshold signature wallet
+2. **Key Share Extraction**: External server key shares are extracted (array of strings)
+3. **Encryption**: Key shares are JSON stringified and encrypted using AES-256-GCM
+4. **Storage**: Encrypted data stored in `private_key_encrypted` database column
+5. **Decryption**: Keys are decrypted in-memory only when needed for signing/transactions
+
+### Encryption Details
+
+- **Algorithm**: AES-256-GCM (Galois/Counter Mode)
+- **Key Derivation**: Scrypt with salt from encryption key
+- **Storage Format**: `iv:authTag:encrypted` (all hex-encoded)
+- **Key Management**: Encryption key stored in Google Cloud Secret Manager, never in code
+- **In-Memory Only**: Private keys decrypted only when needed, never logged or persisted
+
+### User Isolation
+
+All wallet operations enforce strict user isolation:
+
+- **Database Queries**: Every query includes `userId` filter to ensure users can only access their own wallets
+- **Authorization Checks**: Wallet ownership verified before any operation (balance, sign, send)
+- **Error Messages**: Generic error messages prevent information leakage about other users' wallets
+
+Example from the codebase:
+
+```typescript
+// All wallet queries include user isolation
+const [wallet] = await this.db
+  .select()
+  .from(schema.wallets)
+  .where(
+    and(
+      eq(schema.wallets.id, walletId),
+      eq(schema.wallets.userId, userId), // User isolation enforced
+    ),
+  )
+  .limit(1);
+```
+
+### Key Management
+
+- **Encryption Key**: Stored in Google Cloud Secret Manager as `vencura-{env}-encryption-key`
+- **Access Control**: Only Cloud Run service account can access encryption key
+- **Key Rotation**: Supported via Secret Manager versions (see SECURITY.md for rotation procedure)
+- **Minimum Length**: Encryption key must be at least 32 characters (enforced by application)
+
+### Security Properties
+
+- **Authenticated Encryption**: AES-256-GCM provides both confidentiality and authenticity
+- **Nonce Reuse Protection**: Random IV prevents nonce reuse attacks
+- **Tamper Detection**: Authentication tag detects any modification of encrypted data
+- **Defense in Depth**: Multiple layers of security (auth + encryption + network isolation)
+
+### How It Works
+
+**Wallet Creation Flow:**
+
+```
+1. User authenticates with Dynamic Labs → Receives JWT token
+2. User calls POST /wallets with JWT token
+3. Server verifies JWT token → Extracts user ID
+4. Dynamic SDK generates 2-of-2 threshold wallet
+5. External server key shares extracted → ["0x...", "0x..."]
+6. Key shares JSON stringified → '["0x...", "0x..."]'
+7. EncryptionService encrypts JSON string → "iv:authTag:encrypted"
+8. Encrypted data stored in database
+9. Wallet address returned to user (private key never exposed)
+```
+
+**Wallet Usage Flow (Sign Transaction):**
+
+```
+1. User calls POST /wallets/:id/send with JWT token
+2. Server verifies JWT token → Extracts user ID
+3. Server queries database with walletId AND userId (user isolation)
+4. Encrypted key shares retrieved from database
+5. EncryptionService decrypts → JSON string
+6. JSON parsed → Key shares array
+7. Key shares used with Dynamic SDK to sign transaction
+8. Transaction sent to blockchain
+9. Memory cleared (decrypted keys never persisted)
+```
+
+## Security Considerations
+
+- Private keys are encrypted using AES-256-GCM before storage
+- All API endpoints require Dynamic authentication
+- Users can only access their own wallets
+- Encryption key should be kept secure and never committed to version control
+- **Rate Limiting**: Implemented with endpoint-specific limits (wallet creation: 10/min, transactions: 20/min, signing: 30/min)
+- **Input Validation**: Ethereum addresses are validated for proper format
+- **DDoS Protection**: Cloudflare provides DDoS protection in front of the service
+- For comprehensive security documentation, see [SECURITY.md](./SECURITY.md)
+- For security review findings and remediation status, see [SECURITY_REVIEW.md](./SECURITY_REVIEW.md)
+
+## Architecture Decisions
+
+- **PGLite**: Chosen for lightweight, embedded database that doesn't require external PostgreSQL server
+- **Viem**: Modern TypeScript-first library for Ethereum interactions
+- **DrizzleORM**: Type-safe ORM with excellent TypeScript support
+- **Dynamic SDK**: Provides secure authentication and user management
 
 ## License
 
-Nest is [MIT licensed](https://github.com/nestjs/nest/blob/master/LICENSE).
+PROPRIETARY
