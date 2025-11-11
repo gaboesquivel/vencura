@@ -48,7 +48,8 @@ export default function Page() {
           <div className="flex flex-col items-center justify-center min-h-[60vh] gap-4">
             <h2 className="text-2xl font-semibold">Welcome to Vencura</h2>
             <p className="text-muted-foreground text-center max-w-md">
-              Please sign in with Dynamic to create and manage your custodial wallets.
+              Please sign in with Dynamic to create and manage your custodial
+              wallets.
             </p>
           </div>
         ) : (

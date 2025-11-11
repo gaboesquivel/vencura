@@ -17,18 +17,41 @@ export default () => {
     );
   }
 
+  // Collect all RPC URL overrides from environment variables
+  // Format: RPC_URL_<CHAIN_ID>=... or RPC_URL_<DYNAMIC_NETWORK_ID>=...
+  const rpcUrls: Record<string, string> = {};
+
+  // Backward compatibility: Support old ARBITRUM_SEPOLIA_RPC_URL
+  if (process.env.ARBITRUM_SEPOLIA_RPC_URL) {
+    rpcUrls['421614'] = process.env.ARBITRUM_SEPOLIA_RPC_URL;
+  }
+
+  // Collect all RPC_URL_* environment variables
+  Object.keys(process.env).forEach((key) => {
+    if (key.startsWith('RPC_URL_')) {
+      const chainId = key.replace('RPC_URL_', '');
+      const rpcUrl = process.env[key];
+      if (rpcUrl) {
+        rpcUrls[chainId] = rpcUrl;
+      }
+    }
+  });
+
+  // Chain-specific RPC URLs (e.g., SOLANA_RPC_URL, COSMOS_RPC_URL)
+  const solanaRpcUrl = process.env.SOLANA_RPC_URL;
+  if (solanaRpcUrl) {
+    rpcUrls['solana-mainnet'] = solanaRpcUrl;
+    rpcUrls['solana-devnet'] = solanaRpcUrl;
+    rpcUrls['solana-testnet'] = solanaRpcUrl;
+  }
+
   return {
     port: parseInt(process.env.PORT || '3000', 10),
     dynamic: {
       environmentId: dynamicEnvironmentId,
       apiToken: dynamicApiToken,
     },
-    blockchain: {
-      rpcUrl:
-        process.env.ARBITRUM_SEPOLIA_RPC_URL ||
-        'https://arbitrum-sepolia.infura.io/v3/91de7ed3c17344cc95f8ea31bf6b3adf',
-      network: 'arbitrum-sepolia',
-    },
+    rpc: rpcUrls,
     encryption: {
       key: encryptionKey,
     },

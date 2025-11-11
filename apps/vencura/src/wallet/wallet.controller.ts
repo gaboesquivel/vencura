@@ -15,6 +15,7 @@ import {
   ApiBearerAuth,
   ApiParam,
 } from '@nestjs/swagger';
+import { Throttle } from '@nestjs/throttler';
 import { WalletService } from './wallet.service';
 import { AuthGuard } from '../auth/auth.guard';
 import { CurrentUser } from '../auth/decorators/current-user.decorator';
@@ -41,7 +42,12 @@ export class WalletController {
         properties: {
           id: { type: 'string' },
           address: { type: 'string' },
-          network: { type: 'string' },
+          network: { type: 'string', description: 'Dynamic network ID' },
+          chainType: {
+            type: 'string',
+            description: 'Chain type: evm, solana, cosmos, etc.',
+            example: 'evm',
+          },
         },
       },
     },
@@ -53,7 +59,12 @@ export class WalletController {
 
   @Post()
   @HttpCode(HttpStatus.CREATED)
-  @ApiOperation({ summary: 'Create a new custodial wallet' })
+  @Throttle({ default: { limit: 10, ttl: 60000 } }) // 10 wallet creations per minute
+  @ApiOperation({
+    summary: 'Create a new custodial wallet',
+    description:
+      'Create a wallet on any supported chain. Provide chainId as a number (e.g., 421614 for Arbitrum Sepolia) or Dynamic network ID string (e.g., "solana-mainnet" for Solana).',
+  })
   @ApiResponse({
     status: 201,
     description: 'Wallet created successfully',
@@ -62,19 +73,26 @@ export class WalletController {
       properties: {
         id: { type: 'string' },
         address: { type: 'string' },
-        network: { type: 'string' },
+        network: {
+          type: 'string',
+          description: 'Dynamic network ID',
+          example: '421614',
+        },
+        chainType: {
+          type: 'string',
+          description: 'Chain type',
+          example: 'evm',
+        },
       },
     },
   })
+  @ApiResponse({ status: 400, description: 'Invalid or unsupported chain ID' })
   @ApiResponse({ status: 401, description: 'Unauthorized' })
   async createWallet(
     @CurrentUser() user: { id: string; email: string },
     @Body() createWalletDto: CreateWalletDto,
   ) {
-    return this.walletService.createWallet(
-      user.id,
-      createWalletDto.network || 'arbitrum-sepolia',
-    );
+    return this.walletService.createWallet(user.id, createWalletDto.chainId);
   }
 
   @Get(':id/balance')
@@ -101,6 +119,7 @@ export class WalletController {
 
   @Post(':id/sign')
   @HttpCode(HttpStatus.OK)
+  @Throttle({ default: { limit: 30, ttl: 60000 } }) // 30 sign operations per minute
   @ApiOperation({ summary: 'Sign a message with wallet private key' })
   @ApiParam({ name: 'id', description: 'Wallet ID' })
   @ApiResponse({
@@ -129,6 +148,7 @@ export class WalletController {
 
   @Post(':id/send')
   @HttpCode(HttpStatus.OK)
+  @Throttle({ default: { limit: 20, ttl: 60000 } }) // 20 transactions per minute
   @ApiOperation({ summary: 'Send transaction on blockchain' })
   @ApiParam({ name: 'id', description: 'Wallet ID' })
   @ApiResponse({

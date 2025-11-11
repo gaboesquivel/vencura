@@ -2,13 +2,13 @@
 
 import { useState } from "react";
 import { Button } from "@workspace/ui/components/button";
-import { getBalance, signMessage, sendTransaction } from "@/lib/api-client";
-
-type Wallet = {
-  id: string;
-  address: string;
-  network: string;
-};
+import {
+  getBalance,
+  signMessage,
+  sendTransaction,
+  type Wallet,
+} from "@/lib/api-client";
+import { getChainByNetworkId, isValidAddress } from "@/lib/chains";
 
 type WalletCardProps = {
   wallet: Wallet;
@@ -59,17 +59,21 @@ export function WalletCard({ wallet, onRefresh }: WalletCardProps) {
     }
   };
 
-  const isValidAddress = (address: string): boolean => {
-    return /^0x[a-fA-F0-9]{40}$/.test(address);
-  };
+  const chainInfo = getChainByNetworkId(wallet.network);
+  const currency =
+    chainInfo?.currency || (wallet.chainType === "solana" ? "SOL" : "ETH");
 
   const handleSendTransaction = async () => {
     if (!txTo.trim() || !txAmount.trim()) {
       setError("Please enter recipient address and amount");
       return;
     }
-    if (!isValidAddress(txTo.trim())) {
-      setError("Please enter a valid Ethereum address (0x...)");
+    if (!isValidAddress(txTo.trim(), wallet.chainType)) {
+      const addressFormat =
+        wallet.chainType === "solana"
+          ? "Solana address"
+          : "Ethereum address (0x...)";
+      setError(`Please enter a valid ${addressFormat}`);
       return;
     }
     const amount = parseFloat(txAmount);
@@ -91,7 +95,9 @@ export function WalletCard({ wallet, onRefresh }: WalletCardProps) {
         await onRefresh();
       }
     } catch (err) {
-      setError(err instanceof Error ? err.message : "Failed to send transaction");
+      setError(
+        err instanceof Error ? err.message : "Failed to send transaction",
+      );
     } finally {
       setLoading(false);
     }
@@ -104,7 +110,15 @@ export function WalletCard({ wallet, onRefresh }: WalletCardProps) {
         <p className="text-sm text-muted-foreground font-mono break-all">
           {wallet.address}
         </p>
-        <p className="text-xs text-muted-foreground mt-1">Network: {wallet.network}</p>
+        <p className="text-xs text-muted-foreground mt-1">
+          Network: {chainInfo?.name || wallet.network}{" "}
+          {chainInfo?.testnet && "(Testnet)"}
+        </p>
+        {wallet.chainType && (
+          <p className="text-xs text-muted-foreground">
+            Chain Type: {wallet.chainType.toUpperCase()}
+          </p>
+        )}
       </div>
 
       <div className="space-y-2">
@@ -119,7 +133,10 @@ export function WalletCard({ wallet, onRefresh }: WalletCardProps) {
           </Button>
           {balance !== null && (
             <span className="text-sm">
-              Balance: <strong>{balance} ETH</strong>
+              Balance:{" "}
+              <strong>
+                {balance} {currency}
+              </strong>
             </span>
           )}
         </div>
@@ -145,7 +162,9 @@ export function WalletCard({ wallet, onRefresh }: WalletCardProps) {
         </form>
         {signedMessage && (
           <div className="mt-2">
-            <p className="text-xs text-muted-foreground mb-1">Signed Message:</p>
+            <p className="text-xs text-muted-foreground mb-1">
+              Signed Message:
+            </p>
             <p className="text-xs font-mono break-all bg-muted p-2 rounded">
               {signedMessage}
             </p>
@@ -163,7 +182,11 @@ export function WalletCard({ wallet, onRefresh }: WalletCardProps) {
               setTxTo(e.target.value);
               setError(null);
             }}
-            placeholder="Recipient address (0x...)"
+            placeholder={
+              wallet.chainType === "solana"
+                ? "Recipient address (Solana)"
+                : "Recipient address (0x...)"
+            }
             className="w-full px-3 py-2 border rounded-md text-sm font-mono"
             disabled={loading}
           />
@@ -173,17 +196,23 @@ export function WalletCard({ wallet, onRefresh }: WalletCardProps) {
               step="0.0001"
               value={txAmount}
               onChange={(e) => setTxAmount(e.target.value)}
-              placeholder="Amount (ETH)"
+              placeholder={`Amount (${currency})`}
               className="flex-1 px-3 py-2 border rounded-md text-sm"
               disabled={loading}
             />
-            <Button onClick={handleSendTransaction} disabled={loading} size="sm">
+            <Button
+              onClick={handleSendTransaction}
+              disabled={loading}
+              size="sm"
+            >
               Send
             </Button>
           </div>
           {txHash && (
             <div className="mt-2">
-              <p className="text-xs text-muted-foreground mb-1">Transaction Hash:</p>
+              <p className="text-xs text-muted-foreground mb-1">
+                Transaction Hash:
+              </p>
               <p className="text-xs font-mono break-all bg-muted p-2 rounded">
                 {txHash}
               </p>
@@ -200,4 +229,3 @@ export function WalletCard({ wallet, onRefresh }: WalletCardProps) {
     </div>
   );
 }
-

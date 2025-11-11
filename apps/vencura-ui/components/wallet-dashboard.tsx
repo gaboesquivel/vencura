@@ -2,26 +2,16 @@
 
 import { useState, useEffect } from "react";
 import { Button } from "@workspace/ui/components/button";
-import { createWallet, getWallets } from "@/lib/api-client";
+import { createWallet, getWallets, type Wallet } from "@/lib/api-client";
 import { WalletCard } from "./wallet-card";
-
-type Wallet = {
-  id: string;
-  address: string;
-  network: string;
-};
-
-type WalletCardProps = {
-  wallet: Wallet;
-  onRefresh?: () => Promise<void>;
-};
+import { SUPPORTED_CHAINS } from "@/lib/chains";
 
 export function WalletDashboard() {
   const [wallets, setWallets] = useState<Wallet[]>([]);
   const [loading, setLoading] = useState(false);
   const [loadingWallets, setLoadingWallets] = useState(true);
   const [error, setError] = useState<string | null>(null);
-  const [network, setNetwork] = useState("arbitrum-sepolia");
+  const [chainId, setChainId] = useState<number | string>(421614); // Default to Arbitrum Sepolia
 
   useEffect(() => {
     const fetchWallets = async () => {
@@ -43,7 +33,7 @@ export function WalletDashboard() {
     setLoading(true);
     setError(null);
     try {
-      await createWallet(network);
+      await createWallet(chainId);
       // Reload wallets after creation
       const userWallets = await getWallets();
       setWallets(userWallets);
@@ -72,15 +62,27 @@ export function WalletDashboard() {
         <div className="flex gap-2 items-end">
           <div className="flex-1">
             <label className="text-sm text-muted-foreground mb-1 block">
-              Network
+              Chain
             </label>
             <select
-              value={network}
-              onChange={(e) => setNetwork(e.target.value)}
+              value={String(chainId)}
+              onChange={(e) => {
+                const value = e.target.value;
+                // Try to parse as number, fallback to string
+                const parsed = Number(value);
+                setChainId(isNaN(parsed) ? value : parsed);
+              }}
               className="w-full px-3 py-2 border rounded-md text-sm"
               disabled={loading}
             >
-              <option value="arbitrum-sepolia">Arbitrum Sepolia</option>
+              {SUPPORTED_CHAINS.map((chain) => (
+                <option
+                  key={String(chain.chainId)}
+                  value={String(chain.chainId)}
+                >
+                  {chain.name} {chain.testnet && "(Testnet)"}
+                </option>
+              ))}
             </select>
           </div>
           <Button onClick={handleCreateWallet} disabled={loading}>
@@ -117,4 +119,3 @@ export function WalletDashboard() {
     </div>
   );
 }
-

@@ -4,10 +4,11 @@ import { getAuthToken } from "@dynamic-labs/sdk-react-core";
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:3000";
 
-type Wallet = {
+export type Wallet = {
   id: string;
   address: string;
-  network: string;
+  network: string; // Dynamic network ID
+  chainType?: string; // 'evm', 'solana', etc.
 };
 
 type BalanceResponse = {
@@ -63,10 +64,12 @@ export async function getWallets(): Promise<Wallet[]> {
   });
 }
 
-export async function createWallet(network = "arbitrum-sepolia"): Promise<Wallet> {
+export async function createWallet(
+  chainId: number | string = 421614,
+): Promise<Wallet> {
   return apiRequest<Wallet>("/wallets", {
     method: "POST",
-    body: JSON.stringify({ network }),
+    body: JSON.stringify({ chainId }),
   });
 }
 
@@ -96,4 +99,3 @@ export async function sendTransaction(
     body: JSON.stringify({ to, amount }),
   });
 }
-

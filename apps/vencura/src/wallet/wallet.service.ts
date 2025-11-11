@@ -1,27 +1,23 @@
-import { Injectable, NotFoundException, Inject } from '@nestjs/common';
-import { ConfigService } from '@nestjs/config';
 import {
-  createWalletClient,
-  createPublicClient,
-  http,
-  formatEther,
-  parseEther,
-  type LocalAccount,
-  type Hex,
-  type TypedData,
-  type SignableMessage,
-  type TransactionSerializable,
-} from 'viem';
-import { arbitrumSepolia } from 'viem/chains';
-import type { DynamicEvmWalletClient } from '@dynamic-labs-wallet/node-evm';
+  Injectable,
+  NotFoundException,
+  BadRequestException,
+  Inject,
+} from '@nestjs/common';
+import { ConfigService } from '@nestjs/config';
 import { EncryptionService } from '../common/encryption.service';
+import {
+  getChainMetadata,
+  getDynamicNetworkId,
+  isSupportedChain,
+  getChainType,
+} from '../common/chains';
+import { WalletClientFactory } from './clients/wallet-client-factory';
 import * as schema from '../database/schema';
 import { eq, and } from 'drizzle-orm';
 
 @Injectable()
 export class WalletService {
-  private dynamicEvmClient: DynamicEvmWalletClient | null = null;
-
   constructor(
     @Inject('DATABASE')
     private readonly db: ReturnType<
@@ -29,44 +25,47 @@ export class WalletService {
     >,
     private readonly encryptionService: EncryptionService,
     private readonly configService: ConfigService,
+    private readonly walletClientFactory: WalletClientFactory,
   ) {}
 
-  private async getDynamicEvmClient(): Promise<DynamicEvmWalletClient> {
-    if (this.dynamicEvmClient) {
-      return this.dynamicEvmClient;
+  async createWallet(userId: string, chainId: number | string) {
+    // Validate chain is supported
+    if (!isSupportedChain(chainId)) {
+      throw new BadRequestException(
+        `Unsupported chain: ${chainId}. Please provide a valid chain ID or Dynamic network ID.`,
+      );
     }
 
-    const environmentId = this.configService.get<string>(
-      'dynamic.environmentId',
-    );
-    const apiToken = this.configService.get<string>('dynamic.apiToken');
-
-    if (!environmentId || !apiToken) {
-      throw new Error('Dynamic configuration is not set');
+    // Get chain metadata and Dynamic network ID
+    const chainMetadata = getChainMetadata(chainId);
+    if (!chainMetadata) {
+      throw new BadRequestException(`Invalid chain: ${chainId}`);
     }
 
-    // Use dynamic import for CommonJS module
-    const { DynamicEvmWalletClient: DynamicEvmWalletClientClass } =
-      await import('@dynamic-labs-wallet/node-evm');
-    this.dynamicEvmClient = new DynamicEvmWalletClientClass({ environmentId });
-    await this.dynamicEvmClient.authenticateApiToken(apiToken);
+    const dynamicNetworkId = getDynamicNetworkId(chainId);
+    if (!dynamicNetworkId) {
+      throw new BadRequestException(
+        `Could not determine Dynamic network ID for chain: ${chainId}`,
+      );
+    }
 
-    return this.dynamicEvmClient;
-  }
+    const chainType = getChainType(chainId);
+    if (!chainType) {
+      throw new BadRequestException(
+        `Could not determine chain type for chain: ${chainId}`,
+      );
+    }
 
-  async createWallet(userId: string, network = 'arbitrum-sepolia') {
-    const dynamicEvmClient = await this.getDynamicEvmClient();
+    // Get appropriate wallet client
+    const walletClient = this.walletClientFactory.createWalletClient(chainId);
+    if (!walletClient) {
+      throw new BadRequestException(
+        `Wallet client not available for chain: ${chainId}`,
+      );
+    }
 
-    // Use dynamic import for CommonJS module
-    const { ThresholdSignatureScheme } = await import(
-      '@dynamic-labs-wallet/node'
-    );
-
-    // Create a new server-side wallet using Dynamic
-    const wallet = await dynamicEvmClient.createWalletAccount({
-      thresholdSignatureScheme: ThresholdSignatureScheme.TWO_OF_TWO,
-      backUpToClientShareService: false,
-    });
+    // Create wallet using chain-specific client
+    const wallet = await walletClient.createWallet();
 
     // Encrypt and store the key shares
     const keySharesEncrypted = await this.encryptionService.encrypt(
@@ -80,13 +79,15 @@ export class WalletService {
       userId,
       address: wallet.accountAddress,
       privateKeyEncrypted: keySharesEncrypted,
-      network,
+      network: dynamicNetworkId,
+      chainType,
     });
 
     return {
       id: walletId,
       address: wallet.accountAddress,
-      network,
+      network: dynamicNetworkId,
+      chainType,
     };
   }
 
@@ -96,6 +97,7 @@ export class WalletService {
         id: schema.wallets.id,
         address: schema.wallets.address,
         network: schema.wallets.network,
+        chainType: schema.wallets.chainType,
       })
       .from(schema.wallets)
       .where(eq(schema.wallets.userId, userId));
@@ -116,23 +118,18 @@ export class WalletService {
       throw new NotFoundException('Wallet not found');
     }
 
-    const rpcUrl = this.configService.get<string>('blockchain.rpcUrl');
-    if (!rpcUrl) {
-      throw new Error('ARBITRUM_SEPOLIA_RPC_URL is not set');
+    // Get appropriate wallet client based on stored network/chain type
+    const walletClient = this.walletClientFactory.createWalletClient(
+      wallet.network,
+    );
+    if (!walletClient) {
+      throw new BadRequestException(
+        `Wallet client not available for network: ${wallet.network}`,
+      );
     }
 
-    const client = createPublicClient({
-      chain: arbitrumSepolia,
-      transport: http(rpcUrl),
-    });
-
-    const balance = await client.getBalance({
-      address: wallet.address as `0x${string}`,
-    });
-
-    return {
-      balance: parseFloat(formatEther(balance)),
-    };
+    // Get balance using chain-specific client
+    return await walletClient.getBalance(wallet.address);
   }
 
   async signMessage(walletId: string, userId: string, message: string) {
@@ -153,17 +150,22 @@ export class WalletService {
     );
     const externalServerKeyShares = JSON.parse(keySharesEncrypted) as string[];
 
-    const dynamicEvmClient = await this.getDynamicEvmClient();
+    // Get appropriate wallet client based on stored network/chain type
+    const walletClient = this.walletClientFactory.createWalletClient(
+      wallet.network,
+    );
+    if (!walletClient) {
+      throw new BadRequestException(
+        `Wallet client not available for network: ${wallet.network}`,
+      );
+    }
 
-    const signature = await dynamicEvmClient.signMessage({
-      accountAddress: wallet.address,
+    // Sign message using chain-specific client
+    return await walletClient.signMessage(
+      wallet.address,
       externalServerKeyShares,
       message,
-    });
-
-    return {
-      signedMessage: signature,
-    };
+    );
   }
 
   async sendTransaction(
@@ -189,77 +191,24 @@ export class WalletService {
     );
     const externalServerKeyShares = JSON.parse(keySharesEncrypted) as string[];
 
-    const rpcUrl = this.configService.get<string>('blockchain.rpcUrl');
-    if (!rpcUrl) {
-      throw new Error('ARBITRUM_SEPOLIA_RPC_URL is not set');
+    // Get appropriate wallet client based on stored network/chain type
+    const walletClient = this.walletClientFactory.createWalletClient(
+      wallet.network,
+    );
+    if (!walletClient) {
+      throw new BadRequestException(
+        `Wallet client not available for network: ${wallet.network}`,
+      );
     }
 
-    const dynamicEvmClient = await this.getDynamicEvmClient();
-
-    // Helper to convert SignableMessage to string for Dynamic SDK
-    const messageToString = (message: SignableMessage): string => {
-      if (typeof message === 'string') return message;
-      if (message instanceof Uint8Array) {
-        return new TextDecoder().decode(message);
-      }
-      if ('raw' in message) {
-        if (typeof message.raw === 'string') return message.raw;
-        return new TextDecoder().decode(message.raw);
-      }
-      return String(message);
-    };
-
-    // Create a wallet account that can sign transactions
-    const account = {
-      address: wallet.address as `0x${string}`,
-      type: 'local' as const,
-      signMessage: async ({ message }: { message: SignableMessage }) => {
-        const messageStr = messageToString(message);
-        return (await dynamicEvmClient.signMessage({
-          accountAddress: wallet.address,
-          externalServerKeyShares,
-          message: messageStr,
-        })) as Hex;
+    // Send transaction using chain-specific client
+    return await walletClient.sendTransaction(
+      wallet.address,
+      externalServerKeyShares,
+      {
+        to,
+        amount,
       },
-      signTypedData: async <
-        const TTypedData extends TypedData | { [key: string]: unknown },
-      >(
-        parameters: TTypedData,
-      ) => {
-        return (await dynamicEvmClient.signTypedData({
-          accountAddress: wallet.address,
-          externalServerKeyShares,
-          typedData: parameters,
-        })) as Hex;
-      },
-      signTransaction: async <
-        serializer extends any = any,
-        transaction extends TransactionSerializable = TransactionSerializable,
-      >(
-        transaction: transaction,
-        _options?: { serializer?: serializer },
-      ) => {
-        return (await dynamicEvmClient.signTransaction({
-          senderAddress: wallet.address,
-          externalServerKeyShares,
-          transaction: transaction as any,
-        })) as Hex;
-      },
-    } as LocalAccount;
-
-    const walletClient = createWalletClient({
-      account,
-      chain: arbitrumSepolia,
-      transport: http(rpcUrl),
-    });
-
-    const hash = await walletClient.sendTransaction({
-      to: to as `0x${string}`,
-      value: parseEther(amount.toString()),
-    });
-
-    return {
-      transactionHash: hash,
-    };
+    );
   }
 }
