@@ -1,0 +1,13 @@
+config:
+  # gcp:project and gcp:region are automatically read from environment variables
+  # Priority: 1) GCP_PROJECT_ID/GCP_REGION env vars (from .env or CI/CD), 2) Pulumi config
+  # For local development: Create .env file with GCP_PROJECT_ID and GCP_REGION
+  # For CI/CD: Set via GitHub secrets (GCP_PROJECT_ID, GCP_REGION)
+  # Fallback: Set via pulumi config set gcp:project <project-id>
+  vencura:environment: dev
+  vencura:cloudSqlTier: db-f1-micro
+  vencura:cloudRunCpu: "1"
+  vencura:cloudRunMemory: 512Mi
+  vencura:cloudRunMinInstances: "1"
+  vencura:cloudRunMaxInstances: "2"
+

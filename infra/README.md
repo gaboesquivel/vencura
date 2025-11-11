@@ -1,0 +1,737 @@
+# Vencura Infrastructure
+
+Production-grade infrastructure-as-code for the Vencura API using Pulumi and Google Cloud Platform.
+
+## Overview
+
+This directory contains Pulumi TypeScript infrastructure code for deploying the Vencura NestJS API to Google Cloud Run with Cloud SQL Postgres, VPC networking, Secret Manager, and secure service accounts.
+
+## Architecture Decisions
+
+- **[ADR 007: Vencura API Infrastructure](../.adrs/007-vencura-api-infrastructure.md)** - Decision to use Google Cloud Run
+- **[ADR 010: Vencura Infrastructure Orchestration](../.adrs/010-vencura-infra-orchestration.md)** - Decision to use Pulumi for infrastructure orchestration
+
+## Structure
+
+```
+/infra
+  /vencura
+    Pulumi.yaml                    # Pulumi project config
+    Pulumi.dev.yaml               # Dev stack config
+    Pulumi.prod.yaml               # Prod stack config
+    package.json                   # Pulumi dependencies
+    tsconfig.json                  # TypeScript config
+    index.ts                       # Main Pulumi program
+    /lib
+      config.ts                    # Environment-aware configuration
+      network.ts                   # VPC, subnet, VPC Connector
+      database.ts                  # Cloud SQL Postgres (private IP)
+      secrets.ts                   # Secret Manager
+      service-accounts.ts         # IAM with least privilege
+      artifact-registry.ts         # Artifact Registry repository
+      cloud-run.ts                 # Cloud Run service
+      outputs.ts                   # Stack outputs
+    /utils
+      helpers.ts                   # Utility functions
+```
+
+## Prerequisites
+
+- Node.js >= 20.0.0
+- pnpm >= 10.4.1
+- Pulumi CLI (latest)
+- Google Cloud SDK (`gcloud`)
+- GCP project with billing enabled
+- Pulumi Cloud account (or self-hosted state backend)
+- GitHub repository with Actions enabled
+- GitHub secrets configured (see First-Time Setup below)
+
+**Note**: The infrastructure code uses `dotenv` to load environment variables from `.env` files for local development. The `dotenv` package is included in dependencies and automatically loads `.env` files when running Pulumi commands locally.
+
+## Infrastructure Management Strategy
+
+### 🎯 Overview
+
+**After initial setup, GitHub Actions workflows automatically manage all infrastructure changes** to keep code and infrastructure in sync. You do not need to run Pulumi commands manually for routine deployments.
+
+### What's Automated by GitHub Workflows
+
+✅ **All infrastructure provisioning and updates**  
+✅ **Container image builds and pushes**  
+✅ **Cloud Run service deployments**  
+✅ **Infrastructure change previews**  
+✅ **Stack output retrieval**  
+✅ **Health checks (production only)**
+
+### What You Do on Your Computer
+
+🖥️ **One-time initial setup** (see First-Time Setup below)  
+🖥️ **Local testing** of infrastructure changes before committing  
+🖥️ **Emergency fixes** or troubleshooting  
+🖥️ **Destroying infrastructure** (rare, typically for cleanup)
+
+### How It Works
+
+#### 1. Pull Request Deployments (Ephemeral)
+
+- **Trigger**: PR open/update
+- **What Happens**:
+  - ✅ Workflow builds Docker image
+  - ✅ Workflow pushes to Artifact Registry
+  - ✅ Workflow deploys to temporary Cloud Run service (`vencura-pr-{number}`)
+  - ✅ Uses PGLite (embedded database) - no Cloud SQL needed
+  - ✅ Automatically cleaned up when PR is closed/merged
+- **Infrastructure Changes**: ❌ None - just deploys the application
+- **Manual Steps Required**: ❌ None
+
+#### 2. Development Deployments (Persistent)
+
+- **Trigger**: Push to `main` branch
+- **What Happens**:
+  - ✅ Workflow builds Docker image
+  - ✅ Workflow pushes to Artifact Registry
+  - ✅ Workflow runs `pulumi preview` to show infrastructure changes
+  - ✅ Workflow runs `pulumi up --yes` to apply infrastructure changes
+  - ✅ Workflow updates Cloud Run service with new container image
+  - ✅ Workflow retrieves infrastructure outputs (URLs, connection strings, etc.)
+- **Infrastructure Changes**: ✅ Fully automated - infrastructure stays in sync with code
+- **Manual Steps Required**: ❌ None (after initial setup)
+
+#### 3. Production Deployments (Persistent)
+
+- **Trigger**: Manual workflow dispatch (requires typing "deploy" to confirm)
+- **What Happens**:
+  - ✅ Workflow validates confirmation
+  - ✅ Workflow builds Docker image
+  - ✅ Workflow pushes to Artifact Registry
+  - ✅ Workflow runs `pulumi preview` to show infrastructure changes
+  - ✅ Workflow runs `pulumi up --yes` to apply infrastructure changes
+  - ✅ Workflow updates Cloud Run service with new container image
+  - ✅ Workflow runs health checks after deployment
+  - ✅ Workflow retrieves infrastructure outputs
+- **Infrastructure Changes**: ✅ Fully automated - infrastructure stays in sync with code
+- **Manual Steps Required**: ✅ Manual trigger (safety measure)
+
+### Benefits of This Strategy
+
+- ✅ **Infrastructure as Code**: All infrastructure changes are version-controlled
+- ✅ **Automatic Sync**: Code and infrastructure always stay in sync
+- ✅ **Consistent Deployments**: Same process for all team members
+- ✅ **Audit Trail**: All changes tracked in Pulumi state and GitHub
+- ✅ **Safe Changes**: Preview runs before applying changes
+- ✅ **No Manual Steps**: After setup, everything is automated
+
+## First-Time Setup
+
+> ⚠️ **This is a one-time setup** required before the GitHub workflows can manage infrastructure automatically. After completing these steps, all future infrastructure changes will be handled by GitHub Actions.
+
+### Step 1: Install Dependencies (On Your Computer)
+
+```bash
+cd infra/vencura
+pnpm install
+```
+
+### Step 2: Login to Pulumi (On Your Computer)
+
+```bash
+pulumi login
+```
+
+This authenticates with Pulumi Cloud (or your self-hosted backend) to store infrastructure state.
+
+### Step 3: Create Pulumi Stacks (On Your Computer)
+
+Create the dev and prod stacks if they don't already exist:
+
+```bash
+# Create dev stack
+pulumi stack init dev
+
+# Create prod stack
+pulumi stack init prod
+```
+
+### Step 4: Configure GCP Project Settings (On Your Computer)
+
+Configure GCP project and region. The infrastructure code reads these values in this priority order:
+
+1. **Environment variables** (`GCP_PROJECT_ID`, `GCP_REGION`) - Highest priority
+2. **Pulumi config** (`gcp:project`, `gcp:region`) - Fallback if env vars not set
+
+**Option A: Using .env file (Recommended for Local Development)**
+
+The infrastructure code uses `dotenv` to automatically load environment variables from a `.env` file. Create a `.env` file in `infra/vencura/` directory:
+
+```bash
+cd infra/vencura
+cat > .env << EOF
+GCP_PROJECT_ID=your-gcp-project-id
+GCP_REGION=us-central1
+EOF
+```
+
+**How it works:**
+
+- The `index.ts` file automatically loads `.env` using `dotenv.config()`
+- Environment variables from `.env` are loaded before Pulumi config is read
+- This makes local development easy - just create `.env` and run Pulumi commands
+- **Important**: Make sure `.env` is in `.gitignore` (it should be by default) - never commit this file
+
+**Option B: Using Pulumi Config (Alternative)**
+
+If you prefer not to use `.env`, you can set values directly in Pulumi config:
+
+```bash
+pulumi stack select dev
+pulumi config set gcp:project your-gcp-project-id
+pulumi config set gcp:region us-central1
+
+pulumi stack select prod
+pulumi config set gcp:project your-gcp-project-id
+pulumi config set gcp:region us-central1
+```
+
+**Note**: The `vencura:environment` setting is already configured in `Pulumi.dev.yaml` and `Pulumi.prod.yaml` - you don't need to change it.
+
+**For CI/CD**: GitHub workflows automatically set `GCP_PROJECT_ID` and `GCP_REGION` as environment variables from GitHub secrets, so no `.env` file is needed in CI/CD.
+
+### Step 5: Configure GitHub Secrets (On GitHub Website)
+
+The GitHub workflows require these secrets to be configured in your repository. **Do this on GitHub, not your computer:**
+
+1. Go to your GitHub repository
+2. Navigate to **Settings** → **Secrets and variables** → **Actions**
+3. Click **New repository secret** and add each secret below
+
+**Required Secrets:**
+
+- `GCP_PROJECT_ID`: Your GCP project ID
+- `GCP_REGION`: GCP region (default: `us-central1`)
+- `GCP_ARTIFACT_REGISTRY`: Artifact Registry repository name (default: `vencura`)
+- `PULUMI_ACCESS_TOKEN`: Pulumi access token (get from [Pulumi Cloud](https://app.pulumi.com/account/tokens))
+- `WIF_PROVIDER`: Workload Identity Federation provider
+- `WIF_SERVICE_ACCOUNT`: Workload Identity Federation service account email
+
+**Application Secrets (for ephemeral PR deployments):**
+
+- `DYNAMIC_ENVIRONMENT_ID`: Dynamic environment ID
+- `DYNAMIC_API_TOKEN`: Dynamic API token
+- `ARBITRUM_SEPOLIA_RPC_URL`: Arbitrum Sepolia RPC URL
+- `ENCRYPTION_KEY`: Encryption key
+
+### Step 6: Initial Infrastructure Creation
+
+You have two options:
+
+#### Option A: Let GitHub Workflow Create Infrastructure (Recommended)
+
+1. Commit and push your code to `main` branch
+2. The workflow will automatically create all infrastructure on first run
+3. Monitor the workflow run in GitHub Actions tab to ensure success
+4. **No manual Pulumi commands needed** ✅
+
+#### Option B: Create Infrastructure Locally First (For Testing)
+
+If you want to test locally before pushing:
+
+```bash
+# Select dev stack
+pulumi stack select dev
+
+# Preview what will be created
+pulumi preview
+
+# Create infrastructure
+pulumi up
+
+# Repeat for prod if needed
+pulumi stack select prod
+pulumi preview
+pulumi up
+```
+
+### Step 7: Configure Secrets in Secret Manager (On Your Computer)
+
+After infrastructure is created (either by workflow or locally), update secret values in Google Cloud Secret Manager. The infrastructure creates secrets with placeholder values that need to be updated:
+
+```bash
+# For dev environment
+gcloud secrets versions add vencura-dev-dynamic-environment-id --data-file=- <<< "your-value"
+gcloud secrets versions add vencura-dev-dynamic-api-token --data-file=- <<< "your-value"
+gcloud secrets versions add vencura-dev-arbitrum-sepolia-rpc-url --data-file=- <<< "your-value"
+gcloud secrets versions add vencura-dev-encryption-key --data-file=- <<< "your-value"
+
+# For prod environment (if created)
+gcloud secrets versions add vencura-prod-dynamic-environment-id --data-file=- <<< "your-value"
+gcloud secrets versions add vencura-prod-dynamic-api-token --data-file=- <<< "your-value"
+gcloud secrets versions add vencura-prod-arbitrum-sepolia-rpc-url --data-file=- <<< "your-value"
+gcloud secrets versions add vencura-prod-encryption-key --data-file=- <<< "your-value"
+```
+
+**Note**: Database password is auto-generated and stored automatically by Pulumi - no manual step needed.
+
+### Step 8: Verify Setup
+
+1. **Check that stacks exist** (On Your Computer):
+
+   ```bash
+   pulumi stack ls
+   ```
+
+2. **Verify GitHub workflow can access Pulumi** (On GitHub Website):
+   - Push a small change to `main` branch
+   - Check the "Deploy to Dev" workflow run
+   - It should successfully run `pulumi preview` and `pulumi up`
+
+3. **Verify infrastructure outputs** (On Your Computer):
+   ```bash
+   pulumi stack select dev
+   pulumi stack output
+   ```
+
+## Usage
+
+### Manual Commands (For Local Testing)
+
+After initial setup, you typically won't need these, but they're useful for local testing:
+
+#### Preview Changes
+
+```bash
+pulumi preview
+```
+
+#### Deploy Infrastructure
+
+```bash
+pulumi up
+```
+
+#### Destroy Infrastructure
+
+```bash
+pulumi destroy
+```
+
+⚠️ **Warning**: Only destroy infrastructure if you're certain you want to delete everything. This is typically only done for cleanup or testing.
+
+#### View Stack Outputs
+
+```bash
+pulumi stack output
+```
+
+Or get specific outputs:
+
+```bash
+pulumi stack output cloudRunUrl
+pulumi stack output databaseConnectionName
+```
+
+### GitHub Workflow Commands (Automatic)
+
+Once setup is complete, infrastructure changes happen automatically:
+
+1. **Make changes** to infrastructure code in `infra/vencura/`
+2. **Commit and push** to `main` (for dev) or trigger production workflow
+3. **GitHub Actions** automatically:
+   - Runs `pulumi preview` to show changes
+   - Runs `pulumi up` to apply changes
+   - Updates Cloud Run service with new image
+4. **Monitor** the workflow run in GitHub Actions tab
+
+## Environments
+
+### Development (`dev`)
+
+- **Cloud SQL**: `db-f1-micro` (minimal resources)
+- **Cloud Run**: 1 CPU, 512Mi memory, 0-2 instances
+- **Backups**: Disabled
+- **HA**: Disabled
+- **Deletion Protection**: Disabled
+- **Auto-deploy**: On push to `main` branch (✅ Automated by GitHub workflow)
+
+### Production (`prod`)
+
+- **Cloud SQL**: `db-g1-small` (configurable)
+- **Cloud Run**: 2 CPU, 1Gi memory, 1-10 instances
+- **Backups**: Enabled (7-day retention)
+- **HA**: Enabled (regional)
+- **Deletion Protection**: Enabled
+- **Auto-deploy**: Manual workflow dispatch (requires confirmation) (✅ Automated by GitHub workflow after trigger)
+
+## Security Features
+
+### Private IP & Networking
+
+- Cloud SQL uses **private IP only** (no public IP)
+- Dedicated VPC (not default) for isolation
+- VPC Connector with minimal egress (Cloud SQL only)
+- Private Service Connection for Cloud SQL
+- Firewall rules: explicit deny-all, allow Cloud SQL only
+
+### IAM Least Privilege
+
+- **Cloud Run Service Account**:
+  - `roles/secretmanager.secretAccessor` (scoped to specific secrets)
+  - `roles/cloudsql.client` (Cloud SQL connection only)
+
+- **CI/CD Service Account**:
+  - `roles/artifactregistry.writer` (push images)
+  - `roles/run.admin` (deploy services)
+  - `roles/secretmanager.secretAccessor` (read secrets)
+
+- **No** project-level permissions
+- Separate service accounts per environment
+
+### Secrets Handling
+
+- All sensitive values in Secret Manager
+- Secrets referenced via `secretAccessor` (not embedded)
+- Database password auto-generated and stored in Secret Manager
+- IAM conditions on secret access (limit to specific secrets)
+- Secret versions for rotation support
+- Replication policy (automatic)
+
+## CI/CD Integration
+
+The infrastructure is fully integrated with GitHub Actions workflows. See the [Infrastructure Management Strategy](#infrastructure-management-strategy) section above for details.
+
+### Workflow Files
+
+- **`.github/workflows/deploy-dev.yml`**: Handles dev deployments and PR previews
+- **`.github/workflows/deploy-prod.yml`**: Handles production deployments
+
+### How Workflows Handle Configuration
+
+**Configuration Priority (highest to lowest):**
+
+1. **Environment variables** (`GCP_PROJECT_ID`, `GCP_REGION`) - Set by GitHub workflows or `.env` file
+2. **Pulumi config** (`gcp:project`, `gcp:region`) - Fallback option
+
+**GitHub Actions workflows:**
+
+- Workflows read `GCP_PROJECT_ID` and `GCP_REGION` from GitHub repository secrets
+- These are set as environment variables in the workflow (`env: PROJECT_ID`, `env: REGION`)
+- Pulumi commands run with these environment variables set
+- The infrastructure code (`lib/config.ts`) reads from `process.env.GCP_PROJECT_ID` and `process.env.GCP_REGION` first
+
+**Local development:**
+
+- Create `.env` file in `infra/vencura/` with `GCP_PROJECT_ID` and `GCP_REGION`
+- The `index.ts` file automatically loads `.env` using `dotenv.config()`
+- Environment variables from `.env` are loaded before Pulumi config is read
+
+**This means:**
+
+- ✅ **Local development**: Use `.env` file (loaded automatically via dotenv)
+- ✅ **CI/CD**: Uses GitHub secrets (set as environment variables in workflows)
+- ✅ **No manual Pulumi config needed**: Environment variables take precedence over Pulumi config
+
+### Workflow Behavior
+
+**Ephemeral PR Deployments:**
+
+- **Trigger**: PR open/update
+- **What's Automated**: ✅ Builds image, pushes to registry, deploys to Cloud Run
+- **Infrastructure**: Uses `gcloud` CLI directly (no Pulumi), uses PGLite (embedded database)
+- **Manual Steps**: ❌ None - fully automated
+
+**Persistent Dev Deployments:**
+
+- **Trigger**: Push to `main` branch
+- **What's Automated**: ✅ Builds image, pushes to registry, runs `pulumi preview`, runs `pulumi up`, updates Cloud Run service, retrieves outputs
+- **Infrastructure**: Fully managed by Pulumi (provisions/updates all resources)
+- **Manual Steps**: ❌ None - fully automated (after initial setup)
+
+**Production Deployments:**
+
+- **Trigger**: Manual workflow dispatch (requires typing "deploy" to confirm)
+- **What's Automated**: ✅ Validates confirmation, builds image, pushes to registry, runs `pulumi preview`, runs `pulumi up`, updates Cloud Run service, runs health checks, retrieves outputs
+- **Infrastructure**: Fully managed by Pulumi (provisions/updates all resources)
+- **Manual Steps**: ✅ Manual trigger only (safety measure) - everything else is automated
+
+## Resource Naming
+
+All resources follow the pattern: `{app}-{env}-{resource}`
+
+Examples:
+
+- `vencura-dev-vpc`
+- `vencura-dev-db`
+- `vencura-dev-api`
+- `vencura-prod-vpc`
+- `vencura-prod-db`
+- `vencura-prod-api`
+
+## Stack Outputs
+
+After deployment, the following outputs are available:
+
+- `cloudRunUrl`: Cloud Run service URL
+- `databaseConnectionName`: Cloud SQL connection name (`/cloudsql/{project}:{region}:{instance}`)
+- `cloudRunServiceAccountEmail`: Cloud Run service account email
+- `cicdServiceAccountEmail`: CI/CD service account email
+- `secretNames`: Object with all secret names
+- `vpcConnectorName`: VPC Connector name
+- `artifactRegistryUrl`: Artifact Registry repository URL
+- `environment`: Environment name (dev/prod)
+- `projectId`: GCP project ID
+- `region`: GCP region
+
+Access outputs:
+
+```bash
+pulumi stack output cloudRunUrl
+pulumi stack output databaseConnectionName
+```
+
+Or view all outputs:
+
+```bash
+pulumi stack output
+```
+
+**Note**: After GitHub workflow deployments, outputs are automatically retrieved and used by the workflow. You can also view them locally using the commands above.
+
+## Troubleshooting
+
+### Common Issues
+
+**Issue**: `Error: failed to create VPC connector`
+
+- **Solution**: Ensure the VPC has proper subnet configuration and private IP ranges
+
+**Issue**: `Error: failed to create Cloud SQL instance`
+
+- **Solution**: Check that Private Service Connection is established and VPC is properly configured
+
+**Issue**: `Error: secret not found`
+
+- **Solution**: Ensure secrets are created in Secret Manager with correct names matching the environment
+
+**Issue**: `Error: service account lacks permissions`
+
+- **Solution**: Verify IAM bindings are correctly applied and service accounts have required roles
+
+**Issue**: `Error: PULUMI_ACCESS_TOKEN not set` (in GitHub workflow)
+
+- **Solution**: Add `PULUMI_ACCESS_TOKEN` secret to GitHub repository secrets (Settings → Secrets and variables → Actions)
+
+**Issue**: `Error: stack not found` (in GitHub workflow)
+
+- **Solution**: Ensure stacks are created on your computer first (`pulumi stack init dev` and `pulumi stack init prod`)
+
+**Issue**: Workflow fails with authentication errors
+
+- **Solution**: Verify Workload Identity Federation is configured correctly and `WIF_PROVIDER` and `WIF_SERVICE_ACCOUNT` secrets are set in GitHub
+
+**Issue**: Workflow runs but infrastructure doesn't update
+
+- **Solution**: Check workflow logs for `pulumi preview` output - it will show what changes (if any) will be applied. If no changes are shown, infrastructure is already in sync.
+
+**Issue**: Workflow succeeds but Cloud Run service not accessible
+
+- **Solution**: Check that secrets in Secret Manager have actual values (not placeholders), and verify service account has proper IAM permissions
+
+## Architecture Diagrams
+
+### Network Topology
+
+```
+┌─────────────────────────────────────────────────────────────┐
+│                    Google Cloud Platform                     │
+│                                                              │
+│  ┌──────────────────────────────────────────────────────┐  │
+│  │              Dedicated VPC (vencura-{env}-vpc)        │  │
+│  │                                                         │  │
+│  │  ┌─────────────────────────────────────────────────┐ │  │
+│  │  │  Private Subnet (10.0.0.0/24)                   │ │  │
+│  │  │  ┌───────────────────────────────────────────┐  │ │  │
+│  │  │  │  Cloud SQL Postgres (Private IP Only)     │  │ │  │
+│  │  │  │  - No public IP                            │  │ │  │
+│  │  │  │  - Private Service Connection              │  │ │  │
+│  │  │  └───────────────────────────────────────────┘  │ │  │
+│  │  └─────────────────────────────────────────────────┘ │  │
+│  │                                                         │  │
+│  │  ┌─────────────────────────────────────────────────┐ │  │
+│  │  │  VPC Connector (10.8.0.0/28)                    │ │  │
+│  │  │  - Serverless VPC Access                        │ │  │
+│  │  │  - Egress: private-ranges-only                 │ │  │
+│  │  └─────────────────────────────────────────────────┘ │  │
+│  └──────────────────────────────────────────────────────┘  │
+│                                                              │
+│  ┌──────────────────────────────────────────────────────┐  │
+│  │  Cloud Run Service                                    │  │
+│  │  - Connected via VPC Connector                       │  │
+│  │  - Accesses Cloud SQL via Unix socket                │  │
+│  └──────────────────────────────────────────────────────┘  │
+│                                                              │
+│  ┌──────────────────────────────────────────────────────┐  │
+│  │  Secret Manager                                       │  │
+│  │  - Environment-prefixed secrets                       │  │
+│  │  - Accessed via service account                      │  │
+│  └──────────────────────────────────────────────────────┘  │
+│                                                              │
+│  ┌──────────────────────────────────────────────────────┐  │
+│  │  Artifact Registry                                    │  │
+│  │  - Docker repository                                  │  │
+│  │  - Container images                                   │  │
+│  └──────────────────────────────────────────────────────┘  │
+└─────────────────────────────────────────────────────────────┘
+```
+
+### Resource Relationships
+
+```
+┌──────────────┐
+│   Config     │
+│  (lib/config)│
+└──────┬───────┘
+       │
+       ├─────────────────────────────────────┐
+       │                                     │
+       ▼                                     ▼
+┌──────────────┐                    ┌──────────────┐
+│   Network    │                    │   Secrets    │
+│ (lib/network)│                    │(lib/secrets) │
+└──────┬───────┘                    └──────┬───────┘
+       │                                     │
+       │                                     │
+       ▼                                     ▼
+┌──────────────┐                    ┌──────────────────┐
+│  Database    │                    │ Service Accounts │
+│(lib/database)│                    │(lib/service-     │
+└──────┬───────┘                    │  accounts)       │
+       │                            └──────┬───────────┘
+       │                                     │
+       │                                     │
+       ├─────────────────────────────────────┤
+       │                                     │
+       ▼                                     ▼
+┌──────────────┐                    ┌──────────────────┐
+│Artifact      │                    │   Cloud Run      │
+│Registry      │                    │ (lib/cloud-run)  │
+│(lib/artifact-│                    │                  │
+│ registry)    │                    └──────────────────┘
+└──────────────┘
+```
+
+### Deployment Flow
+
+```
+┌─────────────────────────────────────────────────────────────┐
+│                    GitHub Actions Workflow                   │
+└─────────────────────────────────────────────────────────────┘
+                            │
+                            ▼
+        ┌───────────────────────────────────────┐
+        │  Determine Deployment Type            │
+        └───────────────────────────────────────┘
+                    │                    │
+        ┌───────────┘                    └───────────┐
+        │                                            │
+        ▼                                            ▼
+┌──────────────┐                          ┌──────────────────┐
+│  Ephemeral   │                          │    Persistent    │
+│  (PR)        │                          │  (Main/Prod)     │
+└──────────────┘                          └──────────────────┘
+        │                                            │
+        │                                            │
+        ▼                                            ▼
+┌──────────────┐                          ┌──────────────────┐
+│ Build Image  │                          │  Build Image     │
+│ (Docker)     │                          │  (Docker)        │
+└──────┬───────┘                          └──────┬───────────┘
+       │                                         │
+       │                                         │
+       ▼                                         ▼
+┌──────────────┐                          ┌──────────────────┐
+│ Push to AR   │                          │  Push to AR      │
+│ (gcloud)     │                          │  (gcloud)        │
+└──────┬───────┘                          └──────┬───────────┘
+       │                                         │
+       │                                         │
+       ▼                                         ▼
+┌──────────────┐                          ┌──────────────────┐
+│ Deploy CR    │                          │  Pulumi Preview  │
+│ (gcloud)     │                          │  (pulumi preview)│
+│ - PGLite     │                          └──────┬───────────┘
+│ - No infra   │                                 │
+└──────────────┘                                 ▼
+                                          ┌──────────────────┐
+                                          │  Pulumi Update   │
+                                          │  (pulumi up)     │
+                                          │  - Provision/    │
+                                          │    Update infra  │
+                                          └──────┬───────────┘
+                                                 │
+                                                 ▼
+                                          ┌──────────────────┐
+                                          │  Update CR Image │
+                                          │  (gcloud update) │
+                                          └──────────────────┘
+```
+
+### Data Flow
+
+```
+┌──────────────┐
+│   Internet   │
+└──────┬───────┘
+       │
+       │ HTTPS
+       ▼
+┌──────────────┐
+│  Cloud Run   │
+│   Service    │
+│              │
+│  ┌────────┐  │
+│  │ NestJS │  │
+│  │  App   │  │
+│  └───┬────┘  │
+└──────┼───────┘
+       │
+       ├──────────────────┬──────────────────┐
+       │                  │                  │
+       ▼                  ▼                  ▼
+┌──────────────┐  ┌──────────────┐  ┌──────────────┐
+│ Secret       │  │  Cloud SQL   │  │  Artifact    │
+│ Manager      │  │  Postgres    │  │  Registry    │
+│              │  │              │  │              │
+│ - Env vars   │  │ - Unix socket│  │ - Container  │
+│ - API keys   │  │ - Private IP │  │   images     │
+│ - DB pass    │  │ - VPC        │  │              │
+└──────────────┘  └──────────────┘  └──────────────┘
+       │                  │
+       │                  │
+       └──────────────────┘
+              │
+              │ Via VPC Connector
+              │ (Private Network)
+              ▼
+```
+
+## Best Practices
+
+1. **Always preview before applying**: Run `pulumi preview` to review changes (automatic in workflows)
+2. **Use separate stacks**: Keep dev and prod environments isolated
+3. **Rotate secrets regularly**: Update secret versions in Secret Manager
+4. **Monitor costs**: Use GCP billing alerts and review resource usage
+5. **Review IAM permissions**: Regularly audit service account permissions
+6. **Backup strategy**: Ensure backups are enabled for production
+7. **Version control**: Commit all infrastructure changes to git
+8. **Documentation**: Update this README when making significant changes
+9. **Test locally first**: Use `pulumi preview` locally before pushing changes to catch issues early
+10. **Monitor workflows**: Check GitHub Actions runs after pushing infrastructure changes to ensure they succeed
+11. **Let workflows handle deployments**: After initial setup, rely on GitHub workflows for all infrastructure changes - don't run `pulumi up` manually unless testing locally
+12. **Review workflow logs**: If something goes wrong, check the workflow logs in GitHub Actions for detailed error messages
+
+## Additional Resources
+
+- [Pulumi Documentation](https://www.pulumi.com/docs/)
+- [Google Cloud Run Documentation](https://cloud.google.com/run/docs)
+- [Cloud SQL Documentation](https://cloud.google.com/sql/docs)
+- [Secret Manager Documentation](https://cloud.google.com/secret-manager/docs)
+- [VPC Connector Documentation](https://cloud.google.com/vpc/docs/configure-serverless-vpc-access)

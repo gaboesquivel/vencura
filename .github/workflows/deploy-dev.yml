@@ -1,0 +1,296 @@
+name: Deploy to Dev
+
+on:
+  pull_request:
+    branches:
+      - main
+    types:
+      - opened
+      - synchronize
+      - reopened
+  push:
+    branches:
+      - main
+
+env:
+  PROJECT_ID: ${{ secrets.GCP_PROJECT_ID }}
+  REGION: ${{ secrets.GCP_REGION || 'us-central1' }}
+  SERVICE_NAME_DEV: vencura-dev
+  ARTIFACT_REGISTRY: ${{ secrets.GCP_ARTIFACT_REGISTRY || 'vencura' }}
+
+jobs:
+  deploy:
+    name: Deploy to Dev Environment
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      pull-requests: write
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup pnpm
+        uses: pnpm/action-setup@v4
+        with:
+          version: 10.4.1
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'pnpm'
+
+      - name: Authenticate to Google Cloud
+        uses: google-github-actions/auth@v2
+        with:
+          workload_identity_provider: ${{ secrets.WIF_PROVIDER }}
+          service_account: ${{ secrets.WIF_SERVICE_ACCOUNT }}
+
+      - name: Set up Cloud SDK
+        uses: google-github-actions/setup-gcloud@v2
+
+      - name: Configure Docker for Artifact Registry
+        run: |
+          gcloud auth configure-docker $REGION-docker.pkg.dev
+
+      - name: Install Pulumi
+        uses: pulumi/actions@v4
+
+      - name: Determine deployment type
+        id: deployment
+        run: |
+          if [ "${{ github.event_name }}" == "pull_request" ]; then
+            PR_NUMBER=${{ github.event.pull_request.number }}
+            echo "type=ephemeral" >> $GITHUB_OUTPUT
+            echo "service_name=vencura-pr-$PR_NUMBER" >> $GITHUB_OUTPUT
+            echo "use_pglite=true" >> $GITHUB_OUTPUT
+          else
+            echo "type=persistent" >> $GITHUB_OUTPUT
+            echo "service_name=$SERVICE_NAME_DEV" >> $GITHUB_OUTPUT
+            echo "use_pglite=false" >> $GITHUB_OUTPUT
+          fi
+
+      - name: Build Docker image
+        working-directory: ./apps/vencura
+        run: |
+          IMAGE_TAG="$REGION-docker.pkg.dev/$PROJECT_ID/$ARTIFACT_REGISTRY/vencura:${{ github.sha }}"
+          docker build -t $IMAGE_TAG .
+          docker push $IMAGE_TAG
+          echo "image=$IMAGE_TAG" >> $GITHUB_ENV
+
+      - name: Create temporary secrets for PR deployment
+        if: steps.deployment.outputs.type == 'ephemeral'
+        id: create-secrets
+        run: |
+          PR_NUMBER=${{ github.event.pull_request.number }}
+          SECRET_PREFIX="vencura-pr-$PR_NUMBER"
+          
+          # Create temporary secrets in Secret Manager
+          # Note: CI/CD service account needs roles/secretmanager.admin or roles/secretmanager.secretAccessor + roles/secretmanager.secretVersionAdder
+          
+          # Create or update secrets (idempotent)
+          echo "${{ secrets.DYNAMIC_ENVIRONMENT_ID }}" | gcloud secrets create ${SECRET_PREFIX}-dynamic-environment-id \
+            --data-file=- \
+            --replication-policy="automatic" \
+            --project=${{ env.PROJECT_ID }} \
+            2>/dev/null || echo "${{ secrets.DYNAMIC_ENVIRONMENT_ID }}" | gcloud secrets versions add ${SECRET_PREFIX}-dynamic-environment-id \
+            --data-file=- \
+            --project=${{ env.PROJECT_ID }}
+          
+          echo "${{ secrets.DYNAMIC_API_TOKEN }}" | gcloud secrets create ${SECRET_PREFIX}-dynamic-api-token \
+            --data-file=- \
+            --replication-policy="automatic" \
+            --project=${{ env.PROJECT_ID }} \
+            2>/dev/null || echo "${{ secrets.DYNAMIC_API_TOKEN }}" | gcloud secrets versions add ${SECRET_PREFIX}-dynamic-api-token \
+            --data-file=- \
+            --project=${{ env.PROJECT_ID }}
+          
+          echo "${{ secrets.ARBITRUM_SEPOLIA_RPC_URL }}" | gcloud secrets create ${SECRET_PREFIX}-arbitrum-sepolia-rpc-url \
+            --data-file=- \
+            --replication-policy="automatic" \
+            --project=${{ env.PROJECT_ID }} \
+            2>/dev/null || echo "${{ secrets.ARBITRUM_SEPOLIA_RPC_URL }}" | gcloud secrets versions add ${SECRET_PREFIX}-arbitrum-sepolia-rpc-url \
+            --data-file=- \
+            --project=${{ env.PROJECT_ID }}
+          
+          echo "${{ secrets.ENCRYPTION_KEY }}" | gcloud secrets create ${SECRET_PREFIX}-encryption-key \
+            --data-file=- \
+            --replication-policy="automatic" \
+            --project=${{ env.PROJECT_ID }} \
+            2>/dev/null || echo "${{ secrets.ENCRYPTION_KEY }}" | gcloud secrets versions add ${SECRET_PREFIX}-encryption-key \
+            --data-file=- \
+            --project=${{ env.PROJECT_ID }}
+          
+          # Grant Cloud Run default compute service account access to these secrets
+          # For ephemeral deployments, Cloud Run uses the default compute service account
+          # Format: {PROJECT_NUMBER}-compute@developer.gserviceaccount.com
+          PROJECT_NUMBER=$(gcloud projects describe ${{ env.PROJECT_ID }} --format="value(projectNumber)")
+          DEFAULT_SA="${PROJECT_NUMBER}-compute@developer.gserviceaccount.com"
+          
+          # Grant access to temporary secrets
+          gcloud secrets add-iam-policy-binding ${SECRET_PREFIX}-dynamic-environment-id \
+            --member="serviceAccount:${DEFAULT_SA}" \
+            --role="roles/secretmanager.secretAccessor" \
+            --project=${{ env.PROJECT_ID }} || true
+          
+          gcloud secrets add-iam-policy-binding ${SECRET_PREFIX}-dynamic-api-token \
+            --member="serviceAccount:${DEFAULT_SA}" \
+            --role="roles/secretmanager.secretAccessor" \
+            --project=${{ env.PROJECT_ID }} || true
+          
+          gcloud secrets add-iam-policy-binding ${SECRET_PREFIX}-arbitrum-sepolia-rpc-url \
+            --member="serviceAccount:${DEFAULT_SA}" \
+            --role="roles/secretmanager.secretAccessor" \
+            --project=${{ env.PROJECT_ID }} || true
+          
+          gcloud secrets add-iam-policy-binding ${SECRET_PREFIX}-encryption-key \
+            --member="serviceAccount:${DEFAULT_SA}" \
+            --role="roles/secretmanager.secretAccessor" \
+            --project=${{ env.PROJECT_ID }} || true
+          
+          echo "service_account=$DEFAULT_SA" >> $GITHUB_OUTPUT
+          
+          echo "secret_prefix=$SECRET_PREFIX" >> $GITHUB_OUTPUT
+
+      - name: Deploy to Cloud Run (Ephemeral PR)
+        if: steps.deployment.outputs.type == 'ephemeral'
+        run: |
+          SECRET_PREFIX="${{ steps.create-secrets.outputs.secret_prefix }}"
+          SERVICE_ACCOUNT="${{ steps.create-secrets.outputs.service_account }}"
+          
+          gcloud run deploy ${{ steps.deployment.outputs.service_name }} \
+            --image ${{ env.image }} \
+            --region ${{ env.REGION }} \
+            --platform managed \
+            --allow-unauthenticated \
+            --service-account="$SERVICE_ACCOUNT" \
+            --port 3000 \
+            --memory 512Mi \
+            --cpu 1 \
+            --min-instances 0 \
+            --max-instances 2 \
+            --set-env-vars "PORT=3000,USE_PGLITE=true" \
+            --set-secrets "DYNAMIC_ENVIRONMENT_ID=${SECRET_PREFIX}-dynamic-environment-id:latest,DYNAMIC_API_TOKEN=${SECRET_PREFIX}-dynamic-api-token:latest,ARBITRUM_SEPOLIA_RPC_URL=${SECRET_PREFIX}-arbitrum-sepolia-rpc-url:latest,ENCRYPTION_KEY=${SECRET_PREFIX}-encryption-key:latest" \
+            --timeout 300 \
+            --quiet
+
+      - name: Install infrastructure dependencies
+        if: steps.deployment.outputs.type == 'persistent'
+        working-directory: ./infra/vencura
+        run: |
+          pnpm install --frozen-lockfile
+
+      - name: Set Pulumi config from environment variables
+        if: steps.deployment.outputs.type == 'persistent'
+        working-directory: ./infra/vencura
+        env:
+          PULUMI_ACCESS_TOKEN: ${{ secrets.PULUMI_ACCESS_TOKEN }}
+        run: |
+          pulumi stack select dev
+          pulumi config set gcp:project ${{ env.PROJECT_ID }} --non-interactive
+          pulumi config set gcp:region ${{ env.REGION }} --non-interactive
+
+      - name: Preview infrastructure changes
+        if: steps.deployment.outputs.type == 'persistent'
+        working-directory: ./infra/vencura
+        env:
+          PULUMI_ACCESS_TOKEN: ${{ secrets.PULUMI_ACCESS_TOKEN }}
+          GCP_PROJECT_ID: ${{ env.PROJECT_ID }}
+          GCP_REGION: ${{ env.REGION }}
+        run: |
+          pulumi stack select dev
+          pulumi preview --non-interactive
+
+      - name: Update infrastructure
+        if: steps.deployment.outputs.type == 'persistent'
+        working-directory: ./infra/vencura
+        env:
+          PULUMI_ACCESS_TOKEN: ${{ secrets.PULUMI_ACCESS_TOKEN }}
+          GCP_PROJECT_ID: ${{ env.PROJECT_ID }}
+          GCP_REGION: ${{ env.REGION }}
+        run: |
+          pulumi stack select dev
+          pulumi up --yes --non-interactive
+
+      - name: Get infrastructure outputs
+        if: steps.deployment.outputs.type == 'persistent'
+        working-directory: ./infra/vencura
+        id: pulumi-outputs
+        env:
+          PULUMI_ACCESS_TOKEN: ${{ secrets.PULUMI_ACCESS_TOKEN }}
+          GCP_PROJECT_ID: ${{ env.PROJECT_ID }}
+          GCP_REGION: ${{ env.REGION }}
+        run: |
+          pulumi stack select dev
+          CLOUD_RUN_URL=$(pulumi stack output cloudRunUrl)
+          DB_CONNECTION=$(pulumi stack output databaseConnectionName)
+          VPC_CONNECTOR=$(pulumi stack output vpcConnectorName)
+          SERVICE_ACCOUNT=$(pulumi stack output cloudRunServiceAccountEmail)
+          
+          echo "cloud_run_url=$CLOUD_RUN_URL" >> $GITHUB_OUTPUT
+          echo "db_connection=$DB_CONNECTION" >> $GITHUB_OUTPUT
+          echo "vpc_connector=$VPC_CONNECTOR" >> $GITHUB_OUTPUT
+          echo "service_account=$SERVICE_ACCOUNT" >> $GITHUB_OUTPUT
+
+      - name: Update Cloud Run service with new image
+        if: steps.deployment.outputs.type == 'persistent'
+        run: |
+          gcloud run services update ${{ steps.deployment.outputs.service_name }} \
+            --image ${{ env.image }} \
+            --region ${{ env.REGION }} \
+            --quiet
+
+      - name: Get service URL
+        id: service-url
+        run: |
+          if [ "${{ steps.deployment.outputs.type }}" == "persistent" ]; then
+            URL="${{ steps.pulumi-outputs.outputs.cloud_run_url }}"
+          else
+            URL=$(gcloud run services describe ${{ steps.deployment.outputs.service_name }} \
+              --region ${{ env.REGION }} \
+              --format 'value(status.url)')
+          fi
+          echo "url=$URL" >> $GITHUB_OUTPUT
+
+      - name: Comment PR with deployment URL
+        if: steps.deployment.outputs.type == 'ephemeral' && github.event_name == 'pull_request'
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const url = '${{ steps.service-url.outputs.url }}';
+            const body = `🚀 **Ephemeral deployment ready!**
+            
+            Preview URL: ${url}
+            
+            This deployment uses PGLite (embedded database) and will be automatically cleaned up when the PR is closed or merged.`;
+
+            github.rest.issues.createComment({
+              issue_number: context.issue.number,
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              body: body
+            });
+
+      - name: Cleanup ephemeral deployment on PR close
+        if: github.event_name == 'pull_request' && github.event.action == 'closed'
+        run: |
+          PR_NUMBER=${{ github.event.pull_request.number }}
+          SERVICE_NAME="vencura-pr-$PR_NUMBER"
+          SECRET_PREFIX="vencura-pr-$PR_NUMBER"
+          
+          # Delete Cloud Run service
+          gcloud run services delete $SERVICE_NAME \
+            --region ${{ env.REGION }} \
+            --quiet || echo "Failed to delete service $SERVICE_NAME"
+          
+          # Delete temporary secrets
+          echo "Cleaning up temporary secrets for PR $PR_NUMBER..."
+          
+          for SECRET_NAME in "${SECRET_PREFIX}-dynamic-environment-id" "${SECRET_PREFIX}-dynamic-api-token" "${SECRET_PREFIX}-arbitrum-sepolia-rpc-url" "${SECRET_PREFIX}-encryption-key"; do
+            gcloud secrets delete $SECRET_NAME \
+              --project=${{ env.PROJECT_ID }} \
+              --quiet || echo "Secret $SECRET_NAME not found or already deleted"
+          done
+          
+          echo "Cleanup completed for PR $PR_NUMBER"
