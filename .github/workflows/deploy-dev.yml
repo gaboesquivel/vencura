@@ -5,6 +5,18 @@ on:
     workflows: ["Quality Checks"]
     types:
       - completed
+  pull_request:
+    branches:
+      - main
+    paths:
+      - 'apps/vencura/**'
+      - '.github/workflows/deploy-dev.yml'
+  push:
+    branches:
+      - main
+    paths:
+      - 'apps/vencura/**'
+      - '.github/workflows/deploy-dev.yml'
 
 env:
   PROJECT_ID: ${{ secrets.GCP_PROJECT_ID }}
@@ -17,7 +29,7 @@ jobs:
   deploy:
     name: Deploy to Dev Environment
     runs-on: ubuntu-latest
-    if: github.event.workflow_run.conclusion == 'success'
+    if: github.event_name != 'workflow_run' || github.event.workflow_run.conclusion == 'success'
     permissions:
       contents: read
       pull-requests: write
@@ -27,7 +39,7 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v4
         with:
-          ref: ${{ github.event.workflow_run.head_sha }}
+          ref: ${{ github.event.workflow_run.head_sha || github.sha }}
 
       - name: Setup pnpm
         uses: pnpm/action-setup@v4
@@ -87,6 +99,11 @@ jobs:
             echo "pr_number=$PR_NUMBER" >> $GITHUB_OUTPUT
             echo "branch_name=$BRANCH_NAME" >> $GITHUB_OUTPUT
             echo "sanitized_branch=$SANITIZED_BRANCH" >> $GITHUB_OUTPUT
+          elif [ "${{ github.event_name }}" == "push" ]; then
+            # Direct push event (to main branch)
+            echo "type=persistent" >> $GITHUB_OUTPUT
+            echo "service_name=$SERVICE_NAME_DEV" >> $GITHUB_OUTPUT
+            echo "use_pglite=false" >> $GITHUB_OUTPUT
           elif [ "${{ github.event_name }}" == "workflow_run" ]; then
             # For workflow_run, check if it was triggered by a PR
             PR_NUMBER="${{ github.event.workflow_run.pull_requests[0].number }}"
@@ -120,7 +137,7 @@ jobs:
       - name: Build Docker image
         working-directory: ./apps/vencura
         run: |
-          COMMIT_SHA="${{ github.event.workflow_run.head_sha }}"
+          COMMIT_SHA="${{ github.event.workflow_run.head_sha || github.sha }}"
           IMAGE_TAG="$REGION-docker.pkg.dev/$PROJECT_ID/$ARTIFACT_REGISTRY/vencura:$COMMIT_SHA"
           docker build -t $IMAGE_TAG .
           docker push $IMAGE_TAG
@@ -491,7 +508,7 @@ jobs:
             const url = '${{ steps.service-url.outputs.url }}';
             const customDomain = process.env.CUSTOM_DOMAIN || '';
             const prNumber = '${{ steps.deployment.outputs.pr_number }}';
-            const commitSha = '${{ github.event.workflow_run.head_sha }}';
+            const commitSha = '${{ github.event.workflow_run.head_sha || github.sha }}';
             const commitShortSha = commitSha.substring(0, 7);
             
             let body = `🚀 **Ephemeral deployment ready!**
