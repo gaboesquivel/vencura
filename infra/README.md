@@ -74,15 +74,18 @@ This directory contains Pulumi TypeScript infrastructure code for deploying the 
 
 #### 1. Pull Request Deployments (Ephemeral)
 
-- **Trigger**: PR open/update
+- **Trigger**: PR open/update (any push to PR branch triggers redeployment)
 - **What Happens**:
   - ✅ Workflow builds Docker image
   - ✅ Workflow pushes to Artifact Registry
   - ✅ Workflow deploys to temporary Cloud Run service (`vencura-pr-{number}`)
   - ✅ Uses PGLite (embedded database) - no Cloud SQL needed
+  - ✅ Posts/updates PR comment with deployment URL
   - ✅ Automatically cleaned up when PR is closed/merged
 - **Infrastructure Changes**: ❌ None - just deploys the application
 - **Manual Steps Required**: ❌ None
+- **Redeployment**: ✅ Automatically redeploys on every push to the PR branch
+- **PR Comments**: ✅ Service URL is posted in a PR comment (updated on each deployment, not duplicated)
 
 #### 2. Development Deployments (Persistent)
 
@@ -574,9 +577,11 @@ The infrastructure is fully integrated with GitHub Actions workflows. See the [I
 
 **Ephemeral PR Deployments:**
 
-- **Trigger**: PR open/update
-- **What's Automated**: ✅ Builds image, pushes to registry, deploys to Cloud Run
+- **Trigger**: PR open/update (any push to PR branch)
+- **What's Automated**: ✅ Builds image, pushes to registry, deploys to Cloud Run, posts/updates PR comment with URL
 - **Infrastructure**: Uses `gcloud` CLI directly (no Pulumi), uses PGLite (embedded database)
+- **Redeployment**: ✅ Automatically redeploys on every push to PR branch
+- **PR Comments**: ✅ Updates existing comment with new deployment URL (prevents comment spam)
 - **Manual Steps**: ❌ None - fully automated
 
 **Persistent Dev Deployments:**

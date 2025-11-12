@@ -281,18 +281,44 @@ jobs:
           script: |
             const url = '${{ steps.service-url.outputs.url }}';
             const prNumber = '${{ steps.deployment.outputs.pr_number }}';
+            const commitSha = '${{ github.event.workflow_run.head_sha || github.sha }}';
+            const commitShortSha = commitSha.substring(0, 7);
             const body = `🚀 **Ephemeral deployment ready!**
             
             Preview URL: ${url}
+            Commit: \`${commitShortSha}\`
             
             This deployment uses PGLite (embedded database) and will be automatically cleaned up when the PR is closed or merged.`;
 
-            github.rest.issues.createComment({
-              issue_number: parseInt(prNumber),
+            // Find existing comment from this workflow
+            const comments = await github.rest.issues.listComments({
               owner: context.repo.owner,
               repo: context.repo.repo,
-              body: body
+              issue_number: parseInt(prNumber),
             });
+
+            const botComment = comments.data.find(comment => 
+              comment.user.type === 'Bot' && 
+              comment.body.includes('🚀 **Ephemeral deployment ready!**')
+            );
+
+            if (botComment) {
+              // Update existing comment
+              await github.rest.issues.updateComment({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                comment_id: botComment.id,
+                body: body
+              });
+            } else {
+              // Create new comment if none exists
+              await github.rest.issues.createComment({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                issue_number: parseInt(prNumber),
+                body: body
+              });
+            }
 
       - name: Cleanup ephemeral deployment on PR close
         if: github.event_name == 'pull_request' && github.event.action == 'closed'

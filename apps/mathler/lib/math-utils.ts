@@ -28,7 +28,7 @@ export function evaluateExpression(expr: string): number | null {
 
     // Round to avoid floating point issues
     return Math.round(result * 1000000) / 1000000
-  } catch (error) {
+  } catch {
     return null
   }
 }
