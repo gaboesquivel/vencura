@@ -112,18 +112,15 @@ export class WalletService {
       .where(and(eq(schema.wallets.id, walletId), eq(schema.wallets.userId, userId)))
       .limit(1)
 
-    if (!wallet) {
-      throw new NotFoundException('Wallet not found')
-    }
+    if (!wallet) throw new NotFoundException('Wallet not found')
 
     const keySharesEncrypted = await this.encryptionService.decrypt(wallet.privateKeyEncrypted)
     const externalServerKeyShares = JSON.parse(keySharesEncrypted) as string[]
 
     // Get appropriate wallet client based on stored network/chain type
     const walletClient = this.walletClientFactory.createWalletClient(wallet.network)
-    if (!walletClient) {
+    if (!walletClient)
       throw new BadRequestException(`Wallet client not available for network: ${wallet.network}`)
-    }
 
     // Sign message using chain-specific client
     return await walletClient.signMessage(wallet.address, externalServerKeyShares, message)
@@ -136,18 +133,15 @@ export class WalletService {
       .where(and(eq(schema.wallets.id, walletId), eq(schema.wallets.userId, userId)))
       .limit(1)
 
-    if (!wallet) {
-      throw new NotFoundException('Wallet not found')
-    }
+    if (!wallet) throw new NotFoundException('Wallet not found')
 
     const keySharesEncrypted = await this.encryptionService.decrypt(wallet.privateKeyEncrypted)
     const externalServerKeyShares = JSON.parse(keySharesEncrypted) as string[]
 
     // Get appropriate wallet client based on stored network/chain type
     const walletClient = this.walletClientFactory.createWalletClient(wallet.network)
-    if (!walletClient) {
+    if (!walletClient)
       throw new BadRequestException(`Wallet client not available for network: ${wallet.network}`)
-    }
 
     // Send transaction using chain-specific client
     return await walletClient.sendTransaction(wallet.address, externalServerKeyShares, {

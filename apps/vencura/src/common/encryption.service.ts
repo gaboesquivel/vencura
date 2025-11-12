@@ -14,9 +14,7 @@ export class EncryptionService {
 
   private async getKey(): Promise<Buffer> {
     const encryptionKey = this.configService.get<string>('encryption.key')
-    if (!encryptionKey) {
-      throw new Error('ENCRYPTION_KEY is not set')
-    }
+    if (!encryptionKey) throw new Error('ENCRYPTION_KEY is not set')
     const salt = Buffer.from(encryptionKey.slice(0, this.saltLength), 'utf8')
     const key = (await promisify(scrypt)(encryptionKey, salt, this.keyLength)) as Buffer
     return key
@@ -38,14 +36,10 @@ export class EncryptionService {
   async decrypt(encryptedText: string): Promise<string> {
     const key = await this.getKey()
     const parts = encryptedText.split(':')
-    if (parts.length !== 3) {
-      throw new Error('Invalid encrypted text format')
-    }
+    if (parts.length !== 3) throw new Error('Invalid encrypted text format')
 
     const [ivHex, authTagHex, encrypted] = parts
-    if (!ivHex || !authTagHex || !encrypted) {
-      throw new Error('Invalid encrypted text format')
-    }
+    if (!ivHex || !authTagHex || !encrypted) throw new Error('Invalid encrypted text format')
 
     const iv = Buffer.from(ivHex, 'hex')
     const authTag = Buffer.from(authTagHex, 'hex')

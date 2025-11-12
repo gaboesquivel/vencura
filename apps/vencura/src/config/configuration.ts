@@ -8,11 +8,10 @@ export default () => {
 
   if (!dynamicApiToken) throw new Error('DYNAMIC_API_TOKEN environment variable is required')
 
-  if (!encryptionKey || encryptionKey.length < 32) {
+  if (!encryptionKey || encryptionKey.length < 32)
     throw new Error(
       'ENCRYPTION_KEY environment variable is required and must be at least 32 characters',
     )
-  }
 
   // Collect all RPC URL overrides from environment variables
   // Format: RPC_URL_<CHAIN_ID>=... or RPC_URL_<DYNAMIC_NETWORK_ID>=...
