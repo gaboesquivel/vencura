@@ -53,15 +53,11 @@ export function createCloudRun(
               image: pulumi.interpolate`${config.region}-docker.pkg.dev/${config.projectId}/${artifactRegistry.repository.repositoryId}/vencura:${config.imageTag}`,
               ports: [
                 {
-                  containerPort: 3000,
+                  containerPort: 3077,
                   name: 'http1',
                 },
               ],
               envs: [
-                {
-                  name: 'PORT',
-                  value: '3000',
-                },
                 {
                   name: 'USE_PGLITE',
                   value: 'false',
@@ -128,7 +124,7 @@ export function createCloudRun(
               livenessProbe: {
                 httpGet: {
                   path: '/api',
-                  port: 3000,
+                  port: 3077,
                 },
                 initialDelaySeconds: 30,
                 periodSeconds: 10,
@@ -138,7 +134,7 @@ export function createCloudRun(
               startupProbe: {
                 httpGet: {
                   path: '/api',
-                  port: 3000,
+                  port: 3077,
                 },
                 initialDelaySeconds: 0,
                 periodSeconds: 10,
