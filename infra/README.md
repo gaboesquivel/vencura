@@ -154,6 +154,7 @@ gcloud auth application-default login
 ```
 
 This command will:
+
 1. Open a browser window for authentication
 2. Store application default credentials that Pulumi can use
 3. Allow Pulumi to authenticate with GCP when running `pulumi up`, `pulumi preview`, etc.
@@ -161,6 +162,7 @@ This command will:
 **If you haven't set up gcloud in WSL yet:**
 
 1. Install Google Cloud SDK (if not already installed):
+
    ```bash
    # For Ubuntu/Debian
    curl https://sdk.cloud.google.com | bash
@@ -168,6 +170,7 @@ This command will:
    ```
 
 2. Initialize gcloud:
+
    ```bash
    gcloud init
    ```
