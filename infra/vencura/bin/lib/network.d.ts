@@ -7,5 +7,5 @@ export interface NetworkResources {
     privateServiceRange: gcp.compute.GlobalAddress;
     privateServiceConnection: gcp.servicenetworking.Connection;
 }
-export declare function createNetwork(config: Config): NetworkResources;
+export declare function createNetwork(config: Config, provider: gcp.Provider): NetworkResources;
 //# sourceMappingURL=network.d.ts.map

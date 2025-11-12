@@ -37,7 +37,7 @@ exports.createDatabase = createDatabase;
 const gcp = __importStar(require("@pulumi/gcp"));
 const pulumi = __importStar(require("@pulumi/pulumi"));
 const config_1 = require("./config");
-function createDatabase(config, network, dbPassword) {
+function createDatabase(config, network, dbPassword, provider) {
     const instanceName = (0, config_1.resourceName)(config, 'db');
     const userName = (0, config_1.resourceName)(config, 'db-user');
     const dbName = 'vencura';
@@ -79,33 +79,33 @@ function createDatabase(config, network, dbPassword) {
             },
         },
         deletionProtection: config.environment === 'prod',
-    }, { dependsOn: [network.privateServiceConnection] });
+    }, { provider, dependsOn: [network.privateServiceConnection] });
     // Database
     const database = new gcp.sql.Database(dbName, {
         name: 'vencura',
         instance: instance.name,
         charset: 'UTF8',
         collation: 'en_US.UTF8',
-    }, { dependsOn: [instance] });
+    }, { provider, dependsOn: [instance] });
     // Database user
     const user = new gcp.sql.User(userName, {
         name: 'vencura',
         instance: instance.name,
         password: dbPassword,
         type: 'BUILT_IN',
-    }, { dependsOn: [instance] });
+    }, { provider, dependsOn: [instance] });
     // Connection name for Cloud Run
     const connectionName = pulumi.interpolate `${config.projectId}:${config.region}:${instance.name}`;
     // Create database connection string secret
     // Format: postgresql://user:password@/database?host=/cloudsql/connection-name
     const dbConnectionStringSecret = new gcp.secretmanager.Secret((0, config_1.secretName)(config, 'db-connection-string'), {
         secretId: (0, config_1.secretName)(config, 'db-connection-string'),
-        replication: {},
+        replication: { auto: {} },
         labels: {
             environment: config.environment,
             app: config.appName,
         },
-    }, { dependsOn: [instance] });
+    }, { provider, dependsOn: [instance] });
     // Create connection string with password from secret
     const connectionString = pulumi
         .all([connectionName, dbPassword])
@@ -113,7 +113,7 @@ function createDatabase(config, network, dbPassword) {
     new gcp.secretmanager.SecretVersion((0, config_1.secretName)(config, 'db-connection-string-version'), {
         secret: dbConnectionStringSecret.id,
         secretData: connectionString,
-    }, { dependsOn: [user, dbConnectionStringSecret] });
+    }, { provider, dependsOn: [user, dbConnectionStringSecret] });
     return {
         instance,
         database,

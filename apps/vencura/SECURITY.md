@@ -442,10 +442,17 @@ Each stack can target a different GCP project.
 #### Setup Requirements
 
 1. **WIF Provider**: Created in GCP (one-time setup)
+   - Pool: `vencura-github-pool`
+   - Provider: `github` (OIDC provider for GitHub Actions)
+   - Resource name format: `projects/PROJECT_NUMBER/locations/global/workloadIdentityPools/vencura-github-pool/providers/github`
 2. **WIF Service Account**: CI/CD service account with WIF binding
+   - Service account: `vencura-dev-cicd-sa@PROJECT_ID.iam.gserviceaccount.com`
+   - Permissions: `roles/editor`, `roles/artifactregistry.writer`, `roles/run.admin`, `roles/secretmanager.admin`, `roles/servicenetworking.serviceAgent`
 3. **GitHub Secrets**:
-   - `WIF_PROVIDER`: WIF provider resource name
-   - `WIF_SERVICE_ACCOUNT`: Service account email
+   - `WIF_PROVIDER`: Full WIF provider resource name (from Step 5 setup)
+   - `WIF_SERVICE_ACCOUNT`: Service account email (from Step 5 setup)
+
+**Setup Instructions**: See [infra/README.md](../../infra/README.md#step-5-set-up-workload-identity-federation-on-your-computer) for detailed setup steps.
 
 ### Secret Manager
 

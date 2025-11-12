@@ -8,5 +8,5 @@ import type { ArtifactRegistryResources } from './artifact-registry';
 export interface CloudRunResources {
     service: gcp.cloudrun.Service;
 }
-export declare function createCloudRun(config: Config, network: NetworkResources, database: DatabaseResources, secrets: SecretResources, serviceAccounts: ServiceAccountResources, artifactRegistry: ArtifactRegistryResources): CloudRunResources;
+export declare function createCloudRun(config: Config, network: NetworkResources, database: DatabaseResources, secrets: SecretResources, serviceAccounts: ServiceAccountResources, artifactRegistry: ArtifactRegistryResources, provider: gcp.Provider): CloudRunResources;
 //# sourceMappingURL=cloud-run.d.ts.map

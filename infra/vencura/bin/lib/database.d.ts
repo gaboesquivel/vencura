@@ -11,5 +11,5 @@ export interface DatabaseResources {
     userName: string;
     dbConnectionStringSecret: gcp.secretmanager.Secret;
 }
-export declare function createDatabase(config: Config, network: NetworkResources, dbPassword: pulumi.Output<string>): DatabaseResources;
+export declare function createDatabase(config: Config, network: NetworkResources, dbPassword: pulumi.Output<string>, provider: gcp.Provider): DatabaseResources;
 //# sourceMappingURL=database.d.ts.map

@@ -37,7 +37,7 @@ exports.createCloudRun = createCloudRun;
 const gcp = __importStar(require("@pulumi/gcp"));
 const pulumi = __importStar(require("@pulumi/pulumi"));
 const config_1 = require("./config");
-function createCloudRun(config, network, database, secrets, serviceAccounts, artifactRegistry) {
+function createCloudRun(config, network, database, secrets, serviceAccounts, artifactRegistry, provider) {
     const serviceName = (0, config_1.resourceName)(config, 'api');
     // Cloud Run service
     const service = new gcp.cloudrun.Service(serviceName, {
@@ -168,6 +168,7 @@ function createCloudRun(config, network, database, secrets, serviceAccounts, art
             },
         ],
     }, {
+        provider,
         dependsOn: [
             network.vpcConnector,
             database.instance,
@@ -181,7 +182,7 @@ function createCloudRun(config, network, database, secrets, serviceAccounts, art
         location: service.location,
         role: 'roles/run.invoker',
         member: 'allUsers',
-    }, { dependsOn: [service] });
+    }, { provider, dependsOn: [service] });
     return {
         service,
     };

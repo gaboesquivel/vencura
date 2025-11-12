@@ -36,7 +36,7 @@ Object.defineProperty(exports, "__esModule", { value: true });
 exports.createArtifactRegistry = createArtifactRegistry;
 const gcp = __importStar(require("@pulumi/gcp"));
 const config_1 = require("./config");
-function createArtifactRegistry(config, serviceAccounts) {
+function createArtifactRegistry(config, serviceAccounts, provider) {
     const repoName = (0, config_1.resourceName)(config, 'artifact-registry');
     // Docker repository for container images
     const repository = new gcp.artifactregistry.Repository(repoName, {
@@ -48,14 +48,14 @@ function createArtifactRegistry(config, serviceAccounts) {
             environment: config.environment,
             app: config.appName,
         },
-    });
+    }, { provider });
     // IAM binding: CI/CD service account can write
     new gcp.artifactregistry.RepositoryIamMember(`${repoName}-cicd-writer`, {
         repository: repository.name,
         location: repository.location,
         role: 'roles/artifactregistry.writer',
         member: serviceAccounts.cicdServiceAccount.email.apply((email) => `serviceAccount:${email}`),
-    }, { dependsOn: [repository, serviceAccounts.cicdServiceAccount] });
+    }, { provider, dependsOn: [repository, serviceAccounts.cicdServiceAccount] });
     return {
         repository,
     };

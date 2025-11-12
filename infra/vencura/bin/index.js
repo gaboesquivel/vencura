@@ -71,6 +71,12 @@ if (!process.env.GOOGLE_PROJECT &&
 if (!process.env.GOOGLE_REGION) {
     process.env.GOOGLE_REGION = config.region;
 }
+// Create explicit GCP Provider instance with project and region
+// This ensures the project is always set, even if environment variables aren't available
+const gcpProvider = new gcp.Provider('gcp-provider', {
+    project: config.projectId,
+    region: config.region,
+});
 const network_1 = require("./lib/network");
 const database_1 = require("./lib/database");
 const secrets_1 = require("./lib/secrets");
@@ -79,15 +85,15 @@ const artifact_registry_1 = require("./lib/artifact-registry");
 const cloud_run_1 = require("./lib/cloud-run");
 const outputs_1 = require("./lib/outputs");
 // Create network resources
-const network = (0, network_1.createNetwork)(config);
+const network = (0, network_1.createNetwork)(config, gcpProvider);
 // Create secrets (including auto-generated DB password)
-const secrets = (0, secrets_1.createSecrets)(config);
+const secrets = (0, secrets_1.createSecrets)(config, gcpProvider);
 // Create service accounts
-const serviceAccounts = (0, service_accounts_1.createServiceAccounts)(config, secrets);
+const serviceAccounts = (0, service_accounts_1.createServiceAccounts)(config, secrets, gcpProvider);
 // Create Artifact Registry
-const artifactRegistry = (0, artifact_registry_1.createArtifactRegistry)(config, serviceAccounts);
+const artifactRegistry = (0, artifact_registry_1.createArtifactRegistry)(config, serviceAccounts, gcpProvider);
 // Create database (depends on network and secrets)
-const database = (0, database_1.createDatabase)(config, network, secrets.dbPassword);
+const database = (0, database_1.createDatabase)(config, network, secrets.dbPassword, gcpProvider);
 // Grant service accounts access to database connection string secret
 // (This must happen after database is created)
 const dbConnSecretId = database.dbConnectionStringSecret.secretId;
@@ -98,6 +104,7 @@ new gcp.secretmanager.SecretIamMember(`${cloudRunSaName}-db-conn-secret-access`,
     role: 'roles/secretmanager.secretAccessor',
     member: serviceAccounts.cloudRunServiceAccount.email.apply((email) => `serviceAccount:${email}`),
 }, {
+    provider: gcpProvider,
     dependsOn: [
         serviceAccounts.cloudRunServiceAccount,
         database.dbConnectionStringSecret,
@@ -108,13 +115,14 @@ new gcp.secretmanager.SecretIamMember(`${cicdSaName}-db-conn-secret-access`, {
     role: 'roles/secretmanager.secretAccessor',
     member: serviceAccounts.cicdServiceAccount.email.apply((email) => `serviceAccount:${email}`),
 }, {
+    provider: gcpProvider,
     dependsOn: [
         serviceAccounts.cicdServiceAccount,
         database.dbConnectionStringSecret,
     ],
 });
 // Create Cloud Run service (depends on all other resources)
-const cloudRun = (0, cloud_run_1.createCloudRun)(config, network, database, secrets, serviceAccounts, artifactRegistry);
+const cloudRun = (0, cloud_run_1.createCloudRun)(config, network, database, secrets, serviceAccounts, artifactRegistry, gcpProvider);
 // Export outputs
 const outputs = (0, outputs_1.createOutputs)(config, cloudRun, database, serviceAccounts, secrets, network, artifactRegistry);
 exports.cloudRunUrl = outputs.cloudRunUrl;

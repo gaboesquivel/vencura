@@ -196,7 +196,144 @@ pulumi config set gcp:region us-central1
 
 **For CI/CD**: GitHub workflows automatically set `GCP_PROJECT_ID` and `GCP_REGION` as environment variables from GitHub secrets, so no `.env` file is needed in CI/CD.
 
-### Step 5: Configure GitHub Secrets (On GitHub Website)
+### Step 5: Set Up Workload Identity Federation (On Your Computer)
+
+Workload Identity Federation (WIF) allows GitHub Actions to authenticate to GCP without storing long-lived service account keys. This is a **one-time setup** that needs to be done before the workflows can run.
+
+#### Prerequisites
+
+- GCP project with billing enabled
+- `gcloud` CLI installed and authenticated
+- Appropriate permissions to create IAM resources
+
+#### Create WIF Pool and Provider
+
+Run these commands to create the WIF pool and provider for GitHub Actions:
+
+```bash
+# Set your project ID (replace with your actual project ID)
+PROJECT_ID=$(gcloud config get-value project)
+
+# Create WIF pool
+gcloud iam workload-identity-pools create vencura-github-pool \
+  --location=global \
+  --description="Workload Identity Pool for GitHub Actions" \
+  --display-name="Vencura GitHub Pool" \
+  --project="$PROJECT_ID"
+
+# Get your repository owner and name
+REPO_OWNER="gaboesquivel"  # Replace with your GitHub username or organization
+REPO_NAME="dynamic"        # Replace with your repository name
+
+# Create WIF provider for GitHub Actions
+gcloud iam workload-identity-pools providers create-oidc github \
+  --location=global \
+  --workload-identity-pool=vencura-github-pool \
+  --issuer-uri="https://token.actions.githubusercontent.com" \
+  --allowed-audiences="https://github.com/${REPO_OWNER}" \
+  --attribute-mapping="google.subject=assertion.sub,attribute.actor=assertion.actor,attribute.repository=assertion.repository,attribute.repository_owner=assertion.repository_owner" \
+  --attribute-condition="attribute.repository_owner=='${REPO_OWNER}' && attribute.repository=='${REPO_OWNER}/${REPO_NAME}'" \
+  --project="$PROJECT_ID"
+```
+
+#### Create Service Account for CI/CD
+
+Create the service account that GitHub Actions will use:
+
+```bash
+PROJECT_ID=$(gcloud config get-value project)
+SA_NAME="vencura-dev-cicd-sa"
+
+# Create service account
+gcloud iam service-accounts create "$SA_NAME" \
+  --display-name="Vencura Dev CI/CD Service Account" \
+  --description="Service account for GitHub Actions CI/CD deployments to dev environment" \
+  --project="$PROJECT_ID"
+```
+
+#### Grant IAM Permissions
+
+Grant the necessary permissions to the service account. Pulumi needs broad permissions to create infrastructure resources:
+
+```bash
+PROJECT_ID=$(gcloud config get-value project)
+SA_EMAIL="vencura-dev-cicd-sa@${PROJECT_ID}.iam.gserviceaccount.com"
+
+# Grant Editor role (required for Pulumi to create VPC, Cloud SQL, and other resources)
+# This gives the service account permissions to create and manage all GCP resources
+gcloud projects add-iam-policy-binding "$PROJECT_ID" \
+  --member="serviceAccount:${SA_EMAIL}" \
+  --role="roles/editor"
+
+# Grant additional specific roles for CI/CD operations
+# Artifact Registry writer (to push Docker images)
+gcloud projects add-iam-policy-binding "$PROJECT_ID" \
+  --member="serviceAccount:${SA_EMAIL}" \
+  --role="roles/artifactregistry.writer"
+
+# Cloud Run admin (to deploy services)
+gcloud projects add-iam-policy-binding "$PROJECT_ID" \
+  --member="serviceAccount:${SA_EMAIL}" \
+  --role="roles/run.admin"
+
+# Secret Manager admin (to manage secrets for PR deployments)
+gcloud projects add-iam-policy-binding "$PROJECT_ID" \
+  --member="serviceAccount:${SA_EMAIL}" \
+  --role="roles/secretmanager.admin"
+
+# Service Networking admin (required for Private Service Connection to Cloud SQL)
+gcloud projects add-iam-policy-binding "$PROJECT_ID" \
+  --member="serviceAccount:${SA_EMAIL}" \
+  --role="roles/servicenetworking.serviceAgent"
+```
+
+**Note**: The `roles/editor` role is required because Pulumi needs to create various GCP resources including:
+
+- VPC networks and subnets (compute resources)
+- Cloud SQL instances (database resources)
+- Service accounts (IAM resources)
+- VPC connectors (serverless networking)
+- And other infrastructure components
+
+For production, consider creating a custom role with only the specific permissions needed, but `roles/editor` is the simplest approach for development environments.
+
+#### Bind Service Account to WIF Provider
+
+Allow the WIF provider to impersonate the service account:
+
+```bash
+PROJECT_ID=$(gcloud config get-value project)
+PROJECT_NUMBER=$(gcloud projects describe "$PROJECT_ID" --format="value(projectNumber)")
+SA_EMAIL="vencura-dev-cicd-sa@${PROJECT_ID}.iam.gserviceaccount.com"
+REPO_OWNER="gaboesquivel"  # Replace with your GitHub username or organization
+REPO_NAME="dynamic"        # Replace with your repository name
+
+# Bind service account to WIF provider
+gcloud iam service-accounts add-iam-policy-binding "$SA_EMAIL" \
+  --role="roles/iam.workloadIdentityUser" \
+  --member="principalSet://iam.googleapis.com/projects/${PROJECT_NUMBER}/locations/global/workloadIdentityPools/vencura-github-pool/attribute.repository_owner/${REPO_OWNER}/attribute.repository/${REPO_OWNER}/${REPO_NAME}" \
+  --project="$PROJECT_ID"
+```
+
+#### Get WIF Provider Resource Name
+
+Get the WIF provider resource name that you'll need for GitHub secrets:
+
+```bash
+PROJECT_ID=$(gcloud config get-value project)
+PROJECT_NUMBER=$(gcloud projects describe "$PROJECT_ID" --format="value(projectNumber)")
+WIF_PROVIDER="projects/${PROJECT_NUMBER}/locations/global/workloadIdentityPools/vencura-github-pool/providers/github"
+SA_EMAIL="vencura-dev-cicd-sa@${PROJECT_ID}.iam.gserviceaccount.com"
+
+echo "WIF_PROVIDER: $WIF_PROVIDER"
+echo "WIF_SERVICE_ACCOUNT: $SA_EMAIL"
+```
+
+**Save these values** - you'll need them in the next step when configuring GitHub secrets.
+
+**Note**: For production deployments, you may want to create a separate service account (`vencura-prod-cicd-sa`) with similar permissions. The setup process is the same, just use a different service account name.
+
+### Step 6: Configure GitHub Secrets (On GitHub Website)
 
 The GitHub workflows require these secrets to be configured in your repository. **Do this on GitHub, not your computer:**
 
@@ -206,12 +343,16 @@ The GitHub workflows require these secrets to be configured in your repository. 
 
 **Required Secrets:**
 
-- `GCP_PROJECT_ID`: Your GCP project ID
+- `GCP_PROJECT_ID`: Your GCP project ID (e.g., `vencura`)
 - `GCP_REGION`: GCP region (default: `us-central1`)
 - `GCP_ARTIFACT_REGISTRY`: Artifact Registry repository name (default: `vencura`)
 - `PULUMI_ACCESS_TOKEN`: Pulumi access token (get from [Pulumi Cloud](https://app.pulumi.com/account/tokens))
-- `WIF_PROVIDER`: Workload Identity Federation provider
-- `WIF_SERVICE_ACCOUNT`: Workload Identity Federation service account email
+- `WIF_PROVIDER`: Workload Identity Federation provider resource name (from Step 5)
+  - Format: `projects/PROJECT_NUMBER/locations/global/workloadIdentityPools/vencura-github-pool/providers/github`
+  - Example: `projects/189882714077/locations/global/workloadIdentityPools/vencura-github-pool/providers/github`
+- `WIF_SERVICE_ACCOUNT`: Workload Identity Federation service account email (from Step 5)
+  - Format: `vencura-dev-cicd-sa@PROJECT_ID.iam.gserviceaccount.com`
+  - Example: `vencura-dev-cicd-sa@bitcashbank.iam.gserviceaccount.com`
 
 **Application Secrets (for ephemeral PR deployments):**
 
@@ -220,7 +361,7 @@ The GitHub workflows require these secrets to be configured in your repository. 
 - `ARBITRUM_SEPOLIA_RPC_URL`: Arbitrum Sepolia RPC URL
 - `ENCRYPTION_KEY`: Encryption key
 
-### Step 6: Initial Infrastructure Creation
+### Step 7: Initial Infrastructure Creation
 
 You have two options:
 
@@ -251,7 +392,7 @@ pulumi preview
 pulumi up
 ```
 
-### Step 7: Configure Secrets in Secret Manager (On Your Computer)
+### Step 8: Configure Secrets in Secret Manager (On Your Computer)
 
 After infrastructure is created (either by workflow or locally), update secret values in Google Cloud Secret Manager. The infrastructure creates secrets with placeholder values that need to be updated:
 
@@ -271,7 +412,7 @@ gcloud secrets versions add vencura-prod-encryption-key --data-file=- <<< "your-
 
 **Note**: Database password is auto-generated and stored automatically by Pulumi - no manual step needed.
 
-### Step 8: Verify Setup
+### Step 9: Verify Setup
 
 1. **Check that stacks exist** (On Your Computer):
 

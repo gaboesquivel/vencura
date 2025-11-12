@@ -4,5 +4,5 @@ import type { ServiceAccountResources } from './service-accounts';
 export interface ArtifactRegistryResources {
     repository: gcp.artifactregistry.Repository;
 }
-export declare function createArtifactRegistry(config: Config, serviceAccounts: ServiceAccountResources): ArtifactRegistryResources;
+export declare function createArtifactRegistry(config: Config, serviceAccounts: ServiceAccountResources, provider: gcp.Provider): ArtifactRegistryResources;
 //# sourceMappingURL=artifact-registry.d.ts.map

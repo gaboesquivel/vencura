@@ -37,7 +37,7 @@ exports.createSecrets = createSecrets;
 const gcp = __importStar(require("@pulumi/gcp"));
 const random = __importStar(require("@pulumi/random"));
 const config_1 = require("./config");
-function createSecrets(config) {
+function createSecrets(config, provider) {
     // Auto-generate database password
     const dbPassword = new random.RandomPassword((0, config_1.secretName)(config, 'db-password-random'), {
         length: 32,
@@ -52,12 +52,12 @@ function createSecrets(config) {
             environment: config.environment,
             app: config.appName,
         },
-    });
+    }, { provider });
     // Create secret version with placeholder (to be updated manually or via CI/CD)
     new gcp.secretmanager.SecretVersion((0, config_1.secretName)(config, 'dynamic-environment-id-version'), {
         secret: dynamicEnvironmentId.id,
         secretData: 'PLACEHOLDER_UPDATE_ME',
-    });
+    }, { provider });
     const dynamicApiToken = new gcp.secretmanager.Secret((0, config_1.secretName)(config, 'dynamic-api-token'), {
         secretId: (0, config_1.secretName)(config, 'dynamic-api-token'),
         replication: { auto: {} },
@@ -65,11 +65,11 @@ function createSecrets(config) {
             environment: config.environment,
             app: config.appName,
         },
-    });
+    }, { provider });
     new gcp.secretmanager.SecretVersion((0, config_1.secretName)(config, 'dynamic-api-token-version'), {
         secret: dynamicApiToken.id,
         secretData: 'PLACEHOLDER_UPDATE_ME',
-    });
+    }, { provider });
     const arbitrumSepoliaRpcUrl = new gcp.secretmanager.Secret((0, config_1.secretName)(config, 'arbitrum-sepolia-rpc-url'), {
         secretId: (0, config_1.secretName)(config, 'arbitrum-sepolia-rpc-url'),
         replication: { auto: {} },
@@ -77,11 +77,11 @@ function createSecrets(config) {
             environment: config.environment,
             app: config.appName,
         },
-    });
+    }, { provider });
     new gcp.secretmanager.SecretVersion((0, config_1.secretName)(config, 'arbitrum-sepolia-rpc-url-version'), {
         secret: arbitrumSepoliaRpcUrl.id,
         secretData: 'PLACEHOLDER_UPDATE_ME',
-    });
+    }, { provider });
     const encryptionKey = new gcp.secretmanager.Secret((0, config_1.secretName)(config, 'encryption-key'), {
         secretId: (0, config_1.secretName)(config, 'encryption-key'),
         replication: { auto: {} },
@@ -89,11 +89,11 @@ function createSecrets(config) {
             environment: config.environment,
             app: config.appName,
         },
-    });
+    }, { provider });
     new gcp.secretmanager.SecretVersion((0, config_1.secretName)(config, 'encryption-key-version'), {
         secret: encryptionKey.id,
         secretData: 'PLACEHOLDER_UPDATE_ME',
-    });
+    }, { provider });
     // Database password secret
     const dbPasswordSecret = new gcp.secretmanager.Secret((0, config_1.secretName)(config, 'db-password'), {
         secretId: (0, config_1.secretName)(config, 'db-password'),
@@ -102,11 +102,11 @@ function createSecrets(config) {
             environment: config.environment,
             app: config.appName,
         },
-    });
+    }, { provider });
     new gcp.secretmanager.SecretVersion((0, config_1.secretName)(config, 'db-password-version'), {
         secret: dbPasswordSecret.id,
         secretData: dbPassword.result,
-    });
+    }, { provider });
     return {
         dbPassword: dbPassword.result,
         secrets: {

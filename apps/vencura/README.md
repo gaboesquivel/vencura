@@ -380,9 +380,15 @@ For CI/CD to work, configure these secrets in GitHub:
 
 - `GCP_PROJECT_ID`: Google Cloud project ID
 - `GCP_REGION`: Deployment region (default: `us-central1`)
-- `GCP_ARTIFACT_REGISTRY`: Artifact Registry repository name
-- `WIF_PROVIDER`: Workload Identity Federation provider
-- `WIF_SERVICE_ACCOUNT`: Service account for WIF
+- `GCP_ARTIFACT_REGISTRY`: Artifact Registry repository name (default: `vencura`)
+- `WIF_PROVIDER`: Workload Identity Federation provider resource name
+  - Format: `projects/PROJECT_NUMBER/locations/global/workloadIdentityPools/vencura-github-pool/providers/github`
+  - Example: `projects/8888888888/locations/global/workloadIdentityPools/vencura-github-pool/providers/github`
+  - See [infra/README.md](../../infra/README.md#step-5-set-up-workload-identity-federation-on-your-computer) for setup instructions
+- `WIF_SERVICE_ACCOUNT`: Workload Identity Federation service account email
+  - Format: `vencura-dev-cicd-sa@PROJECT_ID.iam.gserviceaccount.com`
+  - Example: `vencura-dev-cicd-sa@bitcashbank.iam.gserviceaccount.com`
+  - See [infra/README.md](../../infra/README.md#step-5-set-up-workload-identity-federation-on-your-computer) for setup instructions
 
 **Application Secrets:**
 

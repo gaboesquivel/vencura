@@ -36,7 +36,7 @@ Object.defineProperty(exports, "__esModule", { value: true });
 exports.createNetwork = createNetwork;
 const gcp = __importStar(require("@pulumi/gcp"));
 const config_1 = require("./config");
-function createNetwork(config) {
+function createNetwork(config, provider) {
     const vpcName = (0, config_1.resourceName)(config, 'vpc');
     const subnetName = (0, config_1.resourceName)(config, 'subnet');
     const connectorName = (0, config_1.resourceName)(config, 'vpc-connector');
@@ -45,7 +45,7 @@ function createNetwork(config) {
         name: vpcName,
         autoCreateSubnetworks: false,
         description: `VPC for ${config.environment} environment`,
-    });
+    }, { provider });
     // Private subnet with secondary IP range for Cloud SQL
     const subnet = new gcp.compute.Subnetwork(subnetName, {
         name: subnetName,
@@ -63,7 +63,7 @@ function createNetwork(config) {
                 ipCidrRange: '10.2.0.0/16',
             },
         ],
-    }, { dependsOn: [vpc] });
+    }, { provider, dependsOn: [vpc] });
     // VPC Connector for serverless VPC access
     const vpcConnector = new gcp.vpcaccess.Connector(connectorName, {
         name: connectorName,
@@ -73,7 +73,7 @@ function createNetwork(config) {
         minInstances: 2,
         maxInstances: 3,
         machineType: 'e2-micro',
-    }, { dependsOn: [subnet] });
+    }, { provider, dependsOn: [subnet] });
     // Allocate IP range for Private Service Connection
     const privateServiceRange = new gcp.compute.GlobalAddress((0, config_1.resourceName)(config, 'private-service-range'), {
         name: (0, config_1.resourceName)(config, 'private-service-range'),
@@ -81,13 +81,13 @@ function createNetwork(config) {
         addressType: 'INTERNAL',
         prefixLength: 16,
         network: vpc.id,
-    }, { dependsOn: [vpc] });
+    }, { provider, dependsOn: [vpc] });
     // Private Service Connection for Cloud SQL
     const privateServiceConnection = new gcp.servicenetworking.Connection((0, config_1.resourceName)(config, 'private-service-connection'), {
         network: vpc.id,
         service: 'servicenetworking.googleapis.com',
         reservedPeeringRanges: [privateServiceRange.name],
-    }, { dependsOn: [subnet, privateServiceRange] });
+    }, { provider, dependsOn: [subnet, privateServiceRange] });
     // Firewall rule: Allow egress to Cloud SQL (Postgres port 5432)
     // VPC Connector handles routing, but we allow egress for Cloud SQL access
     new gcp.compute.Firewall((0, config_1.resourceName)(config, 'allow-cloudsql-egress'), {
@@ -103,7 +103,7 @@ function createNetwork(config) {
             },
         ],
         destinationRanges: ['10.0.0.0/8'], // Private IP ranges for Cloud SQL
-    }, { dependsOn: [vpc, subnet] });
+    }, { provider, dependsOn: [vpc, subnet] });
     return {
         vpc,
         subnet,

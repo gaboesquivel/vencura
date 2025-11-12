@@ -11,5 +11,5 @@ export interface SecretResources {
         dbPassword: gcp.secretmanager.Secret;
     };
 }
-export declare function createSecrets(config: Config): SecretResources;
+export declare function createSecrets(config: Config, provider: gcp.Provider): SecretResources;
 //# sourceMappingURL=secrets.d.ts.map
