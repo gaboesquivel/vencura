@@ -33,6 +33,9 @@ jobs:
     needs: validate
     environment:
       name: production
+    permissions:
+      contents: read
+      id-token: write
 
     steps:
       - name: Checkout code
@@ -52,14 +55,18 @@ jobs:
       - name: Authenticate to Google Cloud
         uses: google-github-actions/auth@v2
         with:
+          token_format: 'access_token'
           workload_identity_provider: ${{ secrets.WIF_PROVIDER }}
           service_account: ${{ secrets.WIF_SERVICE_ACCOUNT }}
+          create_credentials_file: true
 
       - name: Set up Cloud SDK
         uses: google-github-actions/setup-gcloud@v2
 
-      - name: Install Pulumi
-        uses: pulumi/actions@v4
+      - name: Set Google credentials path
+        id: gcp-creds
+        run: |
+          echo "GOOGLE_GHA_CREDS_PATH=$GOOGLE_APPLICATION_CREDENTIALS" >> $GITHUB_ENV
 
       - name: Run database migrations
         run: |
@@ -98,9 +105,13 @@ jobs:
           pulumi stack select prod
           pulumi preview --non-interactive
 
-      - name: Update infrastructure
-        working-directory: ./infra/vencura
+      - name: Deploy with Pulumi
+        uses: pulumi/actions@v6
+        with:
+          command: up
+          stack-name: prod
         env:
+          GOOGLE_CREDENTIALS: ${{ env.GOOGLE_GHA_CREDS_PATH }}
           PULUMI_ACCESS_TOKEN: ${{ secrets.PULUMI_ACCESS_TOKEN }}
           GCP_PROJECT_ID: ${{ env.PROJECT_ID }}
           GCP_REGION: ${{ env.REGION }}
@@ -109,9 +120,7 @@ jobs:
           DYNAMIC_API_TOKEN: ${{ secrets.DYNAMIC_API_TOKEN }}
           ARBITRUM_SEPOLIA_RPC_URL: ${{ secrets.ARBITRUM_SEPOLIA_RPC_URL }}
           ENCRYPTION_KEY: ${{ secrets.ENCRYPTION_KEY }}
-        run: |
-          pulumi stack select prod
-          pulumi up --yes --non-interactive
+        working-directory: ./infra/vencura
 
       - name: Get infrastructure outputs
         working-directory: ./infra/vencura
