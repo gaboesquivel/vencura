@@ -38,8 +38,39 @@ exports.region = exports.projectId = exports.environment = exports.artifactRegis
 // In CI/CD, these are set via GitHub secrets
 const dotenv = __importStar(require("dotenv"));
 dotenv.config();
+// Set GCP provider environment variables from .env BEFORE importing GCP
+// The GCP provider reads from GOOGLE_PROJECT, GCLOUD_PROJECT, or GOOGLE_CLOUD_PROJECT
+// Priority: GCP_PROJECT_ID env var > gcp:project Pulumi config
+if (process.env.GCP_PROJECT_ID) {
+    if (!process.env.GOOGLE_PROJECT) {
+        process.env.GOOGLE_PROJECT = process.env.GCP_PROJECT_ID;
+    }
+    if (!process.env.GCLOUD_PROJECT) {
+        process.env.GCLOUD_PROJECT = process.env.GCP_PROJECT_ID;
+    }
+    if (!process.env.GOOGLE_CLOUD_PROJECT) {
+        process.env.GOOGLE_CLOUD_PROJECT = process.env.GCP_PROJECT_ID;
+    }
+}
+if (process.env.GCP_REGION && !process.env.GOOGLE_REGION) {
+    process.env.GOOGLE_REGION = process.env.GCP_REGION;
+}
 const gcp = __importStar(require("@pulumi/gcp"));
 const config_1 = require("./lib/config");
+// Get configuration (will use env vars or Pulumi config)
+const config = (0, config_1.getConfig)();
+// Ensure GCP provider env vars are set from config if not already set
+// The Pulumi GCP provider reads from GOOGLE_PROJECT, GCLOUD_PROJECT, or GOOGLE_CLOUD_PROJECT
+if (!process.env.GOOGLE_PROJECT &&
+    !process.env.GCLOUD_PROJECT &&
+    !process.env.GOOGLE_CLOUD_PROJECT) {
+    process.env.GOOGLE_PROJECT = config.projectId;
+    process.env.GCLOUD_PROJECT = config.projectId;
+    process.env.GOOGLE_CLOUD_PROJECT = config.projectId;
+}
+if (!process.env.GOOGLE_REGION) {
+    process.env.GOOGLE_REGION = config.region;
+}
 const network_1 = require("./lib/network");
 const database_1 = require("./lib/database");
 const secrets_1 = require("./lib/secrets");
@@ -47,8 +78,6 @@ const service_accounts_1 = require("./lib/service-accounts");
 const artifact_registry_1 = require("./lib/artifact-registry");
 const cloud_run_1 = require("./lib/cloud-run");
 const outputs_1 = require("./lib/outputs");
-// Get configuration
-const config = (0, config_1.getConfig)();
 // Create network resources
 const network = (0, network_1.createNetwork)(config);
 // Create secrets (including auto-generated DB password)

@@ -47,7 +47,7 @@ function createSecrets(config) {
     // Secret Manager secrets with environment-prefixed names
     const dynamicEnvironmentId = new gcp.secretmanager.Secret((0, config_1.secretName)(config, 'dynamic-environment-id'), {
         secretId: (0, config_1.secretName)(config, 'dynamic-environment-id'),
-        replication: {},
+        replication: { auto: {} },
         labels: {
             environment: config.environment,
             app: config.appName,
@@ -60,7 +60,7 @@ function createSecrets(config) {
     });
     const dynamicApiToken = new gcp.secretmanager.Secret((0, config_1.secretName)(config, 'dynamic-api-token'), {
         secretId: (0, config_1.secretName)(config, 'dynamic-api-token'),
-        replication: {},
+        replication: { auto: {} },
         labels: {
             environment: config.environment,
             app: config.appName,
@@ -72,7 +72,7 @@ function createSecrets(config) {
     });
     const arbitrumSepoliaRpcUrl = new gcp.secretmanager.Secret((0, config_1.secretName)(config, 'arbitrum-sepolia-rpc-url'), {
         secretId: (0, config_1.secretName)(config, 'arbitrum-sepolia-rpc-url'),
-        replication: {},
+        replication: { auto: {} },
         labels: {
             environment: config.environment,
             app: config.appName,
@@ -84,7 +84,7 @@ function createSecrets(config) {
     });
     const encryptionKey = new gcp.secretmanager.Secret((0, config_1.secretName)(config, 'encryption-key'), {
         secretId: (0, config_1.secretName)(config, 'encryption-key'),
-        replication: {},
+        replication: { auto: {} },
         labels: {
             environment: config.environment,
             app: config.appName,
@@ -97,7 +97,7 @@ function createSecrets(config) {
     // Database password secret
     const dbPasswordSecret = new gcp.secretmanager.Secret((0, config_1.secretName)(config, 'db-password'), {
         secretId: (0, config_1.secretName)(config, 'db-password'),
-        replication: {},
+        replication: { auto: {} },
         labels: {
             environment: config.environment,
             app: config.appName,

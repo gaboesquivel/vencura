@@ -15,7 +15,10 @@ export interface SecretResources {
   };
 }
 
-export function createSecrets(config: Config): SecretResources {
+export function createSecrets(
+  config: Config,
+  provider: gcp.Provider,
+): SecretResources {
   // Auto-generate database password
   const dbPassword = new random.RandomPassword(
     secretName(config, 'db-password-random'),
@@ -31,12 +34,13 @@ export function createSecrets(config: Config): SecretResources {
     secretName(config, 'dynamic-environment-id'),
     {
       secretId: secretName(config, 'dynamic-environment-id'),
-      replication: {},
+      replication: { auto: {} },
       labels: {
         environment: config.environment,
         app: config.appName,
       },
     },
+    { provider },
   );
 
   // Create secret version with placeholder (to be updated manually or via CI/CD)
@@ -46,18 +50,20 @@ export function createSecrets(config: Config): SecretResources {
       secret: dynamicEnvironmentId.id,
       secretData: 'PLACEHOLDER_UPDATE_ME',
     },
+    { provider },
   );
 
   const dynamicApiToken = new gcp.secretmanager.Secret(
     secretName(config, 'dynamic-api-token'),
     {
       secretId: secretName(config, 'dynamic-api-token'),
-      replication: {},
+      replication: { auto: {} },
       labels: {
         environment: config.environment,
         app: config.appName,
       },
     },
+    { provider },
   );
 
   new gcp.secretmanager.SecretVersion(
@@ -66,18 +72,20 @@ export function createSecrets(config: Config): SecretResources {
       secret: dynamicApiToken.id,
       secretData: 'PLACEHOLDER_UPDATE_ME',
     },
+    { provider },
   );
 
   const arbitrumSepoliaRpcUrl = new gcp.secretmanager.Secret(
     secretName(config, 'arbitrum-sepolia-rpc-url'),
     {
       secretId: secretName(config, 'arbitrum-sepolia-rpc-url'),
-      replication: {},
+      replication: { auto: {} },
       labels: {
         environment: config.environment,
         app: config.appName,
       },
     },
+    { provider },
   );
 
   new gcp.secretmanager.SecretVersion(
@@ -86,18 +94,20 @@ export function createSecrets(config: Config): SecretResources {
       secret: arbitrumSepoliaRpcUrl.id,
       secretData: 'PLACEHOLDER_UPDATE_ME',
     },
+    { provider },
   );
 
   const encryptionKey = new gcp.secretmanager.Secret(
     secretName(config, 'encryption-key'),
     {
       secretId: secretName(config, 'encryption-key'),
-      replication: {},
+      replication: { auto: {} },
       labels: {
         environment: config.environment,
         app: config.appName,
       },
     },
+    { provider },
   );
 
   new gcp.secretmanager.SecretVersion(
@@ -106,6 +116,7 @@ export function createSecrets(config: Config): SecretResources {
       secret: encryptionKey.id,
       secretData: 'PLACEHOLDER_UPDATE_ME',
     },
+    { provider },
   );
 
   // Database password secret
@@ -113,12 +124,13 @@ export function createSecrets(config: Config): SecretResources {
     secretName(config, 'db-password'),
     {
       secretId: secretName(config, 'db-password'),
-      replication: {},
+      replication: { auto: {} },
       labels: {
         environment: config.environment,
         app: config.appName,
       },
     },
+    { provider },
   );
 
   new gcp.secretmanager.SecretVersion(
@@ -127,6 +139,7 @@ export function createSecrets(config: Config): SecretResources {
       secret: dbPasswordSecret.id,
       secretData: dbPassword.result,
     },
+    { provider },
   );
 
   return {

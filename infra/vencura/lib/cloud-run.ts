@@ -19,6 +19,7 @@ export function createCloudRun(
   secrets: SecretResources,
   serviceAccounts: ServiceAccountResources,
   artifactRegistry: ArtifactRegistryResources,
+  provider: gcp.Provider,
 ): CloudRunResources {
   const serviceName = resourceName(config, 'api');
 
@@ -158,6 +159,7 @@ export function createCloudRun(
       ],
     },
     {
+      provider,
       dependsOn: [
         network.vpcConnector,
         database.instance,
@@ -176,7 +178,7 @@ export function createCloudRun(
       role: 'roles/run.invoker',
       member: 'allUsers',
     },
-    { dependsOn: [service] },
+    { provider, dependsOn: [service] },
   );
 
   return {

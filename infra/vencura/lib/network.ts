@@ -10,17 +10,24 @@ export interface NetworkResources {
   privateServiceConnection: gcp.servicenetworking.Connection;
 }
 
-export function createNetwork(config: Config): NetworkResources {
+export function createNetwork(
+  config: Config,
+  provider: gcp.Provider,
+): NetworkResources {
   const vpcName = resourceName(config, 'vpc');
   const subnetName = resourceName(config, 'subnet');
   const connectorName = resourceName(config, 'vpc-connector');
 
   // Dedicated VPC for isolation
-  const vpc = new gcp.compute.Network(vpcName, {
-    name: vpcName,
-    autoCreateSubnetworks: false,
-    description: `VPC for ${config.environment} environment`,
-  });
+  const vpc = new gcp.compute.Network(
+    vpcName,
+    {
+      name: vpcName,
+      autoCreateSubnetworks: false,
+      description: `VPC for ${config.environment} environment`,
+    },
+    { provider },
+  );
 
   // Private subnet with secondary IP range for Cloud SQL
   const subnet = new gcp.compute.Subnetwork(
@@ -42,7 +49,7 @@ export function createNetwork(config: Config): NetworkResources {
         },
       ],
     },
-    { dependsOn: [vpc] },
+    { provider, dependsOn: [vpc] },
   );
 
   // VPC Connector for serverless VPC access
@@ -57,7 +64,7 @@ export function createNetwork(config: Config): NetworkResources {
       maxInstances: 3,
       machineType: 'e2-micro',
     },
-    { dependsOn: [subnet] },
+    { provider, dependsOn: [subnet] },
   );
 
   // Allocate IP range for Private Service Connection
@@ -70,7 +77,7 @@ export function createNetwork(config: Config): NetworkResources {
       prefixLength: 16,
       network: vpc.id,
     },
-    { dependsOn: [vpc] },
+    { provider, dependsOn: [vpc] },
   );
 
   // Private Service Connection for Cloud SQL
@@ -81,7 +88,7 @@ export function createNetwork(config: Config): NetworkResources {
       service: 'servicenetworking.googleapis.com',
       reservedPeeringRanges: [privateServiceRange.name],
     },
-    { dependsOn: [subnet, privateServiceRange] },
+    { provider, dependsOn: [subnet, privateServiceRange] },
   );
 
   // Firewall rule: Allow egress to Cloud SQL (Postgres port 5432)
@@ -102,7 +109,7 @@ export function createNetwork(config: Config): NetworkResources {
       ],
       destinationRanges: ['10.0.0.0/8'], // Private IP ranges for Cloud SQL
     },
-    { dependsOn: [vpc, subnet] },
+    { provider, dependsOn: [vpc, subnet] },
   );
 
   return {

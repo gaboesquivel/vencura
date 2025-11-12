@@ -9,5 +9,5 @@ config:
   vencura:cloudRunCpu: "1"
   vencura:cloudRunMemory: 512Mi
   vencura:cloudRunMinInstances: "1"
-  vencura:cloudRunMaxInstances: "2"
+  vencura:cloudRunMaxInstances: "1"
 

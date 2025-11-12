@@ -12,6 +12,7 @@ export interface ServiceAccountResources {
 export function createServiceAccounts(
   config: Config,
   secrets: SecretResources,
+  provider: gcp.Provider,
 ): ServiceAccountResources {
   const cloudRunSaName = resourceName(config, 'cloud-run-sa');
   const cicdSaName = resourceName(config, 'cicd-sa');
@@ -24,6 +25,7 @@ export function createServiceAccounts(
       displayName: `Cloud Run service account for ${config.environment}`,
       description: `Service account for Vencura Cloud Run service in ${config.environment}`,
     },
+    { provider },
   );
 
   // IAM binding: Secret Manager accessor (with IAM conditions to limit to specific secrets)
@@ -35,7 +37,7 @@ export function createServiceAccounts(
       role: 'roles/secretmanager.secretAccessor',
       member: pulumi.interpolate`serviceAccount:${cloudRunServiceAccount.email}`,
     },
-    { dependsOn: [cloudRunServiceAccount] },
+    { provider, dependsOn: [cloudRunServiceAccount] },
   );
 
   new gcp.secretmanager.SecretIamMember(
@@ -45,7 +47,7 @@ export function createServiceAccounts(
       role: 'roles/secretmanager.secretAccessor',
       member: pulumi.interpolate`serviceAccount:${cloudRunServiceAccount.email}`,
     },
-    { dependsOn: [cloudRunServiceAccount] },
+    { provider, dependsOn: [cloudRunServiceAccount] },
   );
 
   new gcp.secretmanager.SecretIamMember(
@@ -55,7 +57,7 @@ export function createServiceAccounts(
       role: 'roles/secretmanager.secretAccessor',
       member: pulumi.interpolate`serviceAccount:${cloudRunServiceAccount.email}`,
     },
-    { dependsOn: [cloudRunServiceAccount] },
+    { provider, dependsOn: [cloudRunServiceAccount] },
   );
 
   new gcp.secretmanager.SecretIamMember(
@@ -65,7 +67,7 @@ export function createServiceAccounts(
       role: 'roles/secretmanager.secretAccessor',
       member: pulumi.interpolate`serviceAccount:${cloudRunServiceAccount.email}`,
     },
-    { dependsOn: [cloudRunServiceAccount] },
+    { provider, dependsOn: [cloudRunServiceAccount] },
   );
 
   new gcp.secretmanager.SecretIamMember(
@@ -75,7 +77,7 @@ export function createServiceAccounts(
       role: 'roles/secretmanager.secretAccessor',
       member: pulumi.interpolate`serviceAccount:${cloudRunServiceAccount.email}`,
     },
-    { dependsOn: [cloudRunServiceAccount] },
+    { provider, dependsOn: [cloudRunServiceAccount] },
   );
 
   // IAM binding: Cloud SQL client
@@ -86,15 +88,19 @@ export function createServiceAccounts(
       role: 'roles/cloudsql.client',
       member: pulumi.interpolate`serviceAccount:${cloudRunServiceAccount.email}`,
     },
-    { dependsOn: [cloudRunServiceAccount] },
+    { provider, dependsOn: [cloudRunServiceAccount] },
   );
 
   // CI/CD service account (for GitHub Actions)
-  const cicdServiceAccount = new gcp.serviceaccount.Account(cicdSaName, {
-    accountId: cicdSaName,
-    displayName: `CI/CD service account for ${config.environment}`,
-    description: `Service account for GitHub Actions CI/CD in ${config.environment}`,
-  });
+  const cicdServiceAccount = new gcp.serviceaccount.Account(
+    cicdSaName,
+    {
+      accountId: cicdSaName,
+      displayName: `CI/CD service account for ${config.environment}`,
+      description: `Service account for GitHub Actions CI/CD in ${config.environment}`,
+    },
+    { provider },
+  );
 
   // IAM binding: Artifact Registry writer
   new gcp.projects.IAMMember(
@@ -104,7 +110,7 @@ export function createServiceAccounts(
       role: 'roles/artifactregistry.writer',
       member: pulumi.interpolate`serviceAccount:${cicdServiceAccount.email}`,
     },
-    { dependsOn: [cicdServiceAccount] },
+    { provider, dependsOn: [cicdServiceAccount] },
   );
 
   // IAM binding: Cloud Run admin
@@ -115,7 +121,7 @@ export function createServiceAccounts(
       role: 'roles/run.admin',
       member: pulumi.interpolate`serviceAccount:${cicdServiceAccount.email}`,
     },
-    { dependsOn: [cicdServiceAccount] },
+    { provider, dependsOn: [cicdServiceAccount] },
   );
 
   // IAM binding: Secret Manager accessor (for reading secrets during deployment)
@@ -126,7 +132,7 @@ export function createServiceAccounts(
       role: 'roles/secretmanager.secretAccessor',
       member: pulumi.interpolate`serviceAccount:${cicdServiceAccount.email}`,
     },
-    { dependsOn: [cicdServiceAccount] },
+    { provider, dependsOn: [cicdServiceAccount] },
   );
 
   new gcp.secretmanager.SecretIamMember(
@@ -136,7 +142,7 @@ export function createServiceAccounts(
       role: 'roles/secretmanager.secretAccessor',
       member: pulumi.interpolate`serviceAccount:${cicdServiceAccount.email}`,
     },
-    { dependsOn: [cicdServiceAccount] },
+    { provider, dependsOn: [cicdServiceAccount] },
   );
 
   new gcp.secretmanager.SecretIamMember(
@@ -146,7 +152,7 @@ export function createServiceAccounts(
       role: 'roles/secretmanager.secretAccessor',
       member: pulumi.interpolate`serviceAccount:${cicdServiceAccount.email}`,
     },
-    { dependsOn: [cicdServiceAccount] },
+    { provider, dependsOn: [cicdServiceAccount] },
   );
 
   new gcp.secretmanager.SecretIamMember(
@@ -156,7 +162,7 @@ export function createServiceAccounts(
       role: 'roles/secretmanager.secretAccessor',
       member: pulumi.interpolate`serviceAccount:${cicdServiceAccount.email}`,
     },
-    { dependsOn: [cicdServiceAccount] },
+    { provider, dependsOn: [cicdServiceAccount] },
   );
 
   new gcp.secretmanager.SecretIamMember(
@@ -166,7 +172,7 @@ export function createServiceAccounts(
       role: 'roles/secretmanager.secretAccessor',
       member: pulumi.interpolate`serviceAccount:${cicdServiceAccount.email}`,
     },
-    { dependsOn: [cicdServiceAccount] },
+    { provider, dependsOn: [cicdServiceAccount] },
   );
 
   // IAM binding: Secret Manager admin (for creating/deleting temporary secrets in PR deployments)
@@ -178,7 +184,7 @@ export function createServiceAccounts(
       role: 'roles/secretmanager.admin',
       member: pulumi.interpolate`serviceAccount:${cicdServiceAccount.email}`,
     },
-    { dependsOn: [cicdServiceAccount] },
+    { provider, dependsOn: [cicdServiceAccount] },
   );
 
   return {

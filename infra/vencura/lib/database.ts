@@ -18,6 +18,7 @@ export function createDatabase(
   config: Config,
   network: NetworkResources,
   dbPassword: pulumi.Output<string>,
+  provider: gcp.Provider,
 ): DatabaseResources {
   const instanceName = resourceName(config, 'db');
   const userName = resourceName(config, 'db-user');
@@ -64,7 +65,7 @@ export function createDatabase(
       },
       deletionProtection: config.environment === 'prod',
     },
-    { dependsOn: [network.privateServiceConnection] },
+    { provider, dependsOn: [network.privateServiceConnection] },
   );
 
   // Database
@@ -76,7 +77,7 @@ export function createDatabase(
       charset: 'UTF8',
       collation: 'en_US.UTF8',
     },
-    { dependsOn: [instance] },
+    { provider, dependsOn: [instance] },
   );
 
   // Database user
@@ -88,7 +89,7 @@ export function createDatabase(
       password: dbPassword,
       type: 'BUILT_IN',
     },
-    { dependsOn: [instance] },
+    { provider, dependsOn: [instance] },
   );
 
   // Connection name for Cloud Run
@@ -100,13 +101,13 @@ export function createDatabase(
     secretName(config, 'db-connection-string'),
     {
       secretId: secretName(config, 'db-connection-string'),
-      replication: {},
+      replication: { auto: {} },
       labels: {
         environment: config.environment,
         app: config.appName,
       },
     },
-    { dependsOn: [instance] },
+    { provider, dependsOn: [instance] },
   );
 
   // Create connection string with password from secret
@@ -123,7 +124,7 @@ export function createDatabase(
       secret: dbConnectionStringSecret.id,
       secretData: connectionString,
     },
-    { dependsOn: [user, dbConnectionStringSecret] },
+    { provider, dependsOn: [user, dbConnectionStringSecret] },
   );
 
   return {

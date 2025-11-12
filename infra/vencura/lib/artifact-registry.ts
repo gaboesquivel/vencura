@@ -10,20 +10,25 @@ export interface ArtifactRegistryResources {
 export function createArtifactRegistry(
   config: Config,
   serviceAccounts: ServiceAccountResources,
+  provider: gcp.Provider,
 ): ArtifactRegistryResources {
   const repoName = resourceName(config, 'artifact-registry');
 
   // Docker repository for container images
-  const repository = new gcp.artifactregistry.Repository(repoName, {
-    repositoryId: repoName,
-    description: `Docker repository for ${config.environment} environment`,
-    format: 'DOCKER',
-    location: config.region,
-    labels: {
-      environment: config.environment,
-      app: config.appName,
+  const repository = new gcp.artifactregistry.Repository(
+    repoName,
+    {
+      repositoryId: repoName,
+      description: `Docker repository for ${config.environment} environment`,
+      format: 'DOCKER',
+      location: config.region,
+      labels: {
+        environment: config.environment,
+        app: config.appName,
+      },
     },
-  });
+    { provider },
+  );
 
   // IAM binding: CI/CD service account can write
   new gcp.artifactregistry.RepositoryIamMember(
@@ -36,7 +41,7 @@ export function createArtifactRegistry(
         (email) => `serviceAccount:${email}`,
       ),
     },
-    { dependsOn: [repository, serviceAccounts.cicdServiceAccount] },
+    { provider, dependsOn: [repository, serviceAccounts.cicdServiceAccount] },
   );
 
   return {
