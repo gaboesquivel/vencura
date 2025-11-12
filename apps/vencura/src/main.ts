@@ -33,12 +33,19 @@ async function bootstrap() {
     )
     .build()
 
+  // IMPORTANT: Swagger UI must ALWAYS be enabled - never disable this in any environment
+  // Swagger is accessible at /api endpoint and should work in all environments including Vercel
   const document = SwaggerModule.createDocument(app, config)
-  SwaggerModule.setup('api', app, document)
+  SwaggerModule.setup('api', app, document, {
+    swaggerOptions: {
+      persistAuthorization: true,
+    },
+  })
 
   const port = process.env.PORT || 3077
   await app.listen(port)
   console.log(`Application is running on: http://localhost:${port}`)
   console.log(`Swagger UI is available at: http://localhost:${port}/api`)
+  console.log(`Swagger JSON is available at: http://localhost:${port}/api-json`)
 }
 void bootstrap()
