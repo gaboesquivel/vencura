@@ -58,7 +58,7 @@ export default function MathlerGame() {
       }
 
       setCurrentInput('')
-    } catch (error) {
+    } catch {
       alert('Invalid expression')
     }
   }

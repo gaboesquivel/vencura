@@ -150,6 +150,10 @@ The UI supports multiple blockchain networks through:
    - Currency display (ETH, SOL, MATIC, etc.)
    - Network information display
 
+## Deployment
+
+The Vencura UI is deployed to **Vercel**. See [ADR 008](../../.adrs/008-frontend-infrastructure.md) for deployment details.
+
 ## License
 
 PROPRIETARY

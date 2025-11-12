@@ -22,7 +22,7 @@ Vencura is a backend API that enables users to create and manage custodial walle
   - Sign messages with wallet private keys
   - Send transactions on any supported chain
 - **RPC Configuration**: Uses Dynamic's default RPC URLs with optional per-chain overrides
-- **Database**: PGLite with DrizzleORM for lightweight, embedded database
+- **Database**: DrizzleORM with PGLite (development) or Cloud SQL Postgres (production)
 - **API Documentation**: Interactive Swagger UI at `/api`
 - **Security**:
   - AES-256-GCM encryption for private key storage
@@ -39,7 +39,7 @@ Vencura is a backend API that enables users to create and manage custodial walle
   - Viem for EVM chains
   - @solana/web3.js for Solana
   - Dynamic SDK for wallet operations
-- **Database**: PGLite with DrizzleORM
+- **Database**: DrizzleORM with PGLite (development) or Cloud SQL Postgres (production)
 - **API Documentation**: Swagger/OpenAPI
 
 ## Getting Started
@@ -380,9 +380,15 @@ For CI/CD to work, configure these secrets in GitHub:
 
 - `GCP_PROJECT_ID`: Google Cloud project ID
 - `GCP_REGION`: Deployment region (default: `us-central1`)
-- `GCP_ARTIFACT_REGISTRY`: Artifact Registry repository name
-- `WIF_PROVIDER`: Workload Identity Federation provider
-- `WIF_SERVICE_ACCOUNT`: Service account for WIF
+- `GCP_ARTIFACT_REGISTRY`: Artifact Registry repository name (default: `vencura`)
+- `WIF_PROVIDER`: Workload Identity Federation provider resource name
+  - Format: `projects/PROJECT_NUMBER/locations/global/workloadIdentityPools/vencura-github-pool/providers/github`
+  - Example: `projects/8888888888/locations/global/workloadIdentityPools/vencura-github-pool/providers/github`
+  - See [infra/README.md](../../infra/README.md#step-5-set-up-workload-identity-federation-on-your-computer) for setup instructions
+- `WIF_SERVICE_ACCOUNT`: Workload Identity Federation service account email
+  - Format: `vencura-dev-cicd-sa@PROJECT_ID.iam.gserviceaccount.com`
+  - Example: `vencura-dev-cicd-sa@bitcashbank.iam.gserviceaccount.com`
+  - See [infra/README.md](../../infra/README.md#step-5-set-up-workload-identity-federation-on-your-computer) for setup instructions
 
 **Application Secrets:**
 

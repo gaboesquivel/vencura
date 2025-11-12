@@ -65,7 +65,6 @@ export class SolanaWalletClient extends BaseWalletClient {
     const { DynamicSvmWalletClient: DynamicSvmWalletClientClass } = await import(
       '@dynamic-labs-wallet/node-svm'
     )
-
     this.dynamicSvmClient = new DynamicSvmWalletClientClass({
       environmentId,
     }) as DynamicSvmWalletClient
