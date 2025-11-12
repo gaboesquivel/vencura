@@ -3,7 +3,6 @@
 import * as dotenv from 'dotenv';
 dotenv.config();
 
-import * as pulumi from '@pulumi/pulumi';
 import * as gcp from '@pulumi/gcp';
 import { getConfig, type Config } from './lib/config';
 import { createNetwork, type NetworkResources } from './lib/network';
@@ -55,7 +54,7 @@ const cloudRunSaName = `${config.appName}-${config.environment}-cloud-run-sa`;
 const cicdSaName = `${config.appName}-${config.environment}-cicd-sa`;
 
 new gcp.secretmanager.SecretIamMember(
-  `${cloudRunSaName}-secret-${dbConnSecretId}`,
+  `${cloudRunSaName}-db-conn-secret-access`,
   {
     secretId: dbConnSecretId,
     role: 'roles/secretmanager.secretAccessor',
@@ -72,7 +71,7 @@ new gcp.secretmanager.SecretIamMember(
 );
 
 new gcp.secretmanager.SecretIamMember(
-  `${cicdSaName}-secret-${dbConnSecretId}`,
+  `${cicdSaName}-db-conn-secret-access`,
   {
     secretId: dbConnSecretId,
     role: 'roles/secretmanager.secretAccessor',

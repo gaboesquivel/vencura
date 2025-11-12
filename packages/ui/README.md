@@ -19,27 +19,27 @@ This package is part of the monorepo and is automatically available to all apps.
 ### Importing Components
 
 ```tsx
-import { Button } from "@workspace/ui/components/button";
+import { Button } from '@workspace/ui/components/button'
 ```
 
 ### Importing Utilities
 
 ```tsx
-import { cn } from "@workspace/ui/lib/utils";
+import { cn } from '@workspace/ui/lib/utils'
 ```
 
 ### Importing Styles
 
 ```tsx
 // In your app's layout or global CSS
-import "@workspace/ui/globals.css";
+import '@workspace/ui/globals.css'
 ```
 
 ### Importing PostCSS Config
 
 ```tsx
 // For Next.js apps that need to extend PostCSS config
-import postcssConfig from "@workspace/ui/postcss.config";
+import postcssConfig from '@workspace/ui/postcss.config'
 ```
 
 ## Available Exports

@@ -48,20 +48,31 @@ function createServiceAccounts(config, secrets) {
     });
     // IAM binding: Secret Manager accessor (with IAM conditions to limit to specific secrets)
     // Note: dbConnectionStringSecret is added in database module, so we'll add it separately
-    const secretNames = [
-        secrets.secrets.dynamicEnvironmentId.secretId,
-        secrets.secrets.dynamicApiToken.secretId,
-        secrets.secrets.arbitrumSepoliaRpcUrl.secretId,
-        secrets.secrets.encryptionKey.secretId,
-        secrets.secrets.dbPassword.secretId,
-    ];
-    secretNames.forEach((secretName) => {
-        new gcp.secretmanager.SecretIamMember(`${cloudRunSaName}-secret-${secretName}`, {
-            secretId: secretName,
-            role: 'roles/secretmanager.secretAccessor',
-            member: pulumi.interpolate `serviceAccount:${cloudRunServiceAccount.email}`,
-        }, { dependsOn: [cloudRunServiceAccount] });
-    });
+    new gcp.secretmanager.SecretIamMember(`${cloudRunSaName}-secret-dynamic-environment-id`, {
+        secretId: secrets.secrets.dynamicEnvironmentId.secretId,
+        role: 'roles/secretmanager.secretAccessor',
+        member: pulumi.interpolate `serviceAccount:${cloudRunServiceAccount.email}`,
+    }, { dependsOn: [cloudRunServiceAccount] });
+    new gcp.secretmanager.SecretIamMember(`${cloudRunSaName}-secret-dynamic-api-token`, {
+        secretId: secrets.secrets.dynamicApiToken.secretId,
+        role: 'roles/secretmanager.secretAccessor',
+        member: pulumi.interpolate `serviceAccount:${cloudRunServiceAccount.email}`,
+    }, { dependsOn: [cloudRunServiceAccount] });
+    new gcp.secretmanager.SecretIamMember(`${cloudRunSaName}-secret-arbitrum-sepolia-rpc-url`, {
+        secretId: secrets.secrets.arbitrumSepoliaRpcUrl.secretId,
+        role: 'roles/secretmanager.secretAccessor',
+        member: pulumi.interpolate `serviceAccount:${cloudRunServiceAccount.email}`,
+    }, { dependsOn: [cloudRunServiceAccount] });
+    new gcp.secretmanager.SecretIamMember(`${cloudRunSaName}-secret-encryption-key`, {
+        secretId: secrets.secrets.encryptionKey.secretId,
+        role: 'roles/secretmanager.secretAccessor',
+        member: pulumi.interpolate `serviceAccount:${cloudRunServiceAccount.email}`,
+    }, { dependsOn: [cloudRunServiceAccount] });
+    new gcp.secretmanager.SecretIamMember(`${cloudRunSaName}-secret-db-password`, {
+        secretId: secrets.secrets.dbPassword.secretId,
+        role: 'roles/secretmanager.secretAccessor',
+        member: pulumi.interpolate `serviceAccount:${cloudRunServiceAccount.email}`,
+    }, { dependsOn: [cloudRunServiceAccount] });
     // IAM binding: Cloud SQL client
     new gcp.projects.IAMMember(`${cloudRunSaName}-cloudsql-client`, {
         project: config.projectId,
@@ -87,13 +98,31 @@ function createServiceAccounts(config, secrets) {
         member: pulumi.interpolate `serviceAccount:${cicdServiceAccount.email}`,
     }, { dependsOn: [cicdServiceAccount] });
     // IAM binding: Secret Manager accessor (for reading secrets during deployment)
-    secretNames.forEach((secretName) => {
-        new gcp.secretmanager.SecretIamMember(`${cicdSaName}-secret-${secretName}`, {
-            secretId: secretName,
-            role: 'roles/secretmanager.secretAccessor',
-            member: pulumi.interpolate `serviceAccount:${cicdServiceAccount.email}`,
-        }, { dependsOn: [cicdServiceAccount] });
-    });
+    new gcp.secretmanager.SecretIamMember(`${cicdSaName}-secret-dynamic-environment-id`, {
+        secretId: secrets.secrets.dynamicEnvironmentId.secretId,
+        role: 'roles/secretmanager.secretAccessor',
+        member: pulumi.interpolate `serviceAccount:${cicdServiceAccount.email}`,
+    }, { dependsOn: [cicdServiceAccount] });
+    new gcp.secretmanager.SecretIamMember(`${cicdSaName}-secret-dynamic-api-token`, {
+        secretId: secrets.secrets.dynamicApiToken.secretId,
+        role: 'roles/secretmanager.secretAccessor',
+        member: pulumi.interpolate `serviceAccount:${cicdServiceAccount.email}`,
+    }, { dependsOn: [cicdServiceAccount] });
+    new gcp.secretmanager.SecretIamMember(`${cicdSaName}-secret-arbitrum-sepolia-rpc-url`, {
+        secretId: secrets.secrets.arbitrumSepoliaRpcUrl.secretId,
+        role: 'roles/secretmanager.secretAccessor',
+        member: pulumi.interpolate `serviceAccount:${cicdServiceAccount.email}`,
+    }, { dependsOn: [cicdServiceAccount] });
+    new gcp.secretmanager.SecretIamMember(`${cicdSaName}-secret-encryption-key`, {
+        secretId: secrets.secrets.encryptionKey.secretId,
+        role: 'roles/secretmanager.secretAccessor',
+        member: pulumi.interpolate `serviceAccount:${cicdServiceAccount.email}`,
+    }, { dependsOn: [cicdServiceAccount] });
+    new gcp.secretmanager.SecretIamMember(`${cicdSaName}-secret-db-password`, {
+        secretId: secrets.secrets.dbPassword.secretId,
+        role: 'roles/secretmanager.secretAccessor',
+        member: pulumi.interpolate `serviceAccount:${cicdServiceAccount.email}`,
+    }, { dependsOn: [cicdServiceAccount] });
     // IAM binding: Secret Manager admin (for creating/deleting temporary secrets in PR deployments)
     // This allows CI/CD to create ephemeral secrets for PR preview deployments
     new gcp.projects.IAMMember(`${cicdSaName}-secretmanager-admin`, {

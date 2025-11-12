@@ -9,6 +9,7 @@ Shared TypeScript configuration for the workspace. Provides consistent TypeScrip
 Base TypeScript configuration that all other configs extend. Suitable for Node.js projects.
 
 **Features:**
+
 - Strict type checking enabled
 - ES2022 target
 - Node.js module resolution
@@ -29,6 +30,7 @@ Base TypeScript configuration that all other configs extend. Suitable for Node.j
 TypeScript configuration for Next.js applications. Extends the base configuration.
 
 **Features:**
+
 - All base configuration features
 - Next.js plugin support
 - ESNext modules
@@ -50,6 +52,7 @@ TypeScript configuration for Next.js applications. Extends the base configuratio
 TypeScript configuration for React component libraries. Extends the base configuration.
 
 **Features:**
+
 - All base configuration features
 - React JSX support
 - Declaration files for library distribution

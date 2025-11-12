@@ -12,12 +12,13 @@ Base ESLint configuration for Node.js projects (e.g., NestJS backend, infrastruc
 
 ```js
 // eslint.config.js
-import baseConfig from "@workspace/eslint-config/base";
+import baseConfig from '@workspace/eslint-config/base'
 
-export default [...baseConfig];
+export default [...baseConfig]
 ```
 
 **Includes:**
+
 - TypeScript ESLint parser and plugin
 - ESLint recommended rules
 - Prettier integration
@@ -31,12 +32,13 @@ ESLint configuration for Next.js applications.
 
 ```js
 // eslint.config.js
-import nextConfig from "@workspace/eslint-config/next-js";
+import nextConfig from '@workspace/eslint-config/next-js'
 
-export default [...nextConfig];
+export default [...nextConfig]
 ```
 
 **Includes:**
+
 - All base configuration
 - Next.js specific rules
 - React and React Hooks plugins
@@ -50,12 +52,13 @@ ESLint configuration for React libraries and internal packages.
 
 ```js
 // eslint.config.js
-import reactConfig from "@workspace/eslint-config/react-internal";
+import reactConfig from '@workspace/eslint-config/react-internal'
 
-export default [...reactConfig];
+export default [...reactConfig]
 ```
 
 **Includes:**
+
 - All base configuration
 - React and React Hooks plugins
 - TypeScript support
@@ -90,27 +93,27 @@ This package is part of the monorepo and is automatically available to all packa
 
 ```js
 // apps/vencura/eslint.config.mjs
-import baseConfig from "@workspace/eslint-config/base";
+import baseConfig from '@workspace/eslint-config/base'
 
-export default [...baseConfig];
+export default [...baseConfig]
 ```
 
 ### Next.js App
 
 ```js
 // apps/vencura-ui/eslint.config.js
-import nextConfig from "@workspace/eslint-config/next-js";
+import nextConfig from '@workspace/eslint-config/next-js'
 
-export default [...nextConfig];
+export default [...nextConfig]
 ```
 
 ### React Library
 
 ```js
 // packages/ui/eslint.config.js
-import reactConfig from "@workspace/eslint-config/react-internal";
+import reactConfig from '@workspace/eslint-config/react-internal'
 
-export default [...reactConfig];
+export default [...reactConfig]
 ```
 
 ## License

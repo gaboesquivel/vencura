@@ -64,7 +64,7 @@ const database = (0, database_1.createDatabase)(config, network, secrets.dbPassw
 const dbConnSecretId = database.dbConnectionStringSecret.secretId;
 const cloudRunSaName = `${config.appName}-${config.environment}-cloud-run-sa`;
 const cicdSaName = `${config.appName}-${config.environment}-cicd-sa`;
-new gcp.secretmanager.SecretIamMember(`${cloudRunSaName}-secret-${dbConnSecretId}`, {
+new gcp.secretmanager.SecretIamMember(`${cloudRunSaName}-db-conn-secret-access`, {
     secretId: dbConnSecretId,
     role: 'roles/secretmanager.secretAccessor',
     member: serviceAccounts.cloudRunServiceAccount.email.apply((email) => `serviceAccount:${email}`),
@@ -74,7 +74,7 @@ new gcp.secretmanager.SecretIamMember(`${cloudRunSaName}-secret-${dbConnSecretId
         database.dbConnectionStringSecret,
     ],
 });
-new gcp.secretmanager.SecretIamMember(`${cicdSaName}-secret-${dbConnSecretId}`, {
+new gcp.secretmanager.SecretIamMember(`${cicdSaName}-db-conn-secret-access`, {
     secretId: dbConnSecretId,
     role: 'roles/secretmanager.secretAccessor',
     member: serviceAccounts.cicdServiceAccount.email.apply((email) => `serviceAccount:${email}`),

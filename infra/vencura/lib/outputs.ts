@@ -19,7 +19,7 @@ export function createOutputs(
   return {
     // Cloud Run service URL (safe array access)
     cloudRunUrl: cloudRun.service.statuses.apply((statuses) =>
-      statuses && statuses.length > 0 ? statuses[0]?.url ?? '' : '',
+      statuses && statuses.length > 0 ? (statuses[0]?.url ?? '') : '',
     ),
 
     // Database connection name

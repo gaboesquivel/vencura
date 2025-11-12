@@ -38,7 +38,7 @@ const pulumi = __importStar(require("@pulumi/pulumi"));
 function createOutputs(config, cloudRun, database, serviceAccounts, secrets, network, artifactRegistry) {
     return {
         // Cloud Run service URL (safe array access)
-        cloudRunUrl: cloudRun.service.statuses.apply((statuses) => statuses && statuses.length > 0 ? statuses[0]?.url ?? '' : ''),
+        cloudRunUrl: cloudRun.service.statuses.apply((statuses) => statuses && statuses.length > 0 ? (statuses[0]?.url ?? '') : ''),
         // Database connection name
         databaseConnectionName: database.connectionName,
         // Service account emails
