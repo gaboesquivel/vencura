@@ -88,8 +88,10 @@ export class SolanaWalletClient extends BaseWalletClient {
   async createWallet(): Promise<CreateWalletResult> {
     const dynamicSvmClient = await this.getDynamicSvmClient()
 
+    const { ThresholdSignatureScheme } = await import('@dynamic-labs-wallet/node')
+
     const wallet = await dynamicSvmClient.createWalletAccount({
-      thresholdSignatureScheme: 'TWO_OF_TWO',
+      thresholdSignatureScheme: ThresholdSignatureScheme.TWO_OF_TWO,
       backUpToClientShareService: false,
     })
 

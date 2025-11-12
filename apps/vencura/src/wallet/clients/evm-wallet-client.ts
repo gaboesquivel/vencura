@@ -54,8 +54,10 @@ export class EvmWalletClient extends BaseWalletClient {
   async createWallet(): Promise<CreateWalletResult> {
     const dynamicEvmClient = await this.getDynamicEvmClient()
 
+    const { ThresholdSignatureScheme } = await import('@dynamic-labs-wallet/node')
+
     const wallet = await dynamicEvmClient.createWalletAccount({
-      thresholdSignatureScheme: 'TWO_OF_TWO',
+      thresholdSignatureScheme: ThresholdSignatureScheme.TWO_OF_TWO,
       backUpToClientShareService: false,
     })
 
