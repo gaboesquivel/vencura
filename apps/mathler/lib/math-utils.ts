@@ -76,3 +76,111 @@ export function generateEquationsForTarget(target: number, maxLength = 9): strin
 
   return [...new Set(equations)].slice(0, 10)
 }
+
+/**
+ * Seeded random number generator for consistent daily puzzles
+ */
+function seededRandom(seed: number) {
+  const x = Math.sin(seed) * 10000
+  return x - Math.floor(x)
+}
+
+/**
+ * Generates a solution equation for a given target number
+ * Uses seeded random based on date for daily consistency
+ * Ensures equation length ≤ 9 characters and supports order of operations
+ */
+export function generateSolutionEquation(target: number, seed?: number): string {
+  const today = new Date()
+  const dateSeed = seed ?? today.getFullYear() * 10000 + today.getMonth() * 100 + today.getDate()
+
+  // Generate candidate equations
+  const candidates: string[] = []
+
+  // Simple two-number operations
+  for (let a = 1; a <= 99; a++) {
+    for (let b = 1; b <= 99; b++) {
+      // Addition
+      if (a + b === target) {
+        const eq = `${a}+${b}`
+        if (eq.length <= 9) candidates.push(eq)
+      }
+      // Subtraction
+      if (a - b === target && a > b) {
+        const eq = `${a}-${b}`
+        if (eq.length <= 9) candidates.push(eq)
+      }
+      // Multiplication
+      if (a * b === target) {
+        const eq = `${a}*${b}`
+        if (eq.length <= 9) candidates.push(eq)
+      }
+      // Division
+      if (b !== 0 && a % b === 0 && a / b === target) {
+        const eq = `${a}/${b}`
+        if (eq.length <= 9) candidates.push(eq)
+      }
+    }
+  }
+
+  // Three-number operations with order of operations
+  for (let a = 1; a <= 50; a++) {
+    for (let b = 1; b <= 50; b++) {
+      for (let c = 1; c <= 50; c++) {
+        // a + b * c (multiplication first)
+        if (a + b * c === target) {
+          const eq = `${a}+${b}*${c}`
+          if (eq.length <= 9) candidates.push(eq)
+        }
+        // a * b + c (multiplication first)
+        if (a * b + c === target) {
+          const eq = `${a}*${b}+${c}`
+          if (eq.length <= 9) candidates.push(eq)
+        }
+        // a * b - c (multiplication first)
+        if (a * b - c === target && a * b > c) {
+          const eq = `${a}*${b}-${c}`
+          if (eq.length <= 9) candidates.push(eq)
+        }
+        // a - b * c (multiplication first)
+        if (a - b * c === target && a > b * c) {
+          const eq = `${a}-${b}*${c}`
+          if (eq.length <= 9) candidates.push(eq)
+        }
+        // a / b + c (division first)
+        if (b !== 0 && a % b === 0 && a / b + c === target) {
+          const eq = `${a}/${b}+${c}`
+          if (eq.length <= 9) candidates.push(eq)
+        }
+        // a / b - c (division first)
+        if (b !== 0 && a % b === 0 && a / b - c === target && a / b > c) {
+          const eq = `${a}/${b}-${c}`
+          if (eq.length <= 9) candidates.push(eq)
+        }
+        // a + b / c (division first)
+        if (c !== 0 && b % c === 0 && a + b / c === target) {
+          const eq = `${a}+${b}/${c}`
+          if (eq.length <= 9) candidates.push(eq)
+        }
+        // a - b / c (division first)
+        if (c !== 0 && b % c === 0 && a - b / c === target && a > b / c) {
+          const eq = `${a}-${b}/${c}`
+          if (eq.length <= 9) candidates.push(eq)
+        }
+      }
+    }
+  }
+
+  // Remove duplicates
+  const uniqueCandidates = [...new Set(candidates)]
+
+  if (uniqueCandidates.length === 0) {
+    // Fallback: simple equation
+    return `${target}+0`
+  }
+
+  // Use seeded random to pick a consistent equation for the day
+  const randomIndex = Math.floor(seededRandom(dateSeed) * uniqueCandidates.length)
+  const selected = uniqueCandidates[randomIndex]
+  return selected ?? uniqueCandidates[0] ?? `${target}+0`
+}

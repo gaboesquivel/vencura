@@ -1,34 +1,54 @@
 'use client'
 
-import { useState, useEffect } from 'react'
-import { evaluateExpression, getRandomTarget } from '@/lib/math-utils'
+import { useState, useEffect, useCallback } from 'react'
+import { evaluateExpression, getRandomTarget, generateSolutionEquation } from '@/lib/math-utils'
 import GuessRow from './guess-row'
 import GameKeypad from './game-keypad'
 import GameStatus from './game-status'
+import SuccessModal from './success-modal'
 
 export default function MathlerGame() {
   const [target, setTarget] = useState<number>(0)
+  const [solution, setSolution] = useState<string>('')
   const [guesses, setGuesses] = useState<string[]>([])
   const [currentInput, setCurrentInput] = useState<string>('')
   const [gameStatus, setGameStatus] = useState<'playing' | 'won' | 'lost'>('playing')
   const [feedback, setFeedback] = useState<Array<Array<'correct' | 'present' | 'absent'>>>([])
+  const [showSuccessModal, setShowSuccessModal] = useState(false)
 
-  useEffect(() => {
-    setTarget(getRandomTarget())
+  const resetGame = useCallback(() => {
+    const newTarget = getRandomTarget()
+    const newSolution = generateSolutionEquation(newTarget)
+    setTarget(newTarget)
+    setSolution(newSolution)
+    setGuesses([])
+    setCurrentInput('')
+    setGameStatus('playing')
+    setFeedback([])
+    setShowSuccessModal(false)
   }, [])
 
-  const handleInputChange = (value: string) => {
-    if (value.length <= 9) {
-      setCurrentInput(value)
-    }
-  }
+  useEffect(() => {
+    resetGame()
+  }, [resetGame])
 
-  const handleBackspace = () => {
-    setCurrentInput(currentInput.slice(0, -1))
-  }
+  const handleInputChange = useCallback(
+    (value: string) => {
+      if (gameStatus !== 'playing') return
+      if (value.length <= 9) {
+        setCurrentInput(value)
+      }
+    },
+    [gameStatus],
+  )
 
-  const handleSubmit = () => {
-    if (!currentInput) return
+  const handleBackspace = useCallback(() => {
+    if (gameStatus !== 'playing') return
+    setCurrentInput(prev => prev.slice(0, -1))
+  }, [gameStatus])
+
+  const handleSubmit = useCallback(() => {
+    if (!currentInput || gameStatus !== 'playing') return
 
     try {
       const result = evaluateExpression(currentInput)
@@ -38,30 +58,73 @@ export default function MathlerGame() {
         return
       }
 
-      if (result !== target && guesses.length >= 5) {
-        setGameStatus('lost')
-        setGuesses([...guesses, currentInput])
-        return
-      }
+      setGuesses(prevGuesses => {
+        const newGuesses = [...prevGuesses, currentInput]
 
-      const newGuesses = [...guesses, currentInput]
-      setGuesses(newGuesses)
+        // Normalize guess for feedback comparison (× -> *, ÷ -> /)
+        const normalizedGuess = currentInput.replace(/×/g, '*').replace(/÷/g, '/')
 
-      // Calculate feedback
-      const feedbackRow = calculateFeedback(currentInput, target.toString())
-      setFeedback([...feedback, feedbackRow])
+        // Calculate feedback comparing guess to solution equation
+        const feedbackRow = calculateFeedback(normalizedGuess, solution)
+        setFeedback(prevFeedback => [...prevFeedback, feedbackRow])
 
-      if (result === target) {
-        setGameStatus('won')
-      } else if (newGuesses.length >= 6) {
-        setGameStatus('lost')
-      }
+        // Check win condition (result equals target AND guess matches solution exactly)
+        const isWin = result === target && normalizedGuess === solution
+        if (isWin) {
+          setGameStatus('won')
+          setShowSuccessModal(true)
+        } else if (newGuesses.length >= 6) {
+          setGameStatus('lost')
+        }
+
+        return newGuesses
+      })
 
       setCurrentInput('')
     } catch {
       alert('Invalid expression')
     }
-  }
+  }, [currentInput, gameStatus, solution, target])
+
+  // Keyboard support
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (gameStatus !== 'playing') return
+
+      // Prevent default for game keys
+      if (
+        /^[0-9+\-*/]$/.test(e.key) ||
+        e.key === 'Backspace' ||
+        e.key === 'Delete' ||
+        e.key === 'Enter'
+      ) {
+        e.preventDefault()
+      }
+
+      // Handle number and operator keys
+      if (/^[0-9+\-*/]$/.test(e.key)) {
+        setCurrentInput(prev => {
+          if (prev.length < 9) {
+            return prev + e.key
+          }
+          return prev
+        })
+      }
+
+      // Handle backspace/delete
+      if (e.key === 'Backspace' || e.key === 'Delete') {
+        handleBackspace()
+      }
+
+      // Handle enter
+      if (e.key === 'Enter') {
+        handleSubmit()
+      }
+    }
+
+    window.addEventListener('keydown', handleKeyDown)
+    return () => window.removeEventListener('keydown', handleKeyDown)
+  }, [gameStatus, handleSubmit, handleBackspace])
 
   return (
     <div className="w-full max-w-sm space-y-6">
@@ -88,7 +151,12 @@ export default function MathlerGame() {
 
       {/* Game Status */}
       {gameStatus !== 'playing' && (
-        <GameStatus status={gameStatus} target={target} guessCount={guesses.length} />
+        <GameStatus
+          status={gameStatus}
+          target={target}
+          guessCount={guesses.length}
+          onReset={resetGame}
+        />
       )}
 
       {/* Keypad */}
@@ -100,36 +168,54 @@ export default function MathlerGame() {
           currentInput={currentInput}
         />
       )}
+
+      {/* Success Modal */}
+      <SuccessModal
+        open={showSuccessModal}
+        onOpenChange={setShowSuccessModal}
+        guessCount={guesses.length}
+        onPlayAgain={resetGame}
+      />
     </div>
   )
 }
 
-function calculateFeedback(guess: string, target: string): Array<'correct' | 'present' | 'absent'> {
+function calculateFeedback(
+  guess: string,
+  solution: string,
+): Array<'correct' | 'present' | 'absent'> {
   const feedback: Array<'correct' | 'present' | 'absent'> = Array(guess.length).fill('absent')
 
   // First pass: mark correct positions
   for (let i = 0; i < guess.length; i++) {
-    if (guess[i] === target[i]) {
+    if (guess[i] === solution[i]) {
       feedback[i] = 'correct'
     }
   }
 
   // Second pass: mark present but wrong position
-  const targetChars = target.split('')
+  const solutionChars = solution.split('')
   const guessChars = guess.split('')
 
+  // Remove correct matches from consideration
   for (let i = 0; i < guess.length; i++) {
     if (feedback[i] === 'correct') {
-      targetChars[i] = ''
+      solutionChars[i] = ''
       guessChars[i] = ''
     }
   }
 
+  // Mark present (exists but wrong position)
   for (let i = 0; i < guess.length; i++) {
-    const char = guessChars[i]
-    if (char && targetChars.includes(char)) {
-      feedback[i] = 'present'
-      targetChars[targetChars.indexOf(char)] = ''
+    if (feedback[i] !== 'correct') {
+      const char = guessChars[i]
+      if (char) {
+        const solutionIndex = solutionChars.indexOf(char)
+        if (solutionIndex !== -1) {
+          feedback[i] = 'present'
+          solutionChars[solutionIndex] = ''
+        }
+      }
     }
   }
 
