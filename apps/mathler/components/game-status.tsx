@@ -4,9 +4,10 @@ interface GameStatusProps {
   status: 'won' | 'lost'
   target: number
   guessCount: number
+  onReset: () => void
 }
 
-export default function GameStatus({ status, target, guessCount }: GameStatusProps) {
+export default function GameStatus({ status, target, guessCount, onReset }: GameStatusProps) {
   return (
     <div
       className={`p-4 rounded-lg text-center ${
@@ -26,7 +27,7 @@ export default function GameStatus({ status, target, guessCount }: GameStatusPro
           : `The answer was ${target}`}
       </p>
       <button
-        onClick={() => window.location.reload()}
+        onClick={onReset}
         className="mt-3 px-4 py-2 rounded-lg bg-primary text-primary-foreground hover:opacity-90 transition-opacity"
       >
         Play Again
