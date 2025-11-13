@@ -167,9 +167,7 @@ describe('WalletController (e2e)', () => {
       })
 
       // Attempt to get balance without Authorization header
-      return request(app.getHttpServer())
-        .get(`/wallets/${wallet.id}/balance`)
-        .expect(401)
+      return request(app.getHttpServer()).get(`/wallets/${wallet.id}/balance`).expect(401)
     })
   })
 

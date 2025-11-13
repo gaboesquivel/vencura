@@ -102,8 +102,10 @@ export function useWallets(
 export function useCreateWallet(options?: UseMutationOptions<Wallet, void, CreateWalletInput>) {
   const client = useVencuraClient()
   const queryClient = useQueryClient()
+  const { onSuccess: userOnSuccess, ...restOptions } = options || {}
 
   return useMutation({
+    ...restOptions,
     mutationFn: async (data: CreateWalletInput) => {
       const result = await client.wallet.create({ body: data })
       if (result.status === 201) return result.body
@@ -111,9 +113,14 @@ export function useCreateWallet(options?: UseMutationOptions<Wallet, void, Creat
     },
     onSuccess: (data, variables, context) => {
       queryClient.invalidateQueries({ queryKey: walletsKeys._def })
-      options?.onSuccess?.(data, variables, context)
+      if (userOnSuccess) {
+        ;(userOnSuccess as (data: Wallet, variables: CreateWalletInput, context: unknown) => void)(
+          data,
+          variables,
+          context,
+        )
+      }
     },
-    ...options,
   })
 }
 
