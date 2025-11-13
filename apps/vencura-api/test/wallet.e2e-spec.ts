@@ -157,6 +157,20 @@ describe('WalletController (e2e)', () => {
         .set('Authorization', `Bearer ${authToken}`)
         .expect(404)
     })
+
+    it('should return 401 for unauthorized access to balance endpoint', async () => {
+      // Create a wallet first
+      const wallet = await createTestWallet({
+        app,
+        authToken,
+        chainId: TEST_CHAINS.EVM.ARBITRUM_SEPOLIA,
+      })
+
+      // Attempt to get balance without Authorization header
+      return request(app.getHttpServer())
+        .get(`/wallets/${wallet.id}/balance`)
+        .expect(401)
+    })
   })
 
   describe('POST /wallets/:id/sign', () => {
@@ -203,6 +217,21 @@ describe('WalletController (e2e)', () => {
         .send({ message: TEST_MESSAGES.SIMPLE })
         .expect(404)
     })
+
+    it('should return 401 for unauthorized access to sign endpoint', async () => {
+      // Create a wallet first
+      const wallet = await createTestWallet({
+        app,
+        authToken,
+        chainId: TEST_CHAINS.EVM.ARBITRUM_SEPOLIA,
+      })
+
+      // Attempt to sign without Authorization header
+      return request(app.getHttpServer())
+        .post(`/wallets/${wallet.id}/sign`)
+        .send({ message: TEST_MESSAGES.SIMPLE })
+        .expect(401)
+    })
   })
 
   describe('POST /wallets/:id/send', () => {
@@ -246,13 +275,15 @@ describe('WalletController (e2e)', () => {
         chainId: TEST_CHAINS.EVM.ARBITRUM_SEPOLIA,
       })
 
-      return request(app.getHttpServer())
+      const response = await request(app.getHttpServer())
         .post(`/wallets/${wallet.id}/send`)
         .set('Authorization', `Bearer ${authToken}`)
         .send({
           to: TEST_ADDRESSES.EVM,
         })
         .expect(400)
+
+      expect(response.body).toHaveProperty('message')
     })
 
     it('should return 404 for non-existent wallet', async () => {
