@@ -1,5 +1,5 @@
 // Export ts-rest client as primary API
-export { createVencuraClient, type VencuraClient, type VencuraClientConfig } from './client.js'
+export { createVencuraClient, type VencuraClient, type VencuraClientConfig } from './client'
 
 // Re-export types from contracts for convenience
 export type {

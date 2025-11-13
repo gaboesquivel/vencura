@@ -1,104 +1,84 @@
 'use client'
 
-import { useState, useEffect } from 'react'
+import { useState } from 'react'
 import { Button } from '@workspace/ui/components/button'
-import { createWallet, getWallets, type Wallet } from '@/lib/api-client'
+import { useWallets, useCreateWallet } from '@vencura/react'
 import { WalletCard } from './wallet-card'
 import { SUPPORTED_CHAINS } from '@/lib/chains'
 
 export function WalletDashboard() {
-  const [wallets, setWallets] = useState<Wallet[]>([])
-  const [loading, setLoading] = useState(false)
-  const [loadingWallets, setLoadingWallets] = useState(true)
-  const [error, setError] = useState<string | null>(null)
   const [chainId, setChainId] = useState<number | string>(421614) // Default to Arbitrum Sepolia
+  const { data: wallets = [], isLoading: loadingWallets, error: walletsError } = useWallets()
+  const createWallet = useCreateWallet({
+    onSuccess: () => {
+      // React Query will automatically refetch wallets
+    },
+  })
 
-  useEffect(() => {
-    const fetchWallets = async () => {
-      setLoadingWallets(true)
-      setError(null)
-      try {
-        const userWallets = await getWallets()
-        setWallets(userWallets)
-      } catch (err) {
-        setError(err instanceof Error ? err.message : 'Failed to load wallets')
-      } finally {
-        setLoadingWallets(false)
-      }
-    }
-    fetchWallets()
-  }, [])
-
-  const handleCreateWallet = async () => {
-    setLoading(true)
-    setError(null)
-    try {
-      await createWallet(chainId)
-      // Reload wallets after creation
-      const userWallets = await getWallets()
-      setWallets(userWallets)
-    } catch (err) {
-      setError(err instanceof Error ? err.message : 'Failed to create wallet')
-    } finally {
-      setLoading(false)
-    }
+  const handleCreateWallet = () => {
+    createWallet.mutate({ chainId })
   }
 
-  const handleRefresh = async () => {
-    // Reload wallets list
-    try {
-      const userWallets = await getWallets()
-      setWallets(userWallets)
-    } catch (err) {
-      // Silently fail on refresh
-      console.error('Failed to refresh wallets:', err)
+  const getErrorMessage = (err: unknown): string | null => {
+    if (!err) return null
+    if (err instanceof Error) return err.message
+    if (typeof err === 'object' && 'message' in err && typeof err.message === 'string') {
+      return err.message
     }
+    return String(err)
   }
+
+  const error = getErrorMessage(walletsError) || getErrorMessage(createWallet.error) || null
 
   return (
     <div className="space-y-6">
-      <div className="border rounded-lg p-4">
+      <div className="border rounded-lg p-6">
         <h2 className="text-xl font-bold mb-4">Create New Wallet</h2>
-        <div className="flex gap-2 items-end">
+        <div className="flex gap-3 items-end">
           <div className="flex-1">
-            <label className="text-sm text-muted-foreground mb-1 block">Chain</label>
+            <label className="text-sm font-medium text-muted-foreground mb-2 block">Chain</label>
             <select
               value={String(chainId)}
               onChange={e => {
                 const value = e.target.value
-                // Try to parse as number, fallback to string
                 const parsed = Number(value)
                 setChainId(isNaN(parsed) ? value : parsed)
               }}
-              className="w-full px-3 py-2 border rounded-md text-sm"
-              disabled={loading}
+              className="w-full px-3 py-2 border rounded-md text-sm bg-background"
+              disabled={createWallet.isPending}
             >
-              {SUPPORTED_CHAINS.map(chain => (
+              {SUPPORTED_CHAINS.filter(
+                chain => chain.chainType === 'evm' || chain.chainType === 'solana',
+              ).map(chain => (
                 <option key={String(chain.chainId)} value={String(chain.chainId)}>
                   {chain.name} {chain.testnet && '(Testnet)'}
                 </option>
               ))}
             </select>
           </div>
-          <Button onClick={handleCreateWallet} disabled={loading}>
-            {loading ? 'Creating...' : 'Create Wallet'}
+          <Button onClick={handleCreateWallet} disabled={createWallet.isPending}>
+            {createWallet.isPending ? 'Creating...' : 'Create Wallet'}
           </Button>
         </div>
         {error && (
-          <div className="mt-2 text-sm text-destructive bg-destructive/10 p-2 rounded">{error}</div>
+          <div className="mt-3 text-sm text-destructive bg-destructive/10 p-3 rounded-md">
+            {error}
+          </div>
         )}
       </div>
 
       <div>
         <h2 className="text-xl font-bold mb-4">Your Wallets</h2>
         {loadingWallets ? (
-          <p className="text-muted-foreground">Loading wallets...</p>
+          <div className="text-muted-foreground py-4">Loading wallets...</div>
         ) : wallets.length === 0 ? (
-          <p className="text-muted-foreground">No wallets yet. Create your first wallet above.</p>
+          <div className="text-muted-foreground py-4">
+            No wallets yet. Create your first wallet above.
+          </div>
         ) : (
           <div className="space-y-4">
             {wallets.map(wallet => (
-              <WalletCard key={wallet.id} wallet={wallet} onRefresh={handleRefresh} />
+              <WalletCard key={wallet.id} wallet={wallet} />
             ))}
           </div>
         )}

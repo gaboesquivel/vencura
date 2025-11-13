@@ -370,6 +370,12 @@ importers:
       '@dynamic-labs/sdk-react-core':
         specifier: '*'
         version: 4.44.3(@types/react@19.1.9)(bufferutil@4.0.9)(react-dom@19.2.0(react@19.2.0))(react@19.2.0)(utf-8-validate@5.0.10)
+      '@tanstack/react-query':
+        specifier: ^5.90.8
+        version: 5.90.8(react@19.2.0)
+      '@vencura/react':
+        specifier: workspace:*
+        version: link:../../packages/vencura-react
       '@workspace/ui':
         specifier: workspace:*
         version: link:../../packages/ui
