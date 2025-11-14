@@ -73,10 +73,23 @@ export function useGameHistory() {
           metadata: updatedMetadata,
         })
 
-        // Refresh user to get updated metadata
-        await refreshUser()
+        // Check for updateUser errors or unsuccessful responses
+        // updateUser throws on network/validation errors (caught by try-catch)
+        // but we should verify the result exists and handle verification requirements
+        if (!result) {
+          console.error('Failed to save game history: updateUser returned no result')
+          return false
+        }
 
-        return !result.isEmailVerificationRequired && !result.isSmsVerificationRequired
+        // Refresh user to get updated metadata only if update was successful
+        // (no verification required)
+        const requiresVerification =
+          result.isEmailVerificationRequired || result.isSmsVerificationRequired
+        if (!requiresVerification) {
+          await refreshUser()
+        }
+
+        return !requiresVerification
       } catch (error) {
         console.error('Failed to save game history:', error)
         return false
