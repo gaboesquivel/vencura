@@ -1,3 +1,16 @@
+// Mock @cosmjs/encoding to avoid ES module issues in Jest
+jest.mock('@cosmjs/encoding', () => ({
+  fromBech32: jest.fn((address: string) => {
+    // Basic mock implementation
+    const match = address.match(/^([a-z]{1,5})1([a-z0-9]+)$/i)
+    if (!match) throw new Error('Invalid Bech32 address')
+    return {
+      prefix: match[1],
+      data: new Uint8Array(20), // Mock 20-byte data
+    }
+  }),
+}))
+
 import { Test, TestingModule } from '@nestjs/testing'
 import { ConfigService } from '@nestjs/config'
 import { NotFoundException, BadRequestException } from '@nestjs/common'

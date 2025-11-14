@@ -8,7 +8,10 @@ import type { ChainType } from './wallet'
  */
 export const EvmAddressSchema = z
   .string()
-  .regex(/^0x[a-fA-F0-9]{40}$/i, 'Invalid EVM address format (must be 0x followed by 40 hex characters)')
+  .regex(
+    /^0x[a-fA-F0-9]{40}$/i,
+    'Invalid EVM address format (must be 0x followed by 40 hex characters)',
+  )
   .transform(val => val.toLowerCase())
 
 /**

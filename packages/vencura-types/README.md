@@ -91,6 +91,7 @@ This package uses a contract-first approach where:
 - **Address Schemas**: `EvmAddressSchema`, `SolanaAddressSchema`, `CosmosAddressSchema`, `BitcoinAddressSchema`, `FlowAddressSchema`, `StarknetAddressSchema`, `AlgorandAddressSchema`, `SuiAddressSchema`, `TronAddressSchema` (for type inference and basic format validation)
 
 **Note**: For production address validation, use the proper chain-specific libraries:
+
 - **EVM**: `getAddress()` from `viem`
 - **Solana**: `PublicKey` from `@solana/web3.js`
 - **Cosmos**: `fromBech32()` from `@cosmjs/encoding`
