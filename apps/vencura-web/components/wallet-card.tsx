@@ -3,8 +3,9 @@
 import { useState } from 'react'
 import { Button } from '@workspace/ui/components/button'
 import { useWalletBalance, useSignMessage, useSendTransaction, type Wallet } from '@vencura/react'
-import { getChainByNetworkId, isValidAddress } from '@/lib/chains'
+import { getChainByNetworkId } from '@/lib/chains'
 import { getErrorMessage } from '@/lib/error-utils'
+import { signMessageSchema, sendTransactionSchema, validateAddressInput } from '@/lib/validation'
 
 export function WalletCard({ wallet }: { wallet: Wallet }) {
   const [message, setMessage] = useState('')
@@ -12,6 +13,8 @@ export function WalletCard({ wallet }: { wallet: Wallet }) {
   const [txTo, setTxTo] = useState('')
   const [txAmount, setTxAmount] = useState('')
   const [showBalance, setShowBalance] = useState(false)
+  const [addressError, setAddressError] = useState<string | null>(null)
+  const [amountError, setAmountError] = useState<string | null>(null)
 
   const {
     data: balanceData,
@@ -45,23 +48,37 @@ export function WalletCard({ wallet }: { wallet: Wallet }) {
 
   const handleSignMessage = (e?: React.FormEvent) => {
     e?.preventDefault()
-    if (!message.trim()) return
-    signMessage.mutate({ message: message.trim() })
+    const validation = signMessageSchema.safeParse({ message })
+    if (!validation.success) return
+    signMessage.mutate(validation.data)
   }
 
   const handleSendTransaction = () => {
-    if (!txTo.trim() || !txAmount.trim()) return
-    if (!isValidAddress(txTo.trim(), wallet.chainType)) {
-      sendTransaction.reset()
+    // Validate address format
+    const addressValidation = validateAddressInput({
+      address: txTo,
+      chainType: wallet.chainType,
+    })
+    if (!addressValidation.valid) {
+      setAddressError(addressValidation.error || 'Invalid address')
       return
     }
-    const amount = parseFloat(txAmount)
-    if (isNaN(amount) || amount <= 0) return
+    setAddressError(null)
 
-    sendTransaction.mutate({
+    // Parse and validate amount
+    const amount = parseFloat(txAmount)
+    const transactionValidation = sendTransactionSchema.safeParse({
       to: txTo.trim(),
       amount,
     })
+    if (!transactionValidation.success) {
+      const error = transactionValidation.error.errors.find(e => e.path[0] === 'amount')
+      setAmountError(error?.message || 'Invalid amount')
+      return
+    }
+    setAmountError(null)
+
+    sendTransaction.mutate(transactionValidation.data)
   }
 
   const isLoading = balanceLoading || signMessage.isPending || sendTransaction.isPending
@@ -139,28 +156,44 @@ export function WalletCard({ wallet }: { wallet: Wallet }) {
       <div className="space-y-3 border-t pt-4">
         <h4 className="font-semibold text-sm">Send Transaction</h4>
         <div className="space-y-2">
-          <input
-            type="text"
-            value={txTo}
-            onChange={e => setTxTo(e.target.value)}
-            placeholder={
-              wallet.chainType === 'solana'
-                ? 'Recipient address (Solana)'
-                : 'Recipient address (0x...)'
-            }
-            className="w-full px-3 py-2 border rounded-md text-sm font-mono bg-background"
-            disabled={isLoading}
-          />
-          <div className="flex gap-2">
+          <div className="space-y-1">
             <input
-              type="number"
-              step="0.0001"
-              value={txAmount}
-              onChange={e => setTxAmount(e.target.value)}
-              placeholder={`Amount (${currency})`}
-              className="flex-1 px-3 py-2 border rounded-md text-sm bg-background"
+              type="text"
+              value={txTo}
+              onChange={e => {
+                setTxTo(e.target.value)
+                setAddressError(null)
+              }}
+              placeholder={
+                wallet.chainType === 'solana'
+                  ? 'Recipient address (Solana)'
+                  : 'Recipient address (0x...)'
+              }
+              className={`w-full px-3 py-2 border rounded-md text-sm font-mono bg-background ${
+                addressError ? 'border-destructive' : ''
+              }`}
               disabled={isLoading}
             />
+            {addressError && <p className="text-xs text-destructive">{addressError}</p>}
+          </div>
+          <div className="flex gap-2">
+            <div className="flex-1 space-y-1">
+              <input
+                type="number"
+                step="0.0001"
+                value={txAmount}
+                onChange={e => {
+                  setTxAmount(e.target.value)
+                  setAmountError(null)
+                }}
+                placeholder={`Amount (${currency})`}
+                className={`w-full px-3 py-2 border rounded-md text-sm bg-background ${
+                  amountError ? 'border-destructive' : ''
+                }`}
+                disabled={isLoading}
+              />
+              {amountError && <p className="text-xs text-destructive">{amountError}</p>}
+            </div>
             <Button onClick={handleSendTransaction} disabled={isLoading} size="sm">
               {sendTransaction.isPending ? 'Sending...' : 'Send'}
             </Button>

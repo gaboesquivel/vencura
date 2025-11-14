@@ -53,6 +53,16 @@ function WalletsList() {
 }
 ```
 
+## Validation
+
+All API responses are automatically validated using Zod schemas from `@vencura/types`. This ensures:
+
+- **Runtime type safety**: Responses are validated at runtime, catching API contract violations early
+- **Better error messages**: Validation errors provide clear feedback about what went wrong
+- **Type inference**: Types are automatically inferred from Zod schemas
+
+If a response doesn't match the expected schema, the hook will throw an error with detailed validation information.
+
 ## Provider Configuration
 
 ### VencuraProvider Props

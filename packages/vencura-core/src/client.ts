@@ -1,5 +1,5 @@
 import { initClient } from '@ts-rest/core'
-import { walletContract } from '@vencura/types'
+import { walletAPIContract } from '@vencura/types'
 
 export interface VencuraClientConfig {
   /**
@@ -33,7 +33,7 @@ export interface VencuraClientConfig {
 export function createVencuraClient(config: VencuraClientConfig = {}) {
   const { baseUrl = '', headers = {} } = config
 
-  const client = initClient(walletContract, {
+  const client = initClient(walletAPIContract, {
     baseUrl,
     baseHeaders: headers,
   })

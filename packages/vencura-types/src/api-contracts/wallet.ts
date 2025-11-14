@@ -14,9 +14,9 @@ const c = initContract()
 
 /**
  * Wallet API contract defining all wallet-related endpoints.
- * This contract is shared between backend, SDK, and frontend for type safety.
+ * This API contract is shared between backend, SDK, and frontend for type safety.
  */
-export const walletContract = c.router({
+export const walletAPIContract = c.router({
   /**
    * List all wallets for the authenticated user.
    */

@@ -1,5 +1,6 @@
 import { getAddress } from 'viem'
 import { PublicKey } from '@solana/web3.js'
+import { fromBech32 } from '@cosmjs/encoding'
 import type { ChainType } from '@vencura/types'
 
 /**
@@ -29,14 +30,18 @@ export function validateSolanaAddress({ address }: { address: string }): boolean
 }
 
 /**
- * Validate Cosmos address (Bech32 format).
+ * Validate Cosmos address (Bech32 format) using @cosmjs/encoding.
  * Format: {prefix}{separator}{data} where prefix is chain-specific (e.g., "cosmos", "osmo").
- * Typical length: 20-45 characters depending on chain.
+ * Standard addresses are 20 bytes (160 bits).
  */
 export function validateCosmosAddress({ address }: { address: string }): boolean {
-  // Bech32 format: starts with chain prefix (1-5 chars), followed by separator '1', then base32 data (6+ chars)
-  const bech32Regex = /^[a-z]{1,5}1[a-z0-9]{6,}$/i
-  return bech32Regex.test(address) && address.length >= 20 && address.length <= 45
+  try {
+    const { data } = fromBech32(address)
+    // Standard Cosmos addresses are 20 bytes (160 bits)
+    return data.length === 20
+  } catch {
+    return false
+  }
 }
 
 /**

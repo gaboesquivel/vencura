@@ -25,7 +25,11 @@ export function useSpeechRecognition({
   const [supported, setSupported] = useState(false)
 
   useEffect(() => {
-    const SpeechRecognition = window.SpeechRecognition || (window as any).webkitSpeechRecognition
+    // Type-safe access to SpeechRecognition API
+    const SpeechRecognition =
+      (window as Window & { SpeechRecognition?: new () => SpeechRecognition }).SpeechRecognition ||
+      (window as Window & { webkitSpeechRecognition?: new () => SpeechRecognition })
+        .webkitSpeechRecognition
     if (!SpeechRecognition) {
       onError('Speech recognition is not supported in this browser')
       return

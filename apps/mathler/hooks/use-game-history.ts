@@ -79,10 +79,23 @@ export function useGameHistory() {
           return false
         }
 
-        // Check for error property or success flag if they exist
-        if ((result as any).error || (result as any).success === false) {
+        // Type-safe error checking
+        const hasError =
+          typeof result === 'object' &&
+          result !== null &&
+          ('error' in result || ('success' in result && result.success === false))
+
+        if (hasError) {
           const errorMessage =
-            (result as any).error?.message || 'Failed to update user metadata. Please try again.'
+            (typeof result === 'object' &&
+              result !== null &&
+              'error' in result &&
+              typeof result.error === 'object' &&
+              result.error !== null &&
+              'message' in result.error &&
+              typeof result.error.message === 'string' &&
+              result.error.message) ||
+            'Failed to update user metadata. Please try again.'
           console.error('Failed to save game history:', errorMessage)
           return false
         }
