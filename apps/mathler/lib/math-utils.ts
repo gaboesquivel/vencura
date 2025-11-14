@@ -1,3 +1,27 @@
+import { Parser } from 'expr-eval'
+
+/**
+ * Singleton parser instance configured for basic arithmetic only.
+ * - No functions or variables allowed
+ * - Only supports: +, -, *, /, parentheses, and numbers
+ * - Reused across all evaluations for better performance
+ *
+ * Note: Regex validation in evaluateExpression prevents function calls and variables
+ * from reaching the parser, but we also restrict the parser itself as defense-in-depth.
+ */
+const arithmeticParser = new Parser()
+// Explicitly disable all functions and constants to restrict to basic arithmetic only
+arithmeticParser.functions = {}
+arithmeticParser.consts = {}
+
+/**
+ * Evaluates a mathematical expression string.
+ * Only supports basic arithmetic: numbers, +, -, *, /, and parentheses.
+ * Results are rounded to 6 decimal places to avoid floating-point precision issues.
+ *
+ * @param expr - Expression string (may contain × and ÷ Unicode operators)
+ * @returns Evaluated result as a number, or null if expression is invalid
+ */
 export function evaluateExpression(expr: string): number | null {
   try {
     // Replace × and ÷ with * and /
@@ -8,7 +32,7 @@ export function evaluateExpression(expr: string): number | null {
       return null
     }
 
-    // Check for valid syntax
+    // Check for valid syntax - reject expressions starting or ending with operators
     if (/^[+*/%]|[+*/%]$/.test(normalized)) {
       return null
     }
@@ -17,16 +41,16 @@ export function evaluateExpression(expr: string): number | null {
       return null
     }
 
-    // Use Function constructor for safe evaluation
-    // This is safer than eval() as it's evaluated in a restricted scope
-    const result = Function('"use strict"; return (' + normalized + ')')()
+    // Evaluate using the singleton parser (restricted to basic arithmetic only)
+    const result = arithmeticParser.evaluate(normalized)
 
     // Check if result is a valid number
     if (typeof result !== 'number' || !isFinite(result)) {
       return null
     }
 
-    // Round to avoid floating point issues
+    // Round to 6 decimal places to avoid floating-point precision issues
+    // Example: 0.1 + 0.2 = 0.30000000000000004 -> 0.3
     return Math.round(result * 1000000) / 1000000
   } catch {
     return null
