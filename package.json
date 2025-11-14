@@ -25,6 +25,9 @@
     "onlyBuiltDependencies": [
       "@nestjs/core",
       "@swc/core"
-    ]
+    ],
+    "overrides": {
+      "@dynamic-labs/wallet-connector-core": "4.45.0"
+    }
   }
 }

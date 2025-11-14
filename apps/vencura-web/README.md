@@ -41,17 +41,41 @@ Frontend application for interacting with the Vencura API - a multichain custodi
 pnpm install
 
 # Or from this directory
-cd apps/vencura-ui
+cd apps/vencura-web
 pnpm install
 ```
 
 ### Environment Variables
 
-Create a `.env.local` file in the `apps/vencura-ui` directory:
+Create a `.env.local` file in the `apps/vencura-web` directory (you can copy from `.env.example`):
 
 ```env
+# Dynamic SDK Configuration
+# Get your Dynamic environment ID from https://app.dynamic.xyz/
+NEXT_PUBLIC_DYNAMIC_ENVIRONMENT_ID=your_dynamic_environment_id
+
+# Vencura API URL
+# Default: http://localhost:3000 (for local development)
 NEXT_PUBLIC_API_URL=http://localhost:3000
 ```
+
+**Required Environment Variables:**
+
+- `NEXT_PUBLIC_DYNAMIC_ENVIRONMENT_ID`: Your Dynamic environment ID from the [Dynamic Dashboard](https://app.dynamic.xyz/). Required for authentication to work properly.
+
+**Optional Environment Variables:**
+
+- `NEXT_PUBLIC_API_URL`: The URL of the Vencura API backend. Defaults to `http://localhost:3000` if not provided.
+
+**Getting Your Dynamic Environment ID:**
+
+1. Go to [app.dynamic.xyz](https://app.dynamic.xyz/)
+2. Sign up for a free account (if you don't have one)
+3. Create a new project or select an existing one
+4. Copy the Environment ID from your project settings
+5. Add it to your `.env.local` file as `NEXT_PUBLIC_DYNAMIC_ENVIRONMENT_ID`
+
+**Note**: If `NEXT_PUBLIC_DYNAMIC_ENVIRONMENT_ID` is not set, the app will use a placeholder ID and show warnings in development mode. Authentication will not work properly without a valid environment ID.
 
 ### Running the Application
 

@@ -60,13 +60,28 @@ The application will be available at `http://localhost:3002` (or the next availa
 
 ### Environment Variables
 
-Create a `.env.local` file in the `apps/mathler` directory with the following:
+Create a `.env.local` file in the `apps/mathler` directory (you can copy from `.env.example`):
 
-```bash
-NEXT_PUBLIC_DYNAMIC_ENVIRONMENT_ID=your-dynamic-environment-id
+```env
+# Dynamic SDK Configuration
+# Get your Dynamic environment ID from https://app.dynamic.xyz/
+# Required for authentication to work properly
+NEXT_PUBLIC_DYNAMIC_ENVIRONMENT_ID=your_dynamic_environment_id
 ```
 
-If not provided, the app will use a placeholder ID. Get your Dynamic environment ID from the [Dynamic Dashboard](https://app.dynamic.xyz/).
+**Required Environment Variables:**
+
+- `NEXT_PUBLIC_DYNAMIC_ENVIRONMENT_ID`: Your Dynamic environment ID from the [Dynamic Dashboard](https://app.dynamic.xyz/). Required for authentication to work properly.
+
+**Getting Your Dynamic Environment ID:**
+
+1. Go to [app.dynamic.xyz](https://app.dynamic.xyz/)
+2. Sign up for a free account (if you don't have one)
+3. Create a new project or select an existing one
+4. Copy the Environment ID from your project settings
+5. Add it to your `.env.local` file as `NEXT_PUBLIC_DYNAMIC_ENVIRONMENT_ID`
+
+**Note**: If `NEXT_PUBLIC_DYNAMIC_ENVIRONMENT_ID` is not set, the app will use a placeholder ID and show warnings in development mode. Authentication will not work properly without a valid environment ID.
 
 ## Development
 

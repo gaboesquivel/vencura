@@ -25,6 +25,7 @@ dynamic/
 **Applications** (`apps/`) are deployable services with their own dependencies and configurations. **Packages** (`packages/`) provide shared code, configurations, and utilities consumed by applications. **Infrastructure** (`infra/`) contains infrastructure-as-code definitions using Pulumi.
 
 See individual project READMEs for detailed documentation:
+
 - **[Vencura API](./apps/vencura-api/README.md)** - Backend API documentation
 - **[Vencura Web](./apps/vencura-web/README.md)** - Frontend application documentation
 - **[Mathler](./apps/mathler/README.md)** - Mathler game documentation
