@@ -7,7 +7,7 @@
   "exports": {
     ".": "./src/index.ts",
     "./schemas": "./src/schemas/index.ts",
-    "./contracts": "./src/contracts/index.ts"
+    "./api-contracts": "./src/api-contracts/index.ts"
   },
   "scripts": {
     "lint": "eslint . --max-warnings 0"

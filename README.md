@@ -28,6 +28,7 @@ dynamic/
 - **Frontend**: Next.js 15, React 19, TypeScript
 - **UI**: Shadcn/ui, Tailwind CSS, Radix UI
 - **Authentication**: Dynamic SDK
+- **Validation**: Zod (runtime validation and type inference)
 - **Linting**: ESLint + Prettier
 - **Deployment**: Vercel (frontend apps and Vencura backend API)
 - **Infrastructure**: Pulumi (TypeScript) for GCP resources (see [Google Cloud Deployment Option](./docs/google-cloud-deployment.md))

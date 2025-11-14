@@ -27,6 +27,7 @@
     "node": ">=20.0.0"
   },
   "dependencies": {
+    "@cosmjs/encoding": "^0.37.0",
     "@dynamic-labs-wallet/node": "^0.0.188",
     "@dynamic-labs-wallet/node-evm": "^0.0.188",
     "@dynamic-labs-wallet/node-svm": "^0.0.188",
@@ -47,7 +48,8 @@
     "jsonwebtoken": "^9.0.2",
     "reflect-metadata": "^0.2.2",
     "rxjs": "^7.8.1",
-    "viem": "^2.21.45"
+    "viem": "^2.21.45",
+    "zod": "^3.25.76"
   },
   "devDependencies": {
     "@eslint/eslintrc": "^3.2.0",
@@ -82,6 +84,7 @@
     "typescript-eslint": "^8.20.0"
   },
   "jest": {
+    "preset": "ts-jest",
     "moduleFileExtensions": [
       "js",
       "json",
@@ -90,7 +93,21 @@
     "rootDir": "src",
     "testRegex": ".*\\.spec\\.ts$",
     "transform": {
-      "^.+\\.(t|j)s$": "ts-jest"
+      "^.+\\.(t|j)s$": [
+        "ts-jest",
+        {
+          "tsconfig": {
+            "esModuleInterop": true
+          }
+        }
+      ]
+    },
+    "transformIgnorePatterns": [
+      "node_modules/(?!(@cosmjs|@scure)/)"
+    ],
+    "extensionsToTreatAsEsm": [".ts"],
+    "moduleNameMapper": {
+      "^(\\.{1,2}/.*)\\.js$": "$1"
     },
     "collectCoverageFrom": [
       "**/*.(t|j)s"

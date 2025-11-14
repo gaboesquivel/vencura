@@ -54,15 +54,15 @@ import type {
 
 The SDK uses a contract-first approach:
 
-1. **Contracts** (`@vencura/types`) define API endpoints using ts-rest with Zod schemas
+1. **API Contracts** (`@vencura/types`) define API endpoints using ts-rest with Zod schemas
 2. **Client** (`@vencura/core`) provides a type-safe client using `@ts-rest/core`
-3. **Backend** (`apps/vencura-api`) implements the contracts using `@ts-rest/nest`
+3. **Backend** (`apps/vencura-api`) implements the API contracts using `@ts-rest/nest`
 4. **Frontend** (`@vencura/react`) uses React hooks with full type inference
 
 This ensures:
 
 - **End-to-end type safety** - Types are shared across the entire stack
-- **No code generation** - Types are inferred directly from contracts
+- **No code generation** - Types are inferred directly from API contracts
 - **Runtime validation** - Zod schemas provide runtime type checking
 - **Clean API** - Methods like `client.wallet.list()` instead of `client.wallets.walletControllerGetWallets()`
 
@@ -75,9 +75,9 @@ This package has no build step - it exports TypeScript source files directly. Th
 ## Dependencies
 
 - `@ts-rest/core` - Type-safe REST client
-- `@vencura/types` - Shared API contracts and types
+- `@vencura/types` - Shared API contracts and types (API contracts, not blockchain contracts)
 
 ## Related Packages
 
-- **[@vencura/types](../vencura-types/README.md)** - Shared API contracts and types
+- **[@vencura/types](../vencura-types/README.md)** - Shared API contracts and types (API contracts, not blockchain contracts)
 - **[@vencura/react](../vencura-react/README.md)** - React hooks for Vencura API using TanStack Query

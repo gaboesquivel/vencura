@@ -36,6 +36,7 @@ Vencura is a backend API that enables users to create and manage custodial walle
 
 - **Framework**: NestJS
 - **Authentication**: Dynamic Labs SDK Client
+- **Validation**: Zod for environment variables and runtime validation
 - **Blockchain**:
   - Viem for EVM chains
   - @solana/web3.js for Solana

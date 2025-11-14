@@ -1,6 +1,6 @@
 import { Controller, UseGuards, Req } from '@nestjs/common'
 import { TsRestHandler, tsRestHandler } from '@ts-rest/nest'
-import { walletContract } from '@vencura/types'
+import { walletAPIContract } from '@vencura/types'
 import { WalletService } from './wallet.service'
 import { AuthGuard } from '../auth/auth.guard'
 import type { Request } from 'express'
@@ -14,9 +14,9 @@ interface AuthenticatedRequest extends Request {
 export class WalletContractController {
   constructor(private readonly walletService: WalletService) {}
 
-  @TsRestHandler(walletContract)
+  @TsRestHandler(walletAPIContract)
   handler(@Req() req: AuthenticatedRequest) {
-    return tsRestHandler(walletContract, {
+    return tsRestHandler(walletAPIContract, {
       list: async () => {
         const user = req.user
         const wallets = await this.walletService.getUserWallets(user.id)
