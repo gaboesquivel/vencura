@@ -25,7 +25,36 @@ Frontend application for interacting with the Vencura API - a multichain custodi
 - TypeScript
 - Dynamic SDK
 - Tailwind CSS
-- Shadcn/ui components
+- Shadcn/ui components (via `@workspace/ui`)
+
+## Design System & Dependencies
+
+This app uses `@workspace/ui` as the centralized design system:
+
+- **UI Components**: Import from `@workspace/ui/components/*`
+- **Radix Primitives**: Import from `@workspace/ui/radix`
+- **Utilities**: Import from `@workspace/ui/lib/utils`
+- **Icons**: Import from `lucide-react` via `@workspace/ui`
+
+**Do NOT install** these design system dependencies directly in this app - they are managed centrally in `@workspace/ui`:
+
+- Any `@radix-ui/react-*` packages
+- `class-variance-authority`, `clsx`, `tailwind-merge`
+
+**Do install** these app-level dependencies:
+
+- `next-themes` - Theme provider (configured per app)
+- `lucide-react` - If you need icons directly (UI components already include it)
+
+## Mobile-First Design
+
+This app follows **mobile-first responsive design**:
+
+- Base styles target mobile devices (default)
+- Enhancements added for larger screens using Tailwind breakpoints (`sm:`, `md:`, `lg:`, `xl:`, `2xl:`)
+- All components are designed mobile-first, then enhanced for desktop
+
+See [Mobile-First Rules](../../.cursor/rules/frontend/mobile-first.mdc) for detailed guidelines.
 
 ## Getting Started
 

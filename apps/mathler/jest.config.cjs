@@ -12,6 +12,7 @@ const customJestConfig = {
   moduleNameMapper: {
     '^@/(.*)$': '<rootDir>/$1',
     '^@workspace/ui/(.*)$': '<rootDir>/../../packages/ui/src/$1',
+    '^lucide-react$': '<rootDir>/jest.setup.lucide.js',
   },
   testMatch: ['**/*.spec.ts', '**/*.spec.tsx'],
   collectCoverageFrom: [

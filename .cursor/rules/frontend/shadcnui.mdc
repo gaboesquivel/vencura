@@ -55,3 +55,8 @@ const buttonVariants = cva(
 - Keep all core UI components in `@workspace/ui`
 - Application-specific components go in the app's `components` folder
 - Hooks and utils should be collocated with the components that use them (same directory)
+
+## Mobile-First Design
+- All components should follow mobile-first responsive design patterns
+- Base styles target mobile devices, then enhance for larger screens using Tailwind breakpoints
+- See [Mobile-First Rules](./mobile-first.mdc) for detailed guidelines

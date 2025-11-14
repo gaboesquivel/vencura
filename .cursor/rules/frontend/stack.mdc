@@ -130,6 +130,7 @@ type User = z.infer<typeof userSchema>
 - **Import utilities selectively** to reduce bundle size
 - **Combine related queries** into cohesive custom hooks
 - **Follow fractal component patterns** for consistent structure
+- **Mobile-first design** - Always design and develop mobile-first, then enhance for larger screens
 
 ## Related Rules
 - See [React Hooks Rules](./react-hooks.mdc) for detailed TanStack Query patterns
