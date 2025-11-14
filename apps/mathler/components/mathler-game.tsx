@@ -13,12 +13,14 @@ import GuessRow from './guess-row'
 import GameKeypad from './game-keypad'
 import GameStatus from './game-status'
 import SuccessModal from './success-modal'
+import VoiceControl from './voice-control'
 
 export default function MathlerGame() {
   const [target, setTarget] = useState<number>(0)
   const [solution, setSolution] = useState<string>('')
   const [guesses, setGuesses] = useState<string[]>([])
   const [currentInput, setCurrentInput] = useState<string>('')
+  const [cursorPosition, setCursorPosition] = useState<number>(0)
   const [gameStatus, setGameStatus] = useState<'playing' | 'won' | 'lost'>('playing')
   const [feedback, setFeedback] = useState<Array<Array<'correct' | 'present' | 'absent'>>>([])
   const [showSuccessModal, setShowSuccessModal] = useState(false)
@@ -31,6 +33,7 @@ export default function MathlerGame() {
     setSolution(newSolution)
     setGuesses([])
     setCurrentInput('')
+    setCursorPosition(0)
     setGameStatus('playing')
     setFeedback([])
     setShowSuccessModal(false)
@@ -45,14 +48,51 @@ export default function MathlerGame() {
       if (gameStatus !== 'playing') return
       if (value.length <= 9) {
         setCurrentInput(value)
+        setCursorPosition(value.length)
       }
     },
     [gameStatus],
   )
 
+  const handleInputAtPosition = useCallback(
+    (char: string, position?: number) => {
+      if (gameStatus !== 'playing') return
+      const pos = position ?? cursorPosition
+      const newInput = currentInput.slice(0, pos) + char + currentInput.slice(pos)
+      if (newInput.length <= 9) {
+        setCurrentInput(newInput)
+        setCursorPosition(pos + 1)
+      }
+    },
+    [gameStatus, currentInput, cursorPosition],
+  )
+
   const handleBackspace = useCallback(() => {
     if (gameStatus !== 'playing') return
-    setCurrentInput(prev => prev.slice(0, -1))
+    if (cursorPosition > 0) {
+      const newInput =
+        currentInput.slice(0, cursorPosition - 1) + currentInput.slice(cursorPosition)
+      setCurrentInput(newInput)
+      setCursorPosition(Math.max(0, cursorPosition - 1))
+    }
+  }, [gameStatus, currentInput, cursorPosition])
+
+  const handleCursorMove = useCallback(
+    (direction: 'left' | 'right') => {
+      if (gameStatus !== 'playing') return
+      if (direction === 'left') {
+        setCursorPosition(prev => Math.max(0, prev - 1))
+      } else {
+        setCursorPosition(prev => Math.min(currentInput.length, prev + 1))
+      }
+    },
+    [gameStatus, currentInput.length],
+  )
+
+  const handleClear = useCallback(() => {
+    if (gameStatus !== 'playing') return
+    setCurrentInput('')
+    setCursorPosition(0)
   }, [gameStatus])
 
   const handleSubmit = useCallback(() => {
@@ -106,10 +146,36 @@ export default function MathlerGame() {
       })
 
       setCurrentInput('')
+      setCursorPosition(0)
     } catch {
       alert('Invalid expression')
     }
   }, [currentInput, gameStatus, solution, target, saveGame])
+
+  const handleVoiceResult = useCallback(
+    (text: string) => {
+      if (gameStatus !== 'playing') return
+      // Insert voice input at cursor position
+      for (const char of text) {
+        handleInputAtPosition(char)
+      }
+    },
+    [gameStatus, handleInputAtPosition],
+  )
+
+  const handleVoiceCommand = useCallback(
+    (command: 'backspace' | 'delete' | 'enter' | 'submit' | 'clear') => {
+      if (gameStatus !== 'playing') return
+      if (command === 'backspace' || command === 'delete') {
+        handleBackspace()
+      } else if (command === 'enter' || command === 'submit') {
+        handleSubmit()
+      } else if (command === 'clear') {
+        handleClear()
+      }
+    },
+    [gameStatus, handleBackspace, handleSubmit, handleClear],
+  )
 
   // Keyboard support
   useEffect(() => {
@@ -121,35 +187,69 @@ export default function MathlerGame() {
         /^[0-9+\-*/]$/.test(e.key) ||
         e.key === 'Backspace' ||
         e.key === 'Delete' ||
-        e.key === 'Enter'
+        e.key === 'Enter' ||
+        e.key === 'Escape' ||
+        e.key === 'ArrowLeft' ||
+        e.key === 'ArrowRight'
       ) {
         e.preventDefault()
       }
 
+      // Handle arrow keys for cursor navigation
+      if (e.key === 'ArrowLeft') {
+        handleCursorMove('left')
+        return
+      }
+      if (e.key === 'ArrowRight') {
+        handleCursorMove('right')
+        return
+      }
+
+      // Handle Escape to clear
+      if (e.key === 'Escape') {
+        handleClear()
+        return
+      }
+
       // Handle number and operator keys
       if (/^[0-9+\-*/]$/.test(e.key)) {
-        setCurrentInput(prev => {
-          if (prev.length < 9) {
-            return prev + e.key
-          }
-          return prev
-        })
+        handleInputAtPosition(e.key)
+        return
+      }
+
+      // Handle × and ÷ from keyboard (Alt+0215 for ×, Alt+0247 for ÷)
+      if (e.key === '×' || (e.altKey && e.key === 'x')) {
+        handleInputAtPosition('×')
+        return
+      }
+      if (e.key === '÷' || (e.altKey && e.key === '/')) {
+        handleInputAtPosition('÷')
+        return
       }
 
       // Handle backspace/delete
       if (e.key === 'Backspace' || e.key === 'Delete') {
         handleBackspace()
+        return
       }
 
       // Handle enter
       if (e.key === 'Enter') {
         handleSubmit()
+        return
       }
     }
 
     window.addEventListener('keydown', handleKeyDown)
     return () => window.removeEventListener('keydown', handleKeyDown)
-  }, [gameStatus, handleSubmit, handleBackspace])
+  }, [
+    gameStatus,
+    handleSubmit,
+    handleBackspace,
+    handleCursorMove,
+    handleClear,
+    handleInputAtPosition,
+  ])
 
   return (
     <div className="w-full max-w-sm space-y-6">
@@ -170,6 +270,8 @@ export default function MathlerGame() {
             feedback={feedback[i] || []}
             isCurrentRow={i === guesses.length && gameStatus === 'playing'}
             currentInput={i === guesses.length ? currentInput : ''}
+            cursorPosition={i === guesses.length ? cursorPosition : -1}
+            onTileClick={i === guesses.length ? pos => setCursorPosition(pos) : undefined}
           />
         ))}
       </div>
@@ -186,12 +288,16 @@ export default function MathlerGame() {
 
       {/* Keypad */}
       {gameStatus === 'playing' && (
-        <GameKeypad
-          onInput={handleInputChange}
-          onBackspace={handleBackspace}
-          onSubmit={handleSubmit}
-          currentInput={currentInput}
-        />
+        <div className="space-y-4">
+          <VoiceControl onResult={handleVoiceResult} onCommand={handleVoiceCommand} />
+          <GameKeypad
+            onInput={handleInputChange}
+            onBackspace={handleBackspace}
+            onSubmit={handleSubmit}
+            currentInput={currentInput}
+            onInputAtPosition={handleInputAtPosition}
+          />
+        </div>
       )}
 
       {/* Success Modal */}
