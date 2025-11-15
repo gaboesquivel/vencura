@@ -41,26 +41,42 @@ jest.mock('./guess-row', () => ({
     isCurrentRow,
     cursorPosition,
     onTileClick,
-  }: any) {
+  }: {
+    guess: string
+    currentInput: string
+    isCurrentRow: boolean
+    cursorPosition?: number
+    onTileClick?: (position: number) => void
+  }) {
     const display = isCurrentRow ? currentInput : guess
     return (
       <div data-testid={`guess-row-${isCurrentRow ? 'current' : 'past'}`}>
         {display}
-        {onTileClick && isCurrentRow && (
+        {onTileClick && isCurrentRow ? (
           <button onClick={() => onTileClick(0)} data-testid="tile-click-0">
             Click Tile 0
           </button>
-        )}
-        {cursorPosition !== undefined && cursorPosition >= 0 && isCurrentRow && (
+        ) : null}
+        {cursorPosition !== undefined && cursorPosition >= 0 && isCurrentRow ? (
           <span data-testid="cursor-position">{cursorPosition}</span>
-        )}
+        ) : null}
       </div>
     )
   },
 }))
 
 jest.mock('./game-keypad', () => ({
-  GameKeypad: function GameKeypad({ onInput, onBackspace, onSubmit, currentInput }: any) {
+  GameKeypad: function GameKeypad({
+    onInput,
+    onBackspace,
+    onSubmit,
+    currentInput,
+  }: {
+    onInput: (value: string) => void
+    onBackspace: () => void
+    onSubmit: () => void
+    currentInput: string
+  }) {
     const numbers = ['0', '1', '2', '3', '4', '5', '6', '7', '8', '9']
     const operators = ['+', '-', '×', '÷']
     return (
@@ -85,7 +101,13 @@ jest.mock('./game-keypad', () => ({
 }))
 
 jest.mock('./game-status', () => ({
-  GameStatus: function GameStatus({ status, onReset }: any) {
+  GameStatus: function GameStatus({
+    status,
+    onReset,
+  }: {
+    status: 'won' | 'lost'
+    onReset: () => void
+  }) {
     return (
       <div data-testid="game-status">
         <div>{status}</div>
@@ -96,7 +118,13 @@ jest.mock('./game-status', () => ({
 }))
 
 jest.mock('./success-modal', () => ({
-  SuccessModal: function SuccessModal({ open, onPlayAgain }: any) {
+  SuccessModal: function SuccessModal({
+    open,
+    onPlayAgain,
+  }: {
+    open: boolean
+    onPlayAgain: () => void
+  }) {
     if (!open) return null
     return (
       <div data-testid="success-modal">
@@ -107,7 +135,13 @@ jest.mock('./success-modal', () => ({
 }))
 
 jest.mock('./voice-control', () => ({
-  VoiceControl: function VoiceControl({ onResult, onCommand }: any) {
+  VoiceControl: function VoiceControl({
+    onResult,
+    onCommand,
+  }: {
+    onResult: (text: string) => void
+    onCommand: (command: 'backspace' | 'delete' | 'enter' | 'submit' | 'clear') => void
+  }) {
     return (
       <div data-testid="voice-control">
         <button onClick={() => onResult('1+2')}>Test Voice Input</button>
@@ -153,7 +187,7 @@ describe('MathlerGame', () => {
     const user = userEvent.setup()
     render(<MathlerGame />)
 
-    const keypad = screen.getByTestId('game-keypad')
+    screen.getByTestId('game-keypad')
     const button1 = screen.getByRole('button', { name: '1' })
     await user.click(button1)
 

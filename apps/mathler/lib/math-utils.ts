@@ -33,11 +33,18 @@ export function evaluateExpression(expr: string): number | null {
     }
 
     // Check for valid syntax - reject expressions starting or ending with operators
-    if (/^[+*/%]|[+*/%]$/.test(normalized)) {
+    // Reject unary minus at start (we don't support negative numbers)
+    if (/^[+*/%-]|[+*/%]$/.test(normalized)) {
       return null
     }
 
     if (/[+\-*/%]{2,}/.test(normalized)) {
+      return null
+    }
+
+    // Explicit check for leading zeros (e.g., "01", "02", "03+5")
+    // This prevents invalid number representations that the parser might accept
+    if (/\b0\d/.test(normalized)) {
       return null
     }
 
@@ -178,9 +185,53 @@ const OPS: Op[] = [
 ]
 
 /**
- * Generates a solution equation for a given target number
- * Uses seeded random based on date for daily consistency
- * Ensures equation length ≤ 9 characters and supports order of operations
+ * Generates a solution equation for a given target number.
+ *
+ * ## Strategy
+ *
+ * This function uses a two-phase approach to generate valid equations:
+ *
+ * ### Phase 1: Two-Number Equations
+ * Generates simple equations of the form `a op b = target`:
+ * - Iterates through all combinations of numbers (1-99) and operators
+ * - Validates operations using operator guards (e.g., no division by zero, no negative subtraction)
+ * - Filters equations that exceed the 9-character limit
+ *
+ * Examples: `5+10=15`, `20-5=15`, `3*5=15`, `30/2=15`
+ *
+ * ### Phase 2: Three-Number Equations with Order of Operations
+ * Generates equations with three numbers considering operator precedence:
+ *
+ * **Left-associative**: `(a op1 b) op2 c`
+ * - Example: `(2+3)*4` evaluates as `(5)*4 = 20`
+ * - Parentheses added when op2 has higher precedence than op1
+ * - Also added when equal precedence but non-commutative (e.g., subtraction)
+ *
+ * **Right-associative**: `a op1 (b op2 c)`
+ * - Example: `2+(3*4)` evaluates as `2+(12) = 14`
+ * - Parentheses added when op2 has lower precedence than op1
+ * - Example: `2+(3*4)` needs parens, but `2*(3+4)` doesn't (due to precedence)
+ *
+ * ### Selection Strategy
+ * - Collects all valid candidates in a Set (automatic deduplication)
+ * - Uses seeded random based on date and target for daily consistency
+ * - Falls back to `target+0` if no valid equations found (shouldn't happen in practice)
+ *
+ * ## Constraints
+ * - Maximum equation length: 9 characters
+ * - Operators: +, -, *, / only
+ * - No negative results (subtraction only when x > y)
+ * - Integer division only (x must be divisible by y)
+ * - No division by zero
+ * - Supports parentheses for grouping
+ *
+ * ## Daily Consistency
+ * Uses date-based seeding to ensure the same puzzle is generated for the same date.
+ * The seed combines the date (YYYYMMDD format) with the target number to avoid collisions.
+ *
+ * @param target - The target number the equation must equal (typically 10-100)
+ * @param seed - Optional seed for deterministic generation (defaults to current date)
+ * @returns A valid equation string that evaluates to the target
  */
 export function generateSolutionEquation(target: number, seed?: number): string {
   const today = new Date()

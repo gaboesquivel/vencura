@@ -184,17 +184,22 @@ export function MathlerGame() {
 
       {/* Game Board */}
       <div className="space-y-2">
-        {[...Array(6)].map((_, i) => (
-          <GuessRow
-            key={i}
-            guess={gameState.guesses[i] || ''}
-            feedback={gameState.feedback[i] || []}
-            isCurrentRow={i === gameState.guesses.length && gameState.gameStatus === 'playing'}
-            currentInput={i === gameState.guesses.length ? currentInput : ''}
-            cursorPosition={i === gameState.guesses.length ? cursorPosition : -1}
-            onTileClick={i === gameState.guesses.length ? pos => setCursorPosition(pos) : undefined}
-          />
-        ))}
+        {[...Array(6)].map((_, i) => {
+          const isCurrentRow = i === gameState.guesses.length && gameState.gameStatus === 'playing'
+          return (
+            <GuessRow
+              key={i}
+              guess={gameState.guesses[i] || ''}
+              feedback={gameState.feedback[i] || []}
+              isCurrentRow={isCurrentRow}
+              currentInput={i === gameState.guesses.length ? currentInput : ''}
+              cursorPosition={i === gameState.guesses.length ? cursorPosition : -1}
+              onTileClick={
+                i === gameState.guesses.length ? pos => setCursorPosition(pos) : undefined
+              }
+            />
+          )
+        })}
       </div>
 
       {/* Game Status */}
@@ -215,9 +220,7 @@ export function MathlerGame() {
             onInput={handleInputChange}
             onBackspace={handleBackspace}
             onSubmit={() => {
-              if (currentInput) {
-                handleSubmit(currentInput)
-              }
+              if (currentInput) handleSubmit(currentInput)
             }}
             currentInput={currentInput}
             onInputAtPosition={handleInputAtPosition}

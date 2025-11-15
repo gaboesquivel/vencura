@@ -8,7 +8,6 @@ jest.mock('@/hooks/use-voice-input')
 
 describe('VoiceControl', () => {
   const mockOnResult = jest.fn()
-  const mockOnCommand = jest.fn()
   const mockUseVoiceInput = useVoiceInput as jest.MockedFunction<typeof useVoiceInput>
 
   beforeEach(() => {
