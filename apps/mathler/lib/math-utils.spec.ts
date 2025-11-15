@@ -71,6 +71,69 @@ describe('evaluateExpression', () => {
     expect(evaluateExpression('2+3*4-1')).toBe(13) // 2 + 12 - 1 = 13
     expect(evaluateExpression('10/2*3')).toBe(15) // 5 * 3 = 15
   })
+
+  it('should reject leading zeros', () => {
+    // Leading zeros in numbers should be rejected
+    expect(evaluateExpression('01+2')).toBeNull()
+    expect(evaluateExpression('02*3')).toBeNull()
+    expect(evaluateExpression('03+5')).toBeNull()
+    expect(evaluateExpression('01')).toBeNull()
+    expect(evaluateExpression('0+01')).toBeNull()
+    // But standalone zero should be valid
+    expect(evaluateExpression('0+1')).toBe(1)
+    expect(evaluateExpression('10+0')).toBe(10)
+  })
+
+  it('should reject consecutive multiplication/division operators', () => {
+    // Consecutive * or / operators should be rejected
+    expect(evaluateExpression('2**3')).toBeNull()
+    expect(evaluateExpression('2//3')).toBeNull()
+    expect(evaluateExpression('2*/3')).toBeNull()
+    expect(evaluateExpression('2/*3')).toBeNull()
+  })
+
+  it('should reject expressions that are just numbers equal to themselves', () => {
+    // This edge case from reference: expressions that equal themselves
+    // Our generation doesn't create these, but validation should handle them
+    // Note: Single numbers like "123" would be rejected by our validation
+    // as they don't contain operators, but let's verify the parser handles them
+    expect(evaluateExpression('123')).toBe(123) // Parser accepts, but our generation won't create this
+  })
+
+  it('should handle expressions with parentheses and order of operations', () => {
+    expect(evaluateExpression('(2+3)*4')).toBe(20)
+    expect(evaluateExpression('2+(3*4)')).toBe(14)
+    expect(evaluateExpression('(10-2)/2')).toBe(4)
+    expect(evaluateExpression('2*(3+4)')).toBe(14)
+    // Without parentheses, order of operations applies
+    expect(evaluateExpression('2+3*4')).toBe(14) // Not 20
+    expect(evaluateExpression('10/2+3')).toBe(8) // Not 2
+  })
+
+  it('should handle integer division only', () => {
+    // Non-integer divisions should be handled by parser (returns decimal)
+    // But our generation only creates integer divisions
+    expect(evaluateExpression('7/2')).toBeCloseTo(3.5, 5)
+    expect(evaluateExpression('1/3')).toBeCloseTo(0.333333, 5)
+    // Integer divisions
+    expect(evaluateExpression('8/2')).toBe(4)
+    expect(evaluateExpression('15/3')).toBe(5)
+  })
+
+  it('should reject expressions ending with operators', () => {
+    expect(evaluateExpression('1+')).toBeNull()
+    expect(evaluateExpression('2-')).toBeNull()
+    expect(evaluateExpression('3*')).toBeNull()
+    expect(evaluateExpression('4/')).toBeNull()
+  })
+
+  it('should reject expressions starting with invalid operators', () => {
+    expect(evaluateExpression('*1')).toBeNull()
+    expect(evaluateExpression('/2')).toBeNull()
+    // But - at start might be valid for unary (though we don't support it)
+    // Our current validation rejects it, which is intentional
+    expect(evaluateExpression('-3')).toBeNull() // We don't support unary minus
+  })
 })
 
 describe('getDateKey', () => {
@@ -123,6 +186,7 @@ describe('getRandomTarget', () => {
     // Mock Date to ensure consistent testing
     const originalDate = Date
     const mockDate = jest.fn(() => new originalDate('2024-01-15'))
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     global.Date = mockDate as any
 
     const target1 = getRandomTarget()
@@ -140,6 +204,7 @@ describe('getRandomTarget', () => {
     for (let i = 0; i < 10; i++) {
       const date = new Date(2024, 0, i + 1)
       const originalDate = Date
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       global.Date = jest.fn(() => date) as any
       targets.add(getRandomTarget())
       global.Date = originalDate

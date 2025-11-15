@@ -97,6 +97,12 @@ See [`.cursor/README.md`](.cursor/README.md) for MCP server configuration detail
 - **[@vencura/react](./packages/vencura-react/README.md)** - React hooks with TanStack Query
 - **[UI Package](./packages/ui/README.md)** - Shared Shadcn/ui components
 
+### Live Deployments
+
+- **[API Swagger Interface](https://vencura-api.vercel.app/api)**: Interactive OpenAPI documentation for the Vencura API.
+- **[Vencura Wallet UI](https://vencura-web.vercel.app)**: Web application for accessing and managing the Vencura multichain custodial wallet.
+- **[Mathler Game Example](https://vencura-mathler.vercel.app)**: Mathler game demo built with Next.js.
+
 ## Getting Started
 
 ```bash
