@@ -1,7 +1,7 @@
 import { Injectable, BadRequestException } from '@nestjs/common'
 import { ConfigService } from '@nestjs/config'
-import { openai } from 'ai'
-import { streamText } from 'ai'
+import { openai, streamText } from 'ai'
+import type { StreamTextResult } from 'ai'
 import { WalletService } from '../wallet/wallet.service'
 import { createWalletTools } from './tools/wallet-tools'
 
@@ -25,7 +25,11 @@ export class ChatService {
     private readonly walletService: WalletService,
   ) {}
 
-  streamChat(messages: ChatMessage[], userId: string, options: ChatRequest = {}) {
+  streamChat(
+    messages: ChatMessage[],
+    userId: string,
+    options: ChatRequest = {},
+  ): StreamTextResult<ReturnType<typeof createWalletTools>> {
     const openAiKey = this.configService.get<string>('ai.openAiKey')
 
     if (!openAiKey) {
@@ -37,8 +41,7 @@ export class ChatService {
     const model = options.model || 'gpt-4o-mini'
     const tools = createWalletTools(this.walletService, userId)
 
-    // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-unsafe-call
-    const result = streamText({
+    return streamText({
       model: openai(model, { apiKey: openAiKey }),
       messages: messages.map(msg => ({
         role: msg.role,
@@ -47,9 +50,7 @@ export class ChatService {
       tools,
       temperature: options.temperature ?? 0.7,
       maxTokens: options.maxTokens,
-    })
-
-    return result
+    }) as StreamTextResult<ReturnType<typeof createWalletTools>>
   }
 
   getTools() {

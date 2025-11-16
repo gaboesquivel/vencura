@@ -33,25 +33,30 @@ export class ChatController {
       res.setHeader('Cache-Control', 'no-cache')
       res.setHeader('Connection', 'keep-alive')
 
-      // eslint-disable-next-line @typescript-eslint/await-thenable
+      // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
       const result = await this.chatService.streamChat(chatRequest.messages, user.id, chatRequest)
 
+      // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
       for await (const chunk of result.textStream) {
         res.write(`data: ${JSON.stringify({ content: chunk })}\n\n`)
       }
 
+      // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access, @typescript-eslint/no-unsafe-assignment
       const finishReason = await result.finishReason
       res.write(`data: ${JSON.stringify({ finishReason })}\n\n`)
       res.write('data: [DONE]\n\n')
       res.end()
     } else {
+      // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
       const result = this.chatService.streamChat(chatRequest.messages, user.id, chatRequest)
       let fullText = ''
 
+      // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
       for await (const chunk of result.textStream) {
         fullText += String(chunk)
       }
 
+      // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access, @typescript-eslint/no-unsafe-assignment
       const finishReason = await result.finishReason
 
       res.json({
@@ -59,6 +64,7 @@ export class ChatController {
           role: 'assistant' as const,
           content: fullText,
         },
+        // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
         finishReason,
       })
     }

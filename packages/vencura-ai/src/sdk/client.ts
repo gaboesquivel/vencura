@@ -26,10 +26,7 @@ export class ChatbotSDK {
     this.headers = headers
   }
 
-  async chat(
-    messages: ChatMessage[],
-    options: ChatOptions = {},
-  ): Promise<ChatResponse> {
+  async chat(messages: ChatMessage[], options: ChatOptions = {}): Promise<ChatResponse> {
     // Validate input with Zod
     const validatedMessages = z.array(chatMessageSchema).parse(messages)
     const validatedOptions = chatOptionsSchema.parse(options)
@@ -47,7 +44,8 @@ export class ChatbotSDK {
     })
 
     if (!response.ok) {
-      throw new Error(`Chat request failed: ${response.status}`)
+      const errorText = await response.text().catch(() => 'Unknown error')
+      throw new Error(`Chat request failed: ${response.status} - ${errorText}`)
     }
 
     const data = await response.json()
@@ -76,7 +74,8 @@ export class ChatbotSDK {
     })
 
     if (!response.ok) {
-      throw new Error(`Chat stream request failed: ${response.status}`)
+      const errorText = await response.text().catch(() => 'Unknown error')
+      throw new Error(`Chat stream request failed: ${response.status} - ${errorText}`)
     }
 
     if (!response.body) {
@@ -126,11 +125,11 @@ export class ChatbotSDK {
     })
 
     if (!response.ok) {
-      throw new Error(`Get tools request failed: ${response.status}`)
+      const errorText = await response.text().catch(() => 'Unknown error')
+      throw new Error(`Get tools request failed: ${response.status} - ${errorText}`)
     }
 
     const data = await response.json()
     return z.array(toolSchema).parse(data)
   }
 }
-

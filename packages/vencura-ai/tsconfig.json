@@ -4,9 +4,10 @@
     "baseUrl": ".",
     "paths": {
       "@vencura/ai/*": ["./src/*"]
-    }
+    },
+    "typeRoots": ["./node_modules/@types", "./src/types"]
   },
-  "include": ["."],
+  "include": [".", "./src/types/**/*.d.ts"],
   "exclude": ["node_modules", "dist"]
 }
 

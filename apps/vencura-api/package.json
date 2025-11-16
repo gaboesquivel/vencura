@@ -5,7 +5,7 @@
   "description": "Vencura API - NestJS backend",
   "license": "PROPRIETARY",
   "scripts": {
-    "build": "nest build --builder swc && pnpm export-swagger",
+    "build": "nest build --builder swc && (pnpm export-swagger || true)",
     "export-swagger": "ts-node --esm scripts/export-swagger.ts",
     "format": "prettier --write \"src/**/*.ts\" \"test/**/*.ts\"",
     "start": "nest start",

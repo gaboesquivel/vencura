@@ -13,7 +13,7 @@ process.on('uncaughtException', error => {
 
 import { NestFactory } from '@nestjs/core'
 import { SwaggerModule, DocumentBuilder } from '@nestjs/swagger'
-import { writeFileSync } from 'node:fs'
+import { writeFileSync, existsSync } from 'node:fs'
 import { join, dirname } from 'node:path'
 import { fileURLToPath } from 'node:url'
 import { createRequire } from 'node:module'
@@ -24,6 +24,15 @@ const require = createRequire(import.meta.url)
 
 const exportSwagger = async () => {
   try {
+    // Check if dist directory and app.module.js exist
+    const appModulePath = join(__dirname, '../dist/app.module.js')
+    if (!existsSync(appModulePath)) {
+      console.warn(
+        `Swagger export skipped: ${appModulePath} not found. Build may not have completed successfully.`,
+      )
+      process.exit(0)
+    }
+
     // Use require for CommonJS compatibility with compiled NestJS modules
     // Wrap in try-catch to handle module loading errors gracefully
     let AppModule
@@ -31,9 +40,13 @@ const exportSwagger = async () => {
       // eslint-disable-next-line @typescript-eslint/no-require-imports
       AppModule = require('../dist/app.module.js').AppModule
     } catch (requireError) {
-      console.error('Failed to load AppModule:', requireError)
-      throw requireError
+      const errorMessage =
+        requireError instanceof Error ? requireError.message : String(requireError)
+      console.error('Failed to load AppModule:', errorMessage)
+      console.warn('Swagger export failed, but continuing build...')
+      process.exit(0)
     }
+
     const app = await NestFactory.create(AppModule, { logger: false })
 
     const config = new DocumentBuilder()
@@ -73,9 +86,16 @@ const exportSwagger = async () => {
   }
 }
 
-void exportSwagger().catch(error => {
-  console.error('Failed to export Swagger:', error)
-  // Don't fail the build if swagger export fails - it's optional
-  console.warn('Swagger export failed, but continuing build...')
-  process.exit(0)
-})
+exportSwagger()
+  .then(() => {
+    // Success - script will exit naturally
+  })
+  .catch(error => {
+    console.error('Failed to export Swagger:', error)
+    if (error instanceof Error && error.stack) {
+      console.error(error.stack)
+    }
+    // Don't fail the build if swagger export fails - it's optional
+    console.warn('Swagger export failed, but continuing build...')
+    process.exit(0)
+  })

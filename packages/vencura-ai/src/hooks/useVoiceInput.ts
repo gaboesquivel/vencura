@@ -16,6 +16,9 @@ export interface UseVoiceInputReturn {
   supported: boolean
 }
 
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+type SpeechRecognitionType = any
+
 export function useVoiceInput({
   onTranscript,
   continuous = false,
@@ -24,7 +27,7 @@ export function useVoiceInput({
   const [isListening, setIsListening] = useState(false)
   const [transcript, setTranscript] = useState('')
   const [error, setError] = useState<string | null>(null)
-  const [recognition, setRecognition] = useState<SpeechRecognition | null>(null)
+  const [recognition, setRecognition] = useState<SpeechRecognitionType | null>(null)
 
   useEffect(() => {
     if (typeof window === 'undefined') {
@@ -32,8 +35,8 @@ export function useVoiceInput({
     }
 
     const SpeechRecognition =
-      window.SpeechRecognition ||
-      (window as unknown as { webkitSpeechRecognition: typeof SpeechRecognition })
+      (window as unknown as { SpeechRecognition?: SpeechRecognitionType }).SpeechRecognition ||
+      (window as unknown as { webkitSpeechRecognition?: SpeechRecognitionType })
         .webkitSpeechRecognition
 
     if (!SpeechRecognition) {
@@ -51,13 +54,25 @@ export function useVoiceInput({
       setError(null)
     }
 
-    recognitionInstance.onresult = event => {
+    recognitionInstance.onresult = (event: {
+      resultIndex: number
+      results: {
+        length: number
+        [index: number]: {
+          isFinal: boolean
+          [index: number]: { transcript: string }
+          0: { transcript: string }
+        }
+      }
+    }) => {
       let interimTranscript = ''
       let finalTranscript = ''
 
       for (let i = event.resultIndex; i < event.results.length; i++) {
-        const transcript = event.results[i][0].transcript
-        if (event.results[i].isFinal) {
+        const result = event.results[i]
+        if (!result) continue
+        const transcript = result[0]?.transcript || ''
+        if (result.isFinal) {
           finalTranscript += transcript + ' '
         } else {
           interimTranscript += transcript
@@ -72,7 +87,7 @@ export function useVoiceInput({
       }
     }
 
-    recognitionInstance.onerror = event => {
+    recognitionInstance.onerror = (event: { error: string }) => {
       setError(`Speech recognition error: ${event.error}`)
       setIsListening(false)
     }
