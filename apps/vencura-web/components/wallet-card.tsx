@@ -111,7 +111,7 @@ export function WalletCard({ wallet }: { wallet: Wallet }) {
         <p className="text-sm text-muted-foreground font-mono break-all">{wallet.address}</p>
         <div className="flex items-center gap-2 text-xs text-muted-foreground">
           <span>
-            {chainInfo?.name || wallet.network} {chainInfo?.testnet ? '(Testnet)' : null}
+            {chainInfo?.name || wallet.network} {chainInfo?.testnet ? '(Testnet)' : ''}
           </span>
         </div>
       </div>

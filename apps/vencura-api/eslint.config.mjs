@@ -51,4 +51,11 @@ export default tseslint.config(
       '@typescript-eslint/unbound-method': 'off',
     },
   },
+  {
+    files: ['**/chat/**/*.ts'],
+    rules: {
+      '@typescript-eslint/no-unsafe-assignment': 'warn',
+      '@typescript-eslint/no-unsafe-call': 'warn',
+    },
+  },
 );

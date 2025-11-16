@@ -21,6 +21,7 @@
     "@tanstack/react-query": "^5.90.8",
     "@vencura/react": "workspace:*",
     "@vencura/types": "workspace:*",
+    "@vencura/ai": "workspace:*",
     "@workspace/ui": "workspace:*",
     "lucide-react": "^0.475.0",
     "next": "^15.4.5",

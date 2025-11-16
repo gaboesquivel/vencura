@@ -21,6 +21,14 @@ test.describe('Vencura Web App', () => {
     await expect(welcomeText).toBeVisible()
   })
 
+  test('should display chat sidebar', async ({ page }) => {
+    await page.waitForSelector('h1:has-text("Vencura")', { timeout: 5000 })
+
+    // Chat sidebar should be present (may be open or closed)
+    const sidebar = page.locator('[aria-label="Close sidebar"], [aria-label="Open chat sidebar"]')
+    await expect(sidebar.first()).toBeVisible({ timeout: 3000 })
+  })
+
   test('should display Dynamic widget for authentication', async ({ page }) => {
     await page.waitForSelector('h1:has-text("Vencura")', { timeout: 5000 })
 

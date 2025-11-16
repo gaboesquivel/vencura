@@ -360,6 +360,21 @@ const debouncedFn = debounce(fn, delay)
 - **Follow fractal component patterns** for consistent structure
 - **Mobile-first design** - Always design and develop mobile-first, then enhance for larger screens
 
+### AI Integration
+- **@ai-sdk/react**: Use for AI chat functionality with streaming support
+  - Use `useChat` hook from `@ai-sdk/react` for chat state management
+  - Prefer streaming responses for better UX
+  - Handle errors gracefully with user-friendly messages
+- **ai-elements**: Use Vercel AI Elements components for chat UI
+  - `Conversation`, `Message`, `PromptInput` for chat interface
+  - `ChainOfThought` for reasoning visualization
+  - `Confirmation` for tool approval workflows
+  - `Checkpoint` for conversation history
+- **Voice Input**: Use Web Speech API for browser-native speech recognition
+  - Graceful degradation for unsupported browsers
+  - Visual feedback during recording
+  - Integrate with `PromptInput` component
+
 ## Related Rules
 - See [React Hooks Rules](./react-hooks.mdc) for detailed TanStack Query patterns
 - See [React Rules](./react.mdc) for component patterns
