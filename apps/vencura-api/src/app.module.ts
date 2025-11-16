@@ -7,6 +7,7 @@ import { AppService } from './app.service'
 import { DatabaseModule } from './database/database.module'
 import { AuthModule } from './auth/auth.module'
 import { WalletModule } from './wallet/wallet.module'
+import { ChatModule } from './chat/chat.module'
 import configuration from './config/configuration'
 
 @Module({
@@ -24,6 +25,7 @@ import configuration from './config/configuration'
     DatabaseModule,
     AuthModule,
     WalletModule,
+    ChatModule,
   ],
   controllers: [AppController],
   providers: [

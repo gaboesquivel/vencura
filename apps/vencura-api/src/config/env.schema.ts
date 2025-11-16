@@ -18,6 +18,9 @@ export const envSchema = z.object({
     .pipe(z.number().int().positive())
     .optional(),
 
+  // AI/LLM configuration (optional)
+  OPEN_AI_KEY: z.string().min(1).optional(),
+
   // RPC URL overrides (optional)
   ARBITRUM_SEPOLIA_RPC_URL: z.string().url().optional(),
   SOLANA_RPC_URL: z.string().url().optional(),
@@ -42,6 +45,7 @@ export function validateEnv({ env = process.env }: { env?: NodeJS.ProcessEnv } =
     DYNAMIC_API_TOKEN: env.DYNAMIC_API_TOKEN,
     ENCRYPTION_KEY: env.ENCRYPTION_KEY,
     PORT: env.PORT,
+    OPEN_AI_KEY: env.OPEN_AI_KEY,
     ARBITRUM_SEPOLIA_RPC_URL: env.ARBITRUM_SEPOLIA_RPC_URL,
     SOLANA_RPC_URL: env.SOLANA_RPC_URL,
   }

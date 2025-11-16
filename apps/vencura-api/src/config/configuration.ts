@@ -54,5 +54,8 @@ export default () => {
     encryption: {
       key: validatedEnv.ENCRYPTION_KEY,
     },
+    ai: {
+      openAiKey: validatedEnv.OPEN_AI_KEY,
+    },
   }
 }

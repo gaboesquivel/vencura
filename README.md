@@ -1,6 +1,6 @@
 # Vencura
 
-Vencura is a custodial wallet platform - the Venmo of wallets. A full-stack monorepo featuring a multichain custodial wallet API and Mathler game.
+Vencura is a custodial wallet platform - the Venmo of wallets. A full-stack monorepo featuring a multichain custodial wallet API, AI-powered chatbot, and Mathler game. Built with portability in mind - deploy anywhere without vendor lock-in.
 
 ## Architecture
 
@@ -15,6 +15,7 @@ dynamic/
 ├── packages/          # Shared packages
 │   ├── vencura-core/  # TypeScript SDK for Vencura API (auto-generated)
 │   ├── vencura-react/ # React hooks for Vencura API using TanStack Query
+│   ├── vencura-ai/    # AI chatbot component and SDK
 │   ├── ui/            # Shared Shadcn/ui component library
 │   ├── eslint-config/ # Shared ESLint configuration
 │   └── typescript-config/ # Shared TypeScript configuration
@@ -95,6 +96,7 @@ See [`.cursor/README.md`](.cursor/README.md) for MCP server configuration detail
 - **[Mathler](./apps/mathler/README.md)** - Next.js Mathler game
 - **[@vencura/core](./packages/vencura-core/README.md)** - TypeScript SDK (auto-generated)
 - **[@vencura/react](./packages/vencura-react/README.md)** - React hooks with TanStack Query
+- **[@vencura/ai](./packages/vencura-ai/README.md)** - AI chatbot component and SDK for wallet operations
 - **[UI Package](./packages/ui/README.md)** - Shared Shadcn/ui components
 
 ### Live Deployments

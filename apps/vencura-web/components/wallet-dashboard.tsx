@@ -45,7 +45,7 @@ export function WalletDashboard() {
                 chain => chain.chainType === 'evm' || chain.chainType === 'solana',
               ).map(chain => (
                 <option key={String(chain.chainId)} value={String(chain.chainId)}>
-                  {chain.name} {chain.testnet ? '(Testnet)' : null}
+                  {chain.name} {chain.testnet ? '(Testnet)' : ''}
                 </option>
               ))}
             </select>

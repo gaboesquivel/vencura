@@ -111,7 +111,7 @@ export function WalletCard({ wallet }: { wallet: Wallet }) {
         <p className="text-sm text-muted-foreground font-mono break-all">{wallet.address}</p>
         <div className="flex items-center gap-2 text-xs text-muted-foreground">
           <span>
-            {chainInfo?.name || wallet.network} {chainInfo?.testnet ? '(Testnet)' : null}
+            {chainInfo?.name || wallet.network} {chainInfo?.testnet ? '(Testnet)' : ''}
           </span>
         </div>
       </div>
@@ -183,9 +183,7 @@ export function WalletCard({ wallet }: { wallet: Wallet }) {
               }`}
               disabled={isLoading}
             />
-            {state.addressError ? (
-              <p className="text-xs text-destructive">{state.addressError}</p>
-            ) : null}
+            {state.addressError ? <p className="text-xs text-destructive">{state.addressError}</p> : null}
           </div>
           <div className="flex gap-2">
             <div className="flex-1 space-y-1">
@@ -202,9 +200,7 @@ export function WalletCard({ wallet }: { wallet: Wallet }) {
                 }`}
                 disabled={isLoading}
               />
-              {state.amountError ? (
-                <p className="text-xs text-destructive">{state.amountError}</p>
-              ) : null}
+              {state.amountError ? <p className="text-xs text-destructive">{state.amountError}</p> : null}
             </div>
             <Button onClick={handleSendTransaction} disabled={isLoading} size="sm">
               {sendTransaction.isPending ? 'Sending...' : 'Send'}

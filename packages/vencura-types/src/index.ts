@@ -7,5 +7,5 @@
  * @packageDocumentation
  */
 
-export * from './schemas'
-export * from './api-contracts'
+export * from './schemas/index'
+export * from './api-contracts/index'
