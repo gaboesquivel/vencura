@@ -1,7 +1,7 @@
 import { Controller, Post, Get, Body, UseGuards, Res, HttpCode, HttpStatus } from '@nestjs/common'
 import { ApiTags, ApiOperation, ApiResponse, ApiBearerAuth } from '@nestjs/swagger'
 import { Throttle } from '@nestjs/throttler'
-import { Response } from 'express'
+import type { Response } from 'express'
 import { ChatService } from './chat.service'
 import { ChatRequestDto } from './dto/chat.dto'
 import { AuthGuard } from '../auth/auth.guard'
@@ -41,7 +41,7 @@ export class ChatController {
         res.write(`data: ${JSON.stringify({ content: chunk })}\n\n`)
       }
 
-      // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access, @typescript-eslint/no-unsafe-assignment
+      // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-unsafe-member-access
       const finishReason = await result.finishReason
       res.write(`data: ${JSON.stringify({ finishReason })}\n\n`)
       res.write('data: [DONE]\n\n')
@@ -56,7 +56,7 @@ export class ChatController {
         fullText += String(chunk)
       }
 
-      // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access, @typescript-eslint/no-unsafe-assignment
+      // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-unsafe-member-access
       const finishReason = await result.finishReason
 
       res.json({

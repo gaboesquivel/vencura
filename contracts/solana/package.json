@@ -1,0 +1,28 @@
+{
+  "name": "@workspace/contracts-solana",
+  "version": "0.0.1",
+  "private": true,
+  "scripts": {
+    "build": "anchor build",
+    "test": "anchor test",
+    "test:local": "anchor test --skip-local-validator",
+    "deploy:local": "anchor deploy",
+    "deploy:devnet": "anchor deploy --provider.cluster devnet",
+    "deploy:testnet": "anchor deploy --provider.cluster testnet"
+  },
+  "dependencies": {
+    "@coral-xyz/anchor": "^0.32.1",
+    "@solana/spl-token": "^0.4.14",
+    "@solana/web3.js": "^1.98.4",
+    "chai": "^6.2.1"
+  },
+  "devDependencies": {
+    "@types/chai": "^5.2.3",
+    "@types/node": "^24.10.1",
+    "ts-mocha": "^11.1.0",
+    "typescript": "^5.9.3"
+  },
+  "engines": {
+    "node": ">=20"
+  }
+}
