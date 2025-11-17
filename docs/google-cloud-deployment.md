@@ -228,12 +228,14 @@ For detailed setup instructions, see [infra/README.md](../infra/README.md).
 **If production security requirements necessitate it, we may consider:**
 
 **UI + Stateless API Glue on Vercel:**
+
 - Next.js frontend applications
 - Thin NestJS adapters for user auth, dashboards, webhooks, notifications
 - Public API facades
 - Leverages Vercel's excellent DX, edge network, and integrations
 
 **Key-Custody & Signing Core on Google Cloud (Only if needed):**
+
 - NestJS "signer" service on Cloud Run in private VPC (this deployment option)
 - Keys in Cloud KMS/HSM (optionally MPC/threshold signing)
 - Direct VPC egress control, firewall rules, VPC Flow Logs
@@ -241,6 +243,7 @@ For detailed setup instructions, see [infra/README.md](../infra/README.md).
 - Org-wide controls (IAM conditions, service perimeters, CMEK)
 
 **Edge Between the Two:**
+
 - Single public API on GCP protected by mTLS/OAuth SA tokens
 - IP allowlisting and Cloud Armor
 - Vercel functions call GCP API; everything else stays private
@@ -248,6 +251,7 @@ For detailed setup instructions, see [infra/README.md](../infra/README.md).
 ### When This Split Might Be Considered
 
 **Only if production security requirements demand:**
+
 - Regulatory/compliance requirements for HSM-backed key custody
 - Need for MPC/threshold signing workflows
 - Requirement for private networking and strict egress control
@@ -255,6 +259,7 @@ For detailed setup instructions, see [infra/README.md](../infra/README.md).
 - Enterprise security requirements that exceed Vercel's offerings
 
 **Vercel's Current Security (Sufficient for Demo/Development):**
+
 - Mature platform security (SOC 2 Type II, ISO 27001)
 - WAF/Firewall, deployment protection
 - Automatic HTTPS, SSL/TLS
@@ -262,6 +267,7 @@ For detailed setup instructions, see [infra/README.md](../infra/README.md).
 - Access controls and audit logs
 
 **Google Cloud Advantages (Only if needed for production):**
+
 - HSM-backed keys & KMS with ECDSA support, rotation, IAM, audit logs
 - Option for MPC/threshold flows with Confidential Space + KMS co-signers
 - Private networking & egress control on Cloud Run

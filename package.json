@@ -15,6 +15,7 @@
     "contracts:solana:test": "cd contracts/solana && anchor test"
   },
   "devDependencies": {
+    "@total-typescript/ts-reset": "^0.6.1",
     "@workspace/eslint-config": "workspace:*",
     "@workspace/typescript-config": "workspace:*",
     "prettier": "^3.6.2",

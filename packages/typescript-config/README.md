@@ -15,6 +15,7 @@ Base TypeScript configuration that all other configs extend. Suitable for Node.j
 - Node.js module resolution
 - Declaration files generation
 - No unchecked indexed access
+- Enhanced type safety via `@total-typescript/ts-reset` (see [ts-reset Integration](#ts-reset-integration))
 
 **Usage:**
 
@@ -94,6 +95,45 @@ This package is part of the monorepo and is automatically available to all packa
 
 - **JSX**: react-jsx (automatic JSX runtime)
 - **Declaration**: Enabled (inherited from base)
+
+## ts-reset Integration
+
+This package integrates `@total-typescript/ts-reset` to enhance TypeScript's built-in type safety. The `reset.d.ts` file is automatically included via the base configuration, ensuring all packages that extend `base.json` benefit from improved types.
+
+### Benefits
+
+- **`JSON.parse()` returns `unknown`**: Forces explicit validation of parsed JSON data, preventing unsafe `any` types
+- **`fetch().json()` returns `unknown`**: Ensures API responses are validated before use
+- **Improved `.filter(Boolean)` typing**: Correctly filters out falsy values (`undefined`, `null`, `false`, `0`, `NaN`, `""`)
+- **Better `.includes()` on `as const` arrays**: Less strict type checking for array includes operations
+
+### Usage
+
+Since `JSON.parse()` and `response.json()` now return `unknown`, you must validate the data before use. This aligns perfectly with the monorepo's use of Zod for validation:
+
+```typescript
+// ✅ Good: Validate with Zod
+const data = await response.json()
+const validated = mySchema.parse(data) // Type-safe after validation
+
+// ✅ Good: Type assertion for test utilities
+const data = (await response.json()) as Record<string, unknown>
+
+// ❌ Bad: Using without validation
+const data = await response.json()
+const value = data.someProperty // TypeScript error: Property 'someProperty' does not exist on type 'unknown'
+```
+
+**Important**: Since TypeScript replaces (rather than merges) `include` arrays when extending configs, packages that override the `include` array must explicitly add `reset.d.ts` to their include list. For example:
+
+```json
+{
+  "extends": "@workspace/typescript-config/base.json",
+  "include": ["src", "../../packages/typescript-config/reset.d.ts"]
+}
+```
+
+Packages that don't override `include` will automatically get `reset.d.ts` from the base config.
 
 ## Usage Examples
 

@@ -6,6 +6,6 @@
       "@workspace/ui/*": ["./src/*"]
     }
   },
-  "include": ["."],
+  "include": [".", "../../typescript-config/reset.d.ts"],
   "exclude": ["node_modules", "dist"]
 }

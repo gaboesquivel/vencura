@@ -97,6 +97,11 @@ Architectural decisions are documented in [Architecture Decision Records (ADRs)]
 - **Next.js 16.0.0**: React framework for frontend applications (standardized across all Next.js apps)
 - **React 19.1.1**: Standardized React version across all frontend applications
 - **ESLint + Prettier**: Linting and formatting (shared config via `@workspace/eslint-config`)
+- **@total-typescript/ts-reset**: Enhanced TypeScript type safety for built-in APIs
+  - Makes `JSON.parse()` return `unknown` instead of `any` (requires validation)
+  - Makes `fetch().json()` return `unknown` instead of `any` (requires validation)
+  - Improves `.filter(Boolean)` typing and other common patterns
+  - Automatically applied via shared TypeScript configuration
 - **Zod**: Primary schema validation tool for runtime validation and type inference
   - Used for all schemas (environment variables, API responses, form validation, tool parameters)
   - Exception: NestJS DTOs use `class-validator` per NestJS conventions

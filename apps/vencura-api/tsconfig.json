@@ -15,6 +15,6 @@
     "incremental": true,
     "forceConsistentCasingInFileNames": true
   },
-  "include": ["src", "test"],
+  "include": ["src", "test", "../../packages/typescript-config/reset.d.ts"],
   "exclude": ["node_modules", "dist"]
 }

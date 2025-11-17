@@ -21,7 +21,7 @@ export function sanitizeError({ error, isProduction }: SanitizeErrorParams): San
   if (isProduction) return { message: 'Internal server error', details: null }
 
   const errorMessage = error instanceof Error ? error.message : String(error)
-  const errorStack = error instanceof Error ? error.stack : null
+  const errorStack = error instanceof Error ? (error.stack ?? null) : null
 
   return { message: errorMessage, details: errorStack }
 }

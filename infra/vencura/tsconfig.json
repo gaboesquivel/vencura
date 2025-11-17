@@ -7,7 +7,7 @@
     "rootDir": "./",
     "lib": ["ES2022"]
   },
-  "include": ["**/*.ts"],
+  "include": ["**/*.ts", "../../packages/typescript-config/reset.d.ts"],
   "exclude": ["node_modules", "bin"]
 }
 
