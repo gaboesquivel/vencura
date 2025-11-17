@@ -3,9 +3,10 @@
   "compilerOptions": {
     "baseUrl": ".",
     "paths": {
-      "@vencura/lib/*": ["./src/*"]
+      "@vencura/tools/*": ["./*"]
     }
   },
   "include": [".", "../../typescript-config/reset.d.ts"],
   "exclude": ["node_modules", "dist"]
 }
+

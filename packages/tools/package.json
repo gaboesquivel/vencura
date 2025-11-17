@@ -1,14 +1,15 @@
 {
-  "name": "@vencura/lib",
+  "name": "@vencura/tools",
   "version": "0.0.1",
   "type": "module",
   "private": true,
-  "description": "Shared utility functions and helpers for Vencura",
+  "description": "Development tools enabled by feature flags",
   "license": "PROPRIETARY",
-  "main": "src/index.ts",
-  "types": "src/index.ts",
   "scripts": {
     "lint": "eslint . --max-warnings 0"
+  },
+  "exports": {
+    ".": "./index.ts"
   },
   "devDependencies": {
     "@workspace/eslint-config": "workspace:*",
@@ -17,12 +18,8 @@
     "typescript": "^5.9.2"
   },
   "peerDependencies": {
-    "typescript": "^5.0.0"
-  },
-  "dependencies": {
-    "@types/lodash": "^4.17.20",
-    "lodash": "^4.17.21",
-    "zod": "^3.25.76",
-    "zod-validation-error": "^3.3.0"
+    "react": "^19.0.0",
+    "react-dom": "^19.0.0"
   }
 }
+
