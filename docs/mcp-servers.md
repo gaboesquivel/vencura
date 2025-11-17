@@ -163,27 +163,33 @@ export VERCEL_API_TOKEN=your_vercel_api_token
 Vercel MCP provides the following tools (see [full documentation](https://vercel.com/docs/mcp/vercel-mcp/tools)):
 
 ### Documentation Tools
+
 - `search_vercel_docs`: Search Vercel documentation
 - `get_vercel_docs_content`: Get specific documentation content
 
 ### Project Management
+
 - `list_projects`: List all Vercel projects
 - `get_project`: Get project details
 
 ### Deployment Management
+
 - `list_deployments`: List deployments for a project
 - `get_deployment`: Get deployment details
 - `get_deployment_build_logs`: Get build logs for debugging
 
 ### Domain Management
+
 - `check_domain_availability_and_price`: Check domain availability
 - `buy_domain`: Purchase domains
 
 ### Access Management
+
 - `get_access_to_vercel_url`: Create shareable links for protected deployments
 - `web_fetch_vercel_url`: Fetch content from Vercel deployments
 
 ### CLI Tools
+
 - `use_vercel_cli`: Get help with Vercel CLI commands
 - `deploy_to_vercel`: Deploy the current project
 

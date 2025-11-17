@@ -437,14 +437,6 @@ The codebase has **12 well-documented ADRs**:
    - **Use Case**: Security headers
    - **Recommendation**: Consider adding to NestJS app
 
-2. **`rate-limiter-flexible`**
-   - **Current**: Using `@nestjs/throttler`
-   - **Status**: ✅ Already have rate limiting
-
-3. **`express-validator`**
-   - **Current**: Using `class-validator` in NestJS
-   - **Status**: ✅ Current approach is fine
-
 #### 📊 **Monitoring**
 
 1. **`@sentry/nextjs`** / **`@sentry/node`**
@@ -458,10 +450,6 @@ The codebase has **12 well-documented ADRs**:
 
 1. **`@tanstack/react-query-devtools`**
    - **Recommendation**: ✅ **High Priority** - Add for better DX
-
-2. **`why-did-you-render`**
-   - **Use Case**: React performance debugging
-   - **Recommendation**: Consider for performance optimization
 
 ---
 
