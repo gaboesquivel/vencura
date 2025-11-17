@@ -1,7 +1,11 @@
 import { Controller, UseGuards, Req } from '@nestjs/common'
 import { TsRestHandler, tsRestHandler } from '@ts-rest/nest'
-import { walletAPIContract } from '@vencura/types'
-import type { CreateWalletInput, SendTransactionInput, SignMessageInput } from '@vencura/types'
+import { walletAPIContract } from '@vencura/types/api-contracts'
+import type {
+  CreateWalletInput,
+  SendTransactionInput,
+  SignMessageInput,
+} from '@vencura/types/schemas'
 import { WalletService } from './wallet.service'
 import { AuthGuard } from '../auth/auth.guard'
 import type { Request } from 'express'
@@ -15,8 +19,10 @@ interface AuthenticatedRequest extends Request {
 export class WalletContractController {
   constructor(private readonly walletService: WalletService) {}
 
+  // eslint-disable-next-line @typescript-eslint/no-unsafe-argument
   @TsRestHandler(walletAPIContract)
   handler(@Req() req: AuthenticatedRequest) {
+    // eslint-disable-next-line @typescript-eslint/no-unsafe-return
     return tsRestHandler(walletAPIContract, {
       list: async () => {
         const user = req.user
@@ -28,8 +34,10 @@ export class WalletContractController {
       },
       create: async ({ body }: { body: CreateWalletInput }) => {
         const user = req.user
+        // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-unsafe-member-access
+        const chainId: number | string = body.chainId
 
-        const wallet = await this.walletService.createWallet(user.id, body.chainId)
+        const wallet = await this.walletService.createWallet(user.id, chainId)
         return {
           status: 201 as const,
           body: wallet,
@@ -48,8 +56,8 @@ export class WalletContractController {
       signMessage: async ({ params, body }: { params: { id: string }; body: SignMessageInput }) => {
         const user = req.user
         const { id } = params
-
-        const { message } = body
+        // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-unsafe-member-access
+        const message: string = body.message
 
         const result = await this.walletService.signMessage(id, user.id, message)
         return {
@@ -66,8 +74,10 @@ export class WalletContractController {
       }) => {
         const user = req.user
         const { id } = params
-
-        const { to, amount } = body
+        // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-unsafe-member-access
+        const to: string = body.to
+        // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-unsafe-member-access
+        const amount: number = body.amount
 
         const result = await this.walletService.sendTransaction(id, user.id, to, amount)
         return {

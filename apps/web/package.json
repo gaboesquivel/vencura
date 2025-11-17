@@ -20,6 +20,7 @@
     "@dynamic-labs/solana": "^4.44.0",
     "@sentry/nextjs": "^8.47.0",
     "@tanstack/react-query": "^5.90.8",
+    "@vencura/evm": "workspace:*",
     "@vencura/react": "workspace:*",
     "@vencura/types": "workspace:*",
     "@vencura/ai": "workspace:*",
@@ -34,6 +35,8 @@
     "react-dom": "^19.1.1",
     "react-error-boundary": "^4.0.13",
     "react-use": "^17.6.0",
+    "viem": "^2.0.0",
+    "wagmi": "^2.0.0",
     "zod": "^3.25.76",
     "zod-validation-error": "^5.0.0"
   },

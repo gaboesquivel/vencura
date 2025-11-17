@@ -7,7 +7,7 @@ alwaysApply: false
 
 ## Tooling
 - Use **pnpm** for package management (not bun, npm, or yarn)
-- Use **eslint + prettier** for linting and formatting (not biome)
+- Use **eslint + prettier** for linting and formatting
 - Run `pnpm format` to format code, `pnpm run lint` to lint code
 
 ## Core Principles

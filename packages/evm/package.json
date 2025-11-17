@@ -1,0 +1,36 @@
+{
+  "name": "@vencura/evm",
+  "version": "0.0.1",
+  "type": "module",
+  "private": true,
+  "description": "TypeScript package for interacting with EVM token contracts using Wagmi v2 and Viem v2",
+  "license": "PROPRIETARY",
+  "scripts": {
+    "lint": "eslint . --max-warnings 0"
+  },
+  "exports": {
+    ".": "./src/index.ts",
+    "./hooks": "./src/hooks/index.ts",
+    "./hooks/*": "./src/hooks/*.ts",
+    "./node": "./src/node/index.ts",
+    "./node/*": "./src/node/*.ts",
+    "./abis": "./src/abis/index.ts",
+    "./abis/*": "./src/abis/*.ts"
+  },
+  "dependencies": {
+    "abitype": "^1.1.1"
+  },
+  "devDependencies": {
+    "@workspace/eslint-config": "workspace:*",
+    "@workspace/typescript-config": "workspace:*",
+    "eslint": "^9.32.0",
+    "typescript": "^5.9.2"
+  },
+  "peerDependencies": {
+    "viem": "^2.0.0",
+    "wagmi": "^2.0.0",
+    "react": "^19.0.0",
+    "react-dom": "^19.0.0"
+  }
+}
+

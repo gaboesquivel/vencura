@@ -113,6 +113,8 @@ See [`.cursor/README.md`](.cursor/README.md) for MCP server configuration detail
 - **[@vencura/core](./packages/core/README.md)** - TypeScript SDK (auto-generated)
 - **[@vencura/react](./packages/react/README.md)** - React hooks with TanStack Query
 - **[@vencura/ai](./packages/ai/README.md)** - AI chatbot component and SDK for wallet operations
+- **[@vencura/evm](./packages/evm/README.md)** - EVM token contract interactions with Wagmi v2 and Viem v2
+- **[@vencura/tools](./packages/tools/README.md)** - Development tools enabled by feature flags
 - **[UI Package](./packages/ui/README.md)** - Shared Shadcn/ui components
 
 ### Contracts

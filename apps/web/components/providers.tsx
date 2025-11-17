@@ -5,11 +5,16 @@ import { ThemeProvider as NextThemesProvider } from 'next-themes'
 import { DynamicContextProvider } from '@dynamic-labs/sdk-react-core'
 import { EthereumWalletConnectors } from '@dynamic-labs/ethereum'
 import { SolanaWalletConnectors } from '@dynamic-labs/solana'
+import { WagmiProvider } from 'wagmi'
+import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
 import { ReactQueryDevtools } from '@tanstack/react-query-devtools'
 import { VencuraProvider } from '@vencura/react'
 import { NuqsAdapter } from 'nuqs/adapters/next/app'
 import { useVencuraHeaders } from '@/hooks/use-vencura-headers'
 import { getEnv } from '@/lib/env'
+import { getWagmiConfig } from '@/lib/wagmi-config'
+
+const queryClient = new QueryClient()
 
 function VencuraProviderWrapper({ children }: { children: React.ReactNode }) {
   const headers = useVencuraHeaders()
@@ -22,6 +27,12 @@ function VencuraProviderWrapper({ children }: { children: React.ReactNode }) {
       {process.env.NODE_ENV === 'development' ? <ReactQueryDevtools initialIsOpen={false} /> : null}
     </VencuraProvider>
   )
+}
+
+function WagmiWrapper({ children }: { children: React.ReactNode }) {
+  const [config] = React.useState(() => getWagmiConfig())
+
+  return <WagmiProvider config={config}>{children}</WagmiProvider>
 }
 
 export function Providers({ children }: { children: React.ReactNode }) {
@@ -52,19 +63,23 @@ export function Providers({ children }: { children: React.ReactNode }) {
         walletConnectors: [EthereumWalletConnectors, SolanaWalletConnectors],
       }}
     >
-      <VencuraProviderWrapper>
-        <NuqsAdapter>
-          <NextThemesProvider
-            attribute="class"
-            defaultTheme="system"
-            enableSystem
-            disableTransitionOnChange
-            enableColorScheme
-          >
-            {children}
-          </NextThemesProvider>
-        </NuqsAdapter>
-      </VencuraProviderWrapper>
+      <WagmiWrapper>
+        <QueryClientProvider client={queryClient}>
+          <VencuraProviderWrapper>
+            <NuqsAdapter>
+              <NextThemesProvider
+                attribute="class"
+                defaultTheme="system"
+                enableSystem
+                disableTransitionOnChange
+                enableColorScheme
+              >
+                {children}
+              </NextThemesProvider>
+            </NuqsAdapter>
+          </VencuraProviderWrapper>
+        </QueryClientProvider>
+      </WagmiWrapper>
     </DynamicContextProvider>
   )
 }

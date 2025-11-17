@@ -12,6 +12,7 @@ Frontend application for interacting with the Vencura API - a multichain custodi
 - **Balance Checking**: View balances with chain-specific currency display
 - **Message Signing**: Sign messages with wallet private keys
 - **Transaction Sending**: Send transactions on any supported chain
+- **Token Faucet**: Mint and burn test tokens on Arbitrum Sepolia (DNMC, USDC, USDT)
 - **Chain-Aware UI**:
   - Chain selector dropdown for wallet creation
   - Address validation based on chain type (EVM vs Solana)
@@ -135,6 +136,7 @@ The application will be available at `http://localhost:3001` (or the next availa
 3. **View Balance**: Click "Get Balance" to see your wallet balance
 4. **Sign Message**: Enter a message and click "Sign" to sign it with your wallet
 5. **Send Transaction**: Enter recipient address and amount, then click "Send"
+6. **Token Faucet**: Navigate to `/faucet` to mint or burn test tokens (DNMC, USDC, USDT) on Arbitrum Sepolia
 
 ## Supported Chains
 
@@ -159,14 +161,21 @@ The application will be available at `http://localhost:3001` (or the next availa
 vencura-ui/
 ├── app/              # Next.js app directory
 │   ├── page.tsx     # Main page component
+│   ├── faucet/      # Token faucet page
+│   │   └── page.tsx
 │   └── layout.tsx   # Root layout
 ├── components/       # React components
 │   ├── wallet-card.tsx      # Individual wallet card
-│   └── wallet-dashboard.tsx # Wallet management dashboard
+│   ├── wallet-dashboard.tsx # Wallet management dashboard
+│   └── faucet/      # Faucet components
+│       ├── faucet-table.tsx
+│       └── faucet-dialog.tsx
 ├── lib/              # Utilities and API client
 │   ├── api-client.ts # API client for Vencura backend
 │   ├── chains.ts     # Chain configuration and utilities
-│   └── dynamic.ts    # Dynamic SDK setup
+│   ├── dynamic.ts    # Dynamic SDK setup
+│   ├── tokens.ts     # Token configuration (DNMC, USDC, USDT)
+│   └── wagmi-config.ts # Wagmi configuration
 └── hooks/            # React hooks
 ```
 

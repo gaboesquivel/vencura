@@ -1,6 +1,7 @@
 {
   "name": "@vencura/types",
   "version": "0.0.1",
+  "type": "module",
   "private": true,
   "description": "Shared API contracts and types for Vencura",
   "license": "PROPRIETARY",

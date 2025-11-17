@@ -171,7 +171,7 @@ export class WalletService {
     const { network, address, privateKeyEncrypted, chainType: chainTypeRaw } = wallet
 
     // Validate chainType is a valid ChainType
-    const validChainTypes: ChainType[] = [
+    const validChainTypes: readonly ChainType[] = [
       'evm',
       'solana',
       'cosmos',
@@ -182,20 +182,22 @@ export class WalletService {
       'sui',
       'spark',
       'tron',
-    ]
+    ] as const
+
+    // Type guard to narrow chainTypeRaw to ChainType
     if (!validChainTypes.includes(chainTypeRaw as ChainType)) {
       throw new BadRequestException(`Invalid chain type: ${chainTypeRaw}`)
     }
 
-    // Type is now validated, safe to cast
-
+    // Type is now validated, safe to use
+    // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
     const chainType = chainTypeRaw as ChainType
 
     // Validate recipient address based on wallet's chain type
-
-    if (!validateAddress({ address: to, chainType })) {
+    // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
+    if (!validateAddress({ address: to, chainType: chainType })) {
       throw new BadRequestException(
-        `Invalid address format for chain type ${chainTypeRaw}. Please provide a valid ${chainTypeRaw} address.`,
+        `Invalid address format for chain type ${chainType}. Please provide a valid ${chainType} address.`,
       )
     }
 
