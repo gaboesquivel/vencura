@@ -29,6 +29,13 @@ export const envSchema = z.object({
   SENTRY_DSN: z.string().url().optional(),
   SENTRY_ENVIRONMENT: z.string().optional(),
 
+  // Swagger UI feature flag (optional, default: false for security)
+  ENABLE_SWAGGER_UI: z
+    .string()
+    .transform(val => val === 'true')
+    .pipe(z.boolean())
+    .optional(),
+
   // Dynamic RPC_URL_* variables (validated as URLs when present)
   // Note: These are collected dynamically, so we validate them in the config function
 })
@@ -54,6 +61,12 @@ export function validateEnv({ env = process.env }: { env?: NodeJS.ProcessEnv } =
     SOLANA_RPC_URL: env.SOLANA_RPC_URL,
     SENTRY_DSN: env.SENTRY_DSN,
     SENTRY_ENVIRONMENT: env.SENTRY_ENVIRONMENT,
+    ENABLE_SWAGGER_UI: env.ENABLE_SWAGGER_UI,
+  }
+
+  // Set default for ENABLE_SWAGGER_UI if not provided
+  if (!requiredFields.ENABLE_SWAGGER_UI) {
+    requiredFields.ENABLE_SWAGGER_UI = 'false'
   }
 
   // Validate required fields

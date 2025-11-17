@@ -1,6 +1,7 @@
 import { Catch, ExceptionFilter, ArgumentsHost, HttpException, HttpStatus } from '@nestjs/common'
 import { Request, Response } from 'express'
 import * as Sentry from '@sentry/node'
+import { sanitizeErrorMessage } from '../common/error-handler'
 
 interface AuthenticatedRequest extends Request {
   user?: {
@@ -13,18 +14,28 @@ interface AuthenticatedRequest extends Request {
  * Normalizes HttpException response to a consistent string format.
  * HttpException.getResponse() can return string | object, so we extract the message field.
  */
-function normalizeExceptionMessage(exception: unknown): string {
+function normalizeExceptionMessage(exception: unknown, isProduction: boolean): string {
   if (!(exception instanceof HttpException)) return 'Internal server error'
 
   const response = exception.getResponse()
-  if (typeof response === 'string') return response
+  let message: string
 
-  if (typeof response === 'object' && response !== null) {
-    if ('message' in response && typeof response.message === 'string') return response.message
-    if ('error' in response && typeof response.error === 'string') return response.error
+  if (typeof response === 'string') {
+    message = response
+  } else if (typeof response === 'object' && response !== null) {
+    if ('message' in response && typeof response.message === 'string') {
+      message = response.message
+    } else if ('error' in response && typeof response.error === 'string') {
+      message = response.error
+    } else {
+      message = JSON.stringify(response)
+    }
+  } else {
+    message = 'Internal server error'
   }
 
-  return JSON.stringify(response)
+  // Sanitize error message to prevent information leakage in production
+  return sanitizeErrorMessage(message, isProduction)
 }
 
 /**
@@ -62,8 +73,9 @@ export class SentryExceptionFilter implements ExceptionFilter {
       })
     }
 
-    // Return error response with normalized message
-    const message = normalizeExceptionMessage(exception)
+    // Return error response with normalized and sanitized message
+    const isProduction = process.env.NODE_ENV === 'production'
+    const message = normalizeExceptionMessage(exception, isProduction)
 
     response.status(status).json({
       statusCode: status,

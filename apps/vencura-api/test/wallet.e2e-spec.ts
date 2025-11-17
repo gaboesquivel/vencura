@@ -110,6 +110,52 @@ describe('WalletController (e2e)', () => {
           expect(res.body).toHaveProperty('chainType', 'evm')
         }))
 
+    it('should return 400 for unsupported chain ID', async () =>
+      request(app.getHttpServer())
+        .post('/wallets')
+        .set('Authorization', `Bearer ${authToken}`)
+        .send({ chainId: 999999 })
+        .expect(400)
+        .expect(res => {
+          expect(res.body.message).toContain('not supported')
+        }))
+
+    it('should return 400 for invalid chain ID format', async () =>
+      request(app.getHttpServer())
+        .post('/wallets')
+        .set('Authorization', `Bearer ${authToken}`)
+        .send({ chainId: 'invalid-chain-id' })
+        .expect(400))
+
+    it('should return 413 for oversized request payload', async () => {
+      // Create a payload larger than 10kb
+      const largePayload = {
+        chainId: TEST_CHAINS.EVM.ARBITRUM_SEPOLIA,
+        data: 'x'.repeat(11 * 1024),
+      }
+
+      return request(app.getHttpServer())
+        .post('/wallets')
+        .set('Authorization', `Bearer ${authToken}`)
+        .set('Content-Length', String(JSON.stringify(largePayload).length))
+        .send(largePayload)
+        .expect(413)
+        .expect(res => {
+          expect(res.body.message).toContain('Payload too large')
+        })
+    })
+
+    it('should include X-Request-ID header in wallet creation response', async () => {
+      const response = await request(app.getHttpServer())
+        .post('/wallets')
+        .set('Authorization', `Bearer ${authToken}`)
+        .send({ chainId: TEST_CHAINS.EVM.ARBITRUM_SEPOLIA })
+        .expect(201)
+
+      expect(response.headers['x-request-id']).toBeDefined()
+      expect(typeof response.headers['x-request-id']).toBe('string')
+    })
+
     it('should create a wallet on Solana devnet using Dynamic SDK', async () =>
       request(app.getHttpServer())
         .post('/wallets')
