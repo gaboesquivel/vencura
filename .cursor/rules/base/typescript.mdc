@@ -63,6 +63,27 @@ The following ESLint rules enforce these codestyle guidelines:
   - NestJS DTOs are the exception - they correctly use `class-validator` per NestJS conventions
   - Use zod for environment variables, API responses, form validation, and tool parameters
 
+## ts-reset Type Safety
+
+This monorepo uses `@total-typescript/ts-reset` to enhance TypeScript's built-in type safety. The following changes apply automatically:
+
+- **`JSON.parse()` returns `unknown`**: Always validate parsed JSON data before use
+  - ✅ **Good**: `const data = mySchema.parse(JSON.parse(jsonString))` (validate with zod)
+  - ✅ **Good**: `const data = JSON.parse(jsonString) as Record<string, unknown>` (type assertion for test utilities)
+  - ❌ **Bad**: `const data = JSON.parse(jsonString); const value = data.property` (TypeScript error: property doesn't exist on unknown)
+
+- **`fetch().json()` returns `unknown`**: Always validate API responses before use
+  - ✅ **Good**: `const data = await response.json(); const validated = mySchema.parse(data)` (validate with zod)
+  - ✅ **Good**: `const data = (await response.json()) as Record<string, unknown>` (type assertion for test utilities)
+  - ❌ **Bad**: `const data = await response.json(); const value = data.property` (TypeScript error: property doesn't exist on unknown)
+
+- **`.filter(Boolean)` correctly filters falsy values**: Returns properly typed array without `undefined`, `null`, `false`, `0`, `NaN`, `""`
+  - ✅ **Good**: `const numbers = [1, 2, undefined, 3].filter(Boolean)` (type: `number[]`)
+
+- **`.includes()` on `as const` arrays**: Less strict type checking for array includes operations
+
+**Best Practice**: Since `JSON.parse()` and `response.json()` return `unknown`, always validate with zod schemas. This aligns with the monorepo's zod-first approach and ensures type safety at runtime.
+
 ## Error Handling
 - Fail fast: Handle errors early using guard clauses & early returns
 - Place the happy path last for improved readability

@@ -45,15 +45,15 @@ export async function getTestAuthToken(): Promise<string> {
     )
 
     if (createUserResponse.ok) {
-      const userData = await createUserResponse.json()
+      const userData = (await createUserResponse.json()) as Record<string, unknown>
       // Extract userId from response - Dynamic API returns { user: { id: "..." } }
       userId =
-        userData.user?.id ||
-        userData.userId ||
-        userData.id ||
-        userData.user?.userId ||
-        userData.data?.userId ||
-        userData.user_id
+        ((userData.user as Record<string, unknown>)?.id as string | undefined) ||
+        (userData.userId as string | undefined) ||
+        (userData.id as string | undefined) ||
+        ((userData.user as Record<string, unknown>)?.userId as string | undefined) ||
+        ((userData.data as Record<string, unknown>)?.userId as string | undefined) ||
+        (userData.user_id as string | undefined)
     } else if (createUserResponse.status === 409) {
       // User exists, try to find them
       const searchResponse = await fetch(
@@ -65,12 +65,17 @@ export async function getTestAuthToken(): Promise<string> {
         },
       )
       if (searchResponse.ok) {
-        const searchData = await searchResponse.json()
-        const users = Array.isArray(searchData)
-          ? searchData
-          : searchData.users || searchData.data || []
+        const searchData = (await searchResponse.json()) as Record<string, unknown>
+        const users = (
+          Array.isArray(searchData)
+            ? searchData
+            : (searchData.users as unknown[]) || (searchData.data as unknown[]) || []
+        ) as Array<Record<string, unknown>>
         if (users.length > 0) {
-          userId = users[0].userId || users[0].id || users[0].user_id
+          userId =
+            (users[0].userId as string | undefined) ||
+            (users[0].id as string | undefined) ||
+            (users[0].user_id as string | undefined)
         }
       }
     }
@@ -79,7 +84,7 @@ export async function getTestAuthToken(): Promise<string> {
       // Try to get response body for better error message
       let errorText = 'Unknown error'
       try {
-        const errorData = await createUserResponse.json()
+        const errorData = (await createUserResponse.json()) as unknown
         errorText = JSON.stringify(errorData)
       } catch {
         errorText = await createUserResponse.text().catch(() => 'Unknown error')
@@ -92,7 +97,7 @@ export async function getTestAuthToken(): Promise<string> {
     // Step 2: Create session to get JWT token
     // Try different possible session endpoints
     let sessionResponse: Response | null = null
-    let sessionData: any = null
+    let sessionData: Record<string, unknown> | null = null
 
     // Try endpoint: /sessions
     sessionResponse = await fetch(
@@ -161,17 +166,17 @@ export async function getTestAuthToken(): Promise<string> {
       throw new Error(`Failed to create session: ${sessionResponse.status} ${errorText}`)
     }
 
-    sessionData = await sessionResponse.json()
+    sessionData = (await sessionResponse.json()) as Record<string, unknown>
 
     // Extract token from various possible response structures
     const token =
-      sessionData.accessToken ||
-      sessionData.token ||
-      sessionData.jwt ||
-      sessionData.session?.accessToken ||
-      sessionData.data?.accessToken ||
-      sessionData.data?.token ||
-      sessionData.access_token
+      (sessionData.accessToken as string | undefined) ||
+      (sessionData.token as string | undefined) ||
+      (sessionData.jwt as string | undefined) ||
+      ((sessionData.session as Record<string, unknown>)?.accessToken as string | undefined) ||
+      ((sessionData.data as Record<string, unknown>)?.accessToken as string | undefined) ||
+      ((sessionData.data as Record<string, unknown>)?.token as string | undefined) ||
+      (sessionData.access_token as string | undefined)
 
     if (!token) {
       console.error('Session response structure:', JSON.stringify(sessionData, null, 2))
@@ -180,7 +185,7 @@ export async function getTestAuthToken(): Promise<string> {
 
     // Cache token
     cachedToken = token
-    cachedExpiry = Date.now() + (sessionData.expiresIn || 3600) * 1000
+    cachedExpiry = Date.now() + ((sessionData.expiresIn as number | undefined) || 3600) * 1000
 
     return cachedToken
   } catch (error) {

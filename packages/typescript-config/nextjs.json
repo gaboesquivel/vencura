@@ -9,5 +9,6 @@
     "allowJs": true,
     "jsx": "preserve",
     "noEmit": true
-  }
+  },
+  "include": ["reset.d.ts"]
 }
