@@ -14,15 +14,27 @@ export function useVConsole() {
   const [debugQuery, setDebugQuery] = useQueryState('debug')
   const [debugStorage, setDebugStorage] = useLocalStorage('debug', false)
   const vconsoleRef = useRef<VConsole>()
+  const isFirstMount = useRef(true)
 
-  // Sync query param with localStorage
+  // Sync query param with localStorage (bidirectional sync)
   useEffect(() => {
+    // On initial mount, sync localStorage to query param if needed
+    if (isFirstMount.current) {
+      isFirstMount.current = false
+      // If localStorage has debug enabled but URL doesn't reflect it, sync to URL
+      if (debugStorage && debugQuery !== 'true') {
+        setDebugQuery('true')
+        return
+      }
+    }
+
+    // Sync query param to localStorage for subsequent changes
     if (debugQuery === 'true' && !debugStorage) {
       setDebugStorage(true)
     } else if (debugQuery === 'false' && debugStorage) {
       setDebugStorage(false)
     }
-  }, [debugQuery, debugStorage, setDebugStorage])
+  }, [debugQuery, debugStorage, setDebugStorage, setDebugQuery])
 
   // Initialize or destroy VConsole based on debug state
   useEffect(() => {
@@ -32,6 +44,14 @@ export function useVConsole() {
     } else if (!debugStorage && vconsoleRef.current) {
       vconsoleRef.current.destroy()
       vconsoleRef.current = undefined
+    }
+
+    // Cleanup on unmount
+    return () => {
+      if (vconsoleRef.current) {
+        vconsoleRef.current.destroy()
+        vconsoleRef.current = undefined
+      }
     }
   }, [debugStorage])
 
