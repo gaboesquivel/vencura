@@ -133,19 +133,73 @@ Create a shareable link for the protected preview deployment
 
 ### Getting API Keys
 
-1. **V0_API_KEY**: Get from [v0.dev](https://v0.dev) account settings
-2. **GITHUB_TOKEN**: Create a personal access token at [GitHub Settings > Developer settings > Personal access tokens](https://github.com/settings/tokens)
-3. **VERCEL_API_TOKEN**: Get from [Vercel Account Settings > Tokens](https://vercel.com/account/tokens)
+#### V0_API_KEY
+
+Get from [v0.dev](https://v0.dev) account settings.
+
+#### GITHUB_TOKEN
+
+Create a personal access token at [GitHub Settings > Developer settings > Personal access tokens](https://github.com/settings/tokens).
+
+#### VERCEL_API_TOKEN
+
+**Step-by-step instructions:**
+
+1. **Navigate to Vercel Account Settings:**
+   - Visit: https://vercel.com/account/tokens
+   - Or: Go to https://vercel.com → Click your profile icon → Settings → Tokens
+
+2. **Create a new token:**
+   - Click the **"Create Token"** button
+   - Enter a descriptive name (e.g., "Cursor MCP" or "Development")
+   - Choose an expiration period (or select "No Expiration" for long-term use)
+   - Click **"Create"**
+
+3. **Copy the token immediately:**
+   - ⚠️ **Important**: Copy the token right away - it will only be shown once
+   - If you lose it, you'll need to create a new token
+
+4. **Security notes:**
+   - Never commit the token to version control
+   - Treat it like a password - keep it secure
+   - You can revoke it anytime from the same tokens page
+   - Consider creating separate tokens for different purposes/environments
 
 ### Setting Environment Variables
 
 Add these to your shell profile (`.zshrc`, `.bashrc`, etc.) or use a `.env` file:
+
+**For your current shell session:**
 
 ```bash
 export V0_API_KEY=your_v0_api_key
 export GITHUB_TOKEN=your_github_token
 export VERCEL_API_TOKEN=your_vercel_api_token
 ```
+
+**To make it permanent (add to your shell profile):**
+
+For Zsh (default on macOS):
+
+```bash
+echo 'export VERCEL_API_TOKEN=your_vercel_api_token' >> ~/.zshrc
+source ~/.zshrc
+```
+
+For Bash:
+
+```bash
+echo 'export VERCEL_API_TOKEN=your_vercel_api_token' >> ~/.bashrc
+source ~/.bashrc
+```
+
+**Verify the token is set:**
+
+```bash
+echo $VERCEL_API_TOKEN
+```
+
+**Important**: After setting the `VERCEL_API_TOKEN`, restart Cursor so the MCP server can authenticate properly. The Vercel MCP server will not work until the token is set and Cursor is restarted.
 
 ## Best Practices
 

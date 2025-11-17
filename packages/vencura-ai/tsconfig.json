@@ -7,7 +7,7 @@
     },
     "typeRoots": ["./node_modules/@types", "./src/types"]
   },
-  "include": [".", "./src/types/**/*.d.ts"],
+  "include": [".", "./src/types/**/*.d.ts", "../../typescript-config/reset.d.ts"],
   "exclude": ["node_modules", "dist"]
 }
 

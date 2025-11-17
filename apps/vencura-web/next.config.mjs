@@ -15,6 +15,11 @@ const nextConfig = {
   },
   // Turbopack config for Next.js 16
   turbopack: {},
+  // Suppress OpenTelemetry/Sentry warnings about external packages
+  serverExternalPackages: [
+    'import-in-the-middle',
+    'require-in-the-middle',
+  ],
 }
 
 // Only wrap with Sentry if DSN is configured

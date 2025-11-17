@@ -124,7 +124,16 @@ const data = await response.json()
 const value = data.someProperty // TypeScript error: Property 'someProperty' does not exist on type 'unknown'
 ```
 
-The shared TypeScript configuration automatically includes `reset.d.ts`, so no additional setup is required in individual packages.
+**Important**: Since TypeScript replaces (rather than merges) `include` arrays when extending configs, packages that override the `include` array must explicitly add `reset.d.ts` to their include list. For example:
+
+```json
+{
+  "extends": "@workspace/typescript-config/base.json",
+  "include": ["src", "../../packages/typescript-config/reset.d.ts"]
+}
+```
+
+Packages that don't override `include` will automatically get `reset.d.ts` from the base config.
 
 ## Usage Examples
 

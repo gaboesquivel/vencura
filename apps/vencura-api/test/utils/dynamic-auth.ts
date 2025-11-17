@@ -84,7 +84,7 @@ export async function getTestAuthToken(): Promise<string> {
       // Try to get response body for better error message
       let errorText = 'Unknown error'
       try {
-        const errorData = (await createUserResponse.json()) as unknown
+        const errorData = await createUserResponse.json()
         errorText = JSON.stringify(errorData)
       } catch {
         errorText = await createUserResponse.text().catch(() => 'Unknown error')

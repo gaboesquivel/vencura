@@ -23,6 +23,18 @@ Progressive Node.js framework with decorators and dependency injection.
 - Modular architecture with clear separation of concerns
 - Native WebSocket gateway support with `@WebSocketGateway()`
 - Platform-agnostic WebSocket support (socket.io and ws)
+- Built-in microservices support with transport layers (Kafka, RabbitMQ, Redis, NATS, gRPC)
+- Native event-driven architecture patterns with `@nestjs/event-emitter`
+- CQRS support via `@nestjs/cqrs` for complex domain logic
+- Task scheduling with `@nestjs/schedule` for background jobs
+- Built-in testing module (`@nestjs/testing`) with dependency injection for unit tests
+- Easy E2E testing with `Test.createTestingModule()` and supertest integration
+- Built-in guards system (`@UseGuards`) for authentication/authorization
+- Interceptors for cross-cutting concerns (logging, transformation, caching)
+- Exception filters for centralized error handling
+- Rate limiting support via `@nestjs/throttler`
+- Lifecycle hooks (`OnModuleInit`, `OnModuleDestroy`, etc.) for initialization and cleanup
+- Graceful shutdown support
 - Mature ecosystem with extensive documentation
 - Strong TypeScript support out of the box
 - Excellent CLI for scaffolding and code generation
@@ -72,6 +84,14 @@ Minimal and flexible Node.js web framework.
 - No built-in dependency injection
 - Less opinionated, leading to inconsistent patterns
 - WebSocket support requires additional libraries and setup
+- No built-in microservices support; requires manual service mesh setup
+- Event-driven patterns require additional libraries (EventEmitter, custom pub/sub)
+- No native CQRS support
+- Testing requires manual setup and mocking infrastructure
+- No built-in guards system; requires middleware-based authentication
+- No built-in interceptors; cross-cutting concerns require manual middleware
+- Exception handling requires manual error middleware setup
+- Rate limiting requires additional libraries (express-rate-limit)
 - Less TypeScript-first approach
 - More manual type definitions needed
 
@@ -101,6 +121,9 @@ We will use **NestJS** as our backend API framework.
 
 - Built-in dependency injection system and modular architecture for scalable applications
 - Native WebSocket gateway support with platform-agnostic options (socket.io and ws)
+- Built-in microservices support with Kafka, RabbitMQ, and other transport layers for event-driven architecture
+- Comprehensive testing infrastructure with `@nestjs/testing` for unit and E2E tests
+- Built-in security patterns (guards, interceptors, exception filters) for consistent cross-cutting concerns
 - Mature ecosystem with extensive documentation and strong TypeScript support
 - Excellent CLI for scaffolding and built-in validation with class-validator
 - Works well with pnpm workspaces and Turbo for monorepo integration
@@ -110,3 +133,6 @@ We will use **NestJS** as our backend API framework.
 - Hono.js may be reconsidered for edge functions or serverless deployments
 - NestJS continues to evolve with new features and improvements
 - Consider framework-agnostic patterns when building shared utilities
+- Kafka streams support available via `@nestjs/microservices` for future event-driven features
+- Testing infrastructure leverages NestJS's built-in testing module for comprehensive E2E and unit tests
+- Security patterns (guards, interceptors, exception filters) provide consistent cross-cutting concerns
