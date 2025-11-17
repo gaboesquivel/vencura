@@ -221,3 +221,12 @@ We will deploy the NestJS Vencura API on **Google Cloud Run with Docker containe
 - **All core components** can be migrated to any platform without code changes
 
 **For custodial wallet security**: Google Cloud + Pulumi provides enhanced control and security over sensitive financial data, making it preferred for production workloads requiring strict data governance. Vercel is suitable for development and rapid iteration, while Google Cloud offers the enhanced security and control needed for handling sensitive financial data.
+
+## Portability Documentation
+
+For comprehensive portability documentation, see:
+
+- [Vercel Portability Strategy](../../docs/vercel-portability-strategy.md) - Detailed guide on portable features and migration paths
+- [Vercel Optimizations](../../docs/vercel-optimizations.md) - Vercel-specific features and portable alternatives
+
+The Vencura API is designed to run on any platform with minimal code changes. All core features are portable, and Vercel is used for convenience and developer experience, not as a requirement.

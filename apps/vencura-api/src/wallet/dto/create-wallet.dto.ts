@@ -1,5 +1,6 @@
 import { ApiProperty } from '@nestjs/swagger'
 import { IsNotEmpty } from 'class-validator'
+import { IsSupportedChain } from './validators/is-supported-chain.validator'
 
 export class CreateWalletDto {
   @ApiProperty({
@@ -12,5 +13,9 @@ export class CreateWalletDto {
     ],
   })
   @IsNotEmpty()
+  @IsSupportedChain({
+    message:
+      'Chain ID must be a supported chain. Provide a valid chain ID (number) or Dynamic network ID (string).',
+  })
   chainId!: number | string
 }

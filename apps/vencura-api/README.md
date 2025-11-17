@@ -23,14 +23,21 @@ Vencura is a backend API that enables users to create and manage custodial walle
   - Send transactions on any supported chain
 - **RPC Configuration**: Uses Dynamic's default RPC URLs with optional per-chain overrides
 - **Database**: DrizzleORM with PGLite (development) or Cloud SQL Postgres (production)
-- **API Documentation**: Interactive Swagger UI at `/api`
+- **API Documentation**: Interactive Swagger UI at `/api` (disabled by default, enable with `ENABLE_SWAGGER_UI=true`)
 - **TypeScript SDK**: Auto-generated `@vencura/core` SDK from Swagger/OpenAPI specification (see [@vencura/core README](../../packages/vencura-core/README.md))
 - **Security**:
   - AES-256-GCM encryption for private key storage
-  - Rate limiting on all endpoints
-  - Input validation
+  - Rate limiting on all endpoints (wallet creation: 10/min, transactions: 20/min, signing: 30/min)
+  - Input validation with chain ID validation
+  - Security headers (HSTS, X-Frame-Options, CSP, etc.)
+  - Request size limits (10kb maximum)
+  - Request ID tracing for all requests
+  - Error message sanitization in production
+  - Swagger UI protected by feature flag (disabled by default)
+  - CORS configuration
   - DDoS protection via Cloudflare
-- **Testing**: Comprehensive unit and E2E tests
+- **Testing**: Comprehensive unit and E2E tests with real APIs (no mocks)
+- **Portability**: Designed to run on any platform (Vercel, Google Cloud Run, AWS, Railway, etc.)
 
 ## Tech Stack
 
@@ -79,6 +86,12 @@ ARBITRUM_SEPOLIA_RPC_URL=https://arbitrum-sepolia.infura.io/v3/your_key
 # Optional: Sentry error tracking
 SENTRY_DSN=https://your-sentry-dsn@sentry.io/project-id
 SENTRY_ENVIRONMENT=production
+
+# Optional: Swagger UI feature flag (default: false for security)
+ENABLE_SWAGGER_UI=false
+
+# Optional: CORS origin (default: * for all origins)
+CORS_ORIGIN=https://your-frontend-domain.com
 ```
 
 **Required Environment Variables:**
@@ -98,6 +111,11 @@ SENTRY_ENVIRONMENT=production
 
 - `SENTRY_DSN`: Sentry DSN URL for error tracking (optional, defaults to disabled)
 - `SENTRY_ENVIRONMENT`: Environment name for Sentry (optional, defaults to `NODE_ENV`)
+
+**Optional Security Configuration:**
+
+- `ENABLE_SWAGGER_UI`: Enable Swagger UI at `/api` endpoint (default: `false` for security). Set to `true` to enable interactive API documentation.
+- `CORS_ORIGIN`: Allowed CORS origin (default: `*` for all origins). Set to specific domain for production (e.g., `https://your-frontend-domain.com`).
 
 **Note**: If no custom RPC URL is provided, Vencura uses Dynamic's default public RPC URLs or viem/Solana defaults. Custom RPCs are only needed for production environments requiring higher reliability or custom networks.
 
@@ -429,6 +447,8 @@ Configure environment variables in the Vercel dashboard or via CLI:
 - `SOLANA_RPC_URL`: Custom Solana RPC URL
 - `USE_PGLITE`: Set to `false` to use external Postgres
 - `DATABASE_URL`: Postgres connection string (if not using PGLite)
+- `ENABLE_SWAGGER_UI`: Enable Swagger UI at `/api` (default: `false` for security)
+- `CORS_ORIGIN`: Allowed CORS origin (default: `*` for all origins)
 
 ### Deployment Commands
 
@@ -442,6 +462,29 @@ vercel
 # Deploy to production
 vercel --prod
 ```
+
+### Portability
+
+The Vencura API is designed to be **portable by default** and can run on any platform:
+
+- **Vercel**: Current deployment platform (convenience, not requirement)
+- **Google Cloud Run**: Enhanced security and control (see [Google Cloud Deployment Option](../../docs/google-cloud-deployment.md))
+- **AWS Lambda/ECS**: Standard serverless or container deployment
+- **Railway/Render/Fly.io**: Simple platform deployments
+- **Self-hosted Docker**: Run anywhere with Docker
+
+**Key Principles:**
+
+- ✅ All core features work on any platform
+- ✅ No Vercel-specific code in application
+- ✅ Standard Dockerfile for containerization
+- ✅ Standard environment variables
+- ✅ Standard database connections
+
+For detailed portability documentation, see:
+
+- [Vercel Portability Strategy](../../docs/vercel-portability-strategy.md) - Comprehensive portability guide
+- [Vercel Optimizations](../../docs/vercel-optimizations.md) - Vercel-specific features and alternatives
 
 ### Alternative: Google Cloud Deployment
 
@@ -579,7 +622,13 @@ const [wallet] = await this.db
 - Users can only access their own wallets
 - Encryption key should be kept secure and never committed to version control
 - **Rate Limiting**: Implemented with endpoint-specific limits (wallet creation: 10/min, transactions: 20/min, signing: 30/min)
-- **Input Validation**: Ethereum addresses are validated for proper format
+- **Input Validation**: Ethereum addresses and chain IDs are validated for proper format
+- **Security Headers**: HSTS, X-Frame-Options, CSP, and other security headers configured via Helmet.js
+- **Request Size Limits**: Maximum 10kb payload size to prevent DoS attacks
+- **Request ID Tracing**: All requests include X-Request-ID header for tracing and debugging
+- **Error Sanitization**: Error messages sanitized in production to prevent information leakage
+- **Swagger UI Protection**: Swagger UI disabled by default (enable with `ENABLE_SWAGGER_UI=true`)
+- **CORS Configuration**: Configurable CORS origin (default: `*` for development)
 - **DDoS Protection**: Cloudflare provides DDoS protection in front of the service
 - For comprehensive security documentation, see [SECURITY.md](./SECURITY.md)
 - For security review findings and remediation status, see [SECURITY_REVIEW.md](./SECURITY_REVIEW.md)

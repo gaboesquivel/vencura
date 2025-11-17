@@ -78,6 +78,37 @@ Vencura implements multiple layers of security:
 - **Private Networking**: All internal communication via private IP
 - **No SSH Access**: Containerized deployment, no shell access
 
+#### Application Security Headers
+
+- **HSTS**: Strict Transport Security with maxAge 31536000, includeSubDomains, and preload
+- **X-Frame-Options**: Set to DENY to prevent clickjacking
+- **X-Content-Type-Options**: Set to nosniff to prevent MIME sniffing
+- **Content-Security-Policy**: Configured for API endpoints with minimal directives
+- **Referrer-Policy**: Set to strict-origin-when-cross-origin
+- **Implementation**: Helmet.js middleware configured in `src/main.ts`
+
+#### Request Security
+
+- **Request Size Limits**: Maximum 10kb payload size for JSON and URL-encoded requests
+- **Request ID Tracing**: Unique X-Request-ID header in all responses for tracing and debugging
+- **Error Sanitization**: Error messages sanitized in production to prevent information leakage
+- **Implementation**: Custom middleware and error handlers in `src/common/`
+
+#### API Documentation Security
+
+- **Swagger UI Feature Flag**: Swagger UI disabled by default (`ENABLE_SWAGGER_UI=false`)
+- **Security Rationale**: Prevents unauthorized access to API documentation in production
+- **Configuration**: Controlled via `ENABLE_SWAGGER_UI` environment variable
+- **Usage**: Enable only in development or with proper authentication
+
+#### CORS Configuration
+
+- **Default**: Allows all origins (`*`) for development convenience
+- **Production**: Should be configured with specific allowed origins via `CORS_ORIGIN` environment variable
+- **Methods**: GET, POST, PUT, DELETE, PATCH, OPTIONS
+- **Headers**: Content-Type, Authorization
+- **Credentials**: Enabled for authenticated requests
+
 ## Zero Trust Implementation
 
 ### Zero Trust Principles
