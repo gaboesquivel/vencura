@@ -10,7 +10,7 @@ import {
   getChainType,
 } from '../common/chains'
 import { validateAddress } from '../common/address-validation'
-import type { ChainType } from '@vencura/types'
+import type { ChainType } from '@vencura/core'
 import { WalletClientFactory } from './clients/wallet-client-factory'
 import type {
   BalanceResult,
@@ -19,23 +19,7 @@ import type {
 } from './clients/base-wallet-client'
 import * as schema from '../database/schema'
 import { eq, and } from 'drizzle-orm'
-
-// Zod schema for key shares array (used for JSON.parse validation)
-const keySharesSchema = z.array(z.string())
-
-// Chain type schema from Wallet for validation
-const chainTypeSchema = z.enum([
-  'evm',
-  'solana',
-  'cosmos',
-  'bitcoin',
-  'flow',
-  'starknet',
-  'algorand',
-  'sui',
-  'spark',
-  'tron',
-])
+import { keySharesSchema, chainTypeSchema, parseJsonWithSchema } from '@vencura/lib'
 
 @Injectable()
 export class WalletService {
@@ -167,7 +151,10 @@ export class WalletService {
 
     const keySharesEncrypted = await this.encryptionService.decrypt(wallet.privateKeyEncrypted)
     // Validate JSON.parse result with zod schema for type safety
-    const externalServerKeyShares = keySharesSchema.parse(JSON.parse(keySharesEncrypted))
+    const externalServerKeyShares = parseJsonWithSchema({
+      jsonString: keySharesEncrypted,
+      schema: keySharesSchema,
+    })
 
     // Get appropriate wallet client based on stored network/chain type
     const walletClient = this.walletClientFactory.createWalletClient(wallet.network)
@@ -202,7 +189,10 @@ export class WalletService {
 
     // Validate JSON.parse result with zod schema for type safety
     const keySharesEncrypted = await this.encryptionService.decrypt(privateKeyEncrypted)
-    const externalServerKeyShares = keySharesSchema.parse(JSON.parse(keySharesEncrypted))
+    const externalServerKeyShares = parseJsonWithSchema({
+      jsonString: keySharesEncrypted,
+      schema: keySharesSchema,
+    })
 
     // Get appropriate wallet client based on stored network/chain type
     const walletClient = this.walletClientFactory.createWalletClient(network)

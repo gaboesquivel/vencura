@@ -1,4 +1,5 @@
 import type { Chain } from 'viem'
+import { isString, isNumber } from 'lodash'
 import {
   arbitrum,
   arbitrumSepolia,
@@ -165,7 +166,7 @@ export function getChainType(chainId: number | string): ChainType | undefined {
  */
 export function getChainMetadata(chainId: number | string): ChainMetadata | undefined {
   // Try as Dynamic network ID (string)
-  if (typeof chainId === 'string') {
+  if (isString(chainId)) {
     const byDynamicId = CHAIN_REGISTRY.get(chainId)
     if (byDynamicId) return byDynamicId
 
@@ -175,7 +176,7 @@ export function getChainMetadata(chainId: number | string): ChainMetadata | unde
   }
 
   // Try as numeric chain ID (EVM)
-  if (typeof chainId === 'number') {
+  if (isNumber(chainId)) {
     return EVM_CHAINS[chainId]
   }
 
@@ -210,7 +211,7 @@ export function getDynamicNetworkId(chainId: number | string): string | undefine
  * @returns A Dynamic-compatible chain ID (421614 for local chains when USE_LOCAL_BLOCKCHAIN=true)
  */
 export function getDynamicCompatibleChainId(chainId: number | string): number | string {
-  if (process.env.USE_LOCAL_BLOCKCHAIN !== 'false' && typeof chainId === 'number') {
+  if (process.env.USE_LOCAL_BLOCKCHAIN !== 'false' && isNumber(chainId)) {
     if ([31337, 1337].includes(chainId)) return 421614 // Map local chains to Arbitrum Sepolia
   }
   return chainId

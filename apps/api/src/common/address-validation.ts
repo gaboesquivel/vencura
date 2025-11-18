@@ -1,7 +1,7 @@
 import { getAddress } from 'viem'
 import { PublicKey } from '@solana/web3.js'
 import { fromBech32 } from '@cosmjs/encoding'
-import type { ChainType } from '@vencura/types'
+import type { ChainType } from '@vencura/core'
 
 /**
  * Validate EVM address using viem's getAddress (per viem rules).

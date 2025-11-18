@@ -1,5 +1,6 @@
 import { Injectable } from '@nestjs/common'
 import { ConfigService } from '@nestjs/config'
+import { isString } from 'lodash'
 import {
   createWalletClient,
   createPublicClient,
@@ -129,12 +130,12 @@ export class EvmWalletClient extends BaseWalletClient {
 
     // Helper to convert SignableMessage to string for Dynamic SDK
     const messageToString = (message: SignableMessage): string => {
-      if (typeof message === 'string') return message
+      if (isString(message)) return message
       if (message instanceof Uint8Array) {
         return new TextDecoder().decode(message)
       }
       if ('raw' in message) {
-        if (typeof message.raw === 'string') return message.raw
+        if (isString(message.raw)) return message.raw
         return new TextDecoder().decode(message.raw)
       }
       return String(message)

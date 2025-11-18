@@ -1,7 +1,7 @@
 'use client'
 
 import { useAsyncFn } from 'react-use'
-import { groupBy, sumBy } from 'lodash'
+import { groupBy, sumBy, isPlainObject, isString } from 'lodash'
 import {
   useDynamicContext,
   useUserUpdateRequest,
@@ -36,7 +36,7 @@ export function useGameHistory() {
   const { updateUser } = useUserUpdateRequest()
   const refreshUser = useRefreshUser()
 
-  const history = !user?.metadata ? [] : ((user.metadata as UserMetadata).mathlerHistory ?? [])
+  const history = user?.metadata ? (user.metadata as UserMetadata).mathlerHistory ?? [] : []
 
   const [saveGameState, saveGame] = useAsyncFn(
     async (gameData: Omit<GameHistoryEntry, 'completedAt'>): Promise<boolean> => {
@@ -71,19 +71,16 @@ export function useGameHistory() {
 
       // Type-safe error checking
       const hasError =
-        typeof result === 'object' &&
-        result !== null &&
+        isPlainObject(result) &&
         ('error' in result || ('success' in result && result.success === false))
 
       if (hasError) {
         const errorMessage =
-          (typeof result === 'object' &&
-            result !== null &&
+          (isPlainObject(result) &&
             'error' in result &&
-            typeof result.error === 'object' &&
-            result.error !== null &&
+            isPlainObject(result.error) &&
             'message' in result.error &&
-            typeof result.error.message === 'string' &&
+            isString(result.error.message) &&
             result.error.message) ||
           'Failed to update user metadata. Please try again.'
         throw new Error(errorMessage)
