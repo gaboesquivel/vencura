@@ -217,9 +217,7 @@ function WalletsList() {
 
   return (
     <div>
-      <button onClick={() => createWallet.mutate({ chainId: 421614 })}>
-        Create Wallet
-      </button>
+      <button onClick={() => createWallet.mutate({ chainId: 421614 })}>Create Wallet</button>
       {wallets?.map(wallet => (
         <div key={wallet.id}>{wallet.address}</div>
       ))}

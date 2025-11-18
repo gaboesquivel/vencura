@@ -17,7 +17,7 @@ export function useChatbot({
   baseUrl,
   model = 'gpt-4o-mini',
   initialMessages = [],
-}: UseChatbotOptions = {}) {
+}: UseChatbotOptions = {}): ReturnType<typeof useChat> & { isAuthenticated: boolean } {
   const { user } = useDynamicContext()
 
   const finalBaseUrl = baseUrl || (typeof window !== 'undefined' ? window.location.origin : '')

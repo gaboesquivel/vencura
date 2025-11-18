@@ -31,7 +31,7 @@ interface ToolSchema<P = Record<string, any>> {
  * Tool schemas for wallet operations.
  * Used by getTools() to return tool definitions for client reference.
  */
-type Tools = {
+interface Tools {
   getWallets: ToolSchema<Record<string, never>>
   createWallet: ToolSchema<{
     chainId: { type: string; description: string }

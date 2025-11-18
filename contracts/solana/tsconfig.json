@@ -10,6 +10,7 @@
     "strict": true,
     "skipLibCheck": true,
     "resolveJsonModule": true
-  }
+  },
+  "include": ["**/*.ts", "../../config/typescript/reset.d.ts"]
 }
 

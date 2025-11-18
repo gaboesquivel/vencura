@@ -3,7 +3,9 @@ import {
   useQuery,
   useQueryClient,
   type UseMutationOptions,
+  type UseMutationResult,
   type UseQueryOptions,
+  type UseQueryResult,
 } from '@tanstack/react-query'
 import { useVencuraClient } from '../context'
 import type { SendTransactionResult } from '@vencura/core'
@@ -89,7 +91,7 @@ export interface TokenSupply {
  */
 export function useMintToken(
   options?: UseMutationOptions<SendTransactionResult, Error, MintTokenInput>,
-): ReturnType<typeof useMutation<SendTransactionResult, Error, MintTokenInput>> {
+): UseMutationResult<SendTransactionResult, Error, MintTokenInput> {
   const client = useVencuraClient()
   const queryClient = useQueryClient()
   const { onSuccess: userOnSuccess, ...restOptions } = options || {}
@@ -175,7 +177,7 @@ export function useMintToken(
  */
 export function useBurnToken(
   options?: UseMutationOptions<SendTransactionResult, Error, BurnTokenInput>,
-): ReturnType<typeof useMutation<SendTransactionResult, Error, BurnTokenInput>> {
+): UseMutationResult<SendTransactionResult, Error, BurnTokenInput> {
   const client = useVencuraClient()
   const queryClient = useQueryClient()
   const { onSuccess: userOnSuccess, ...restOptions } = options || {}
@@ -248,7 +250,7 @@ export function useBurnToken(
 export function useTokenBalance(
   { walletId, tokenAddress }: { walletId: string; tokenAddress: Address },
   options?: Omit<UseQueryOptions<TokenBalance, Error>, 'queryKey' | 'queryFn'>,
-): ReturnType<typeof useQuery<TokenBalance, Error>> {
+): UseQueryResult<TokenBalance, Error> {
   // TODO: Implement when generic read endpoint is available
   // For now, this is a placeholder that will need backend support
   return useQuery({
@@ -288,7 +290,7 @@ export function useTokenBalance(
 export function useTokenSupply(
   { tokenAddress, chainId }: { tokenAddress: Address; chainId: number },
   options?: Omit<UseQueryOptions<TokenSupply, Error>, 'queryKey' | 'queryFn'>,
-): ReturnType<typeof useQuery<TokenSupply, Error>> {
+): UseQueryResult<TokenSupply, Error> {
   // TODO: Implement when generic read endpoint is available
   // For now, this is a placeholder that will need backend support
   return useQuery({

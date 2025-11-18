@@ -275,7 +275,7 @@ Content-Type: application/json
 
 The `POST /wallets/:id/send` endpoint supports contract calls via the optional `data` parameter. This allows you to call any contract function, including ERC20 token operations (mint, burn, transfer, etc.), without needing chain-specific endpoints.
 
-**Example: Mint ERC20 Tokens**
+**Example: Mint ERC20 Testing Tokens**
 
 ```http
 POST /wallets/:id/send
@@ -457,20 +457,32 @@ pnpm run test:cov
 
 ### Test Setup
 
-E2E tests require the following environment variables in `.env`:
+E2E tests automatically initialize the database schema and use test environment configuration. Test scripts set `NODE_ENV=test` to enable test mode features.
 
-**Required:**
+**Environment Files:**
+
+- `.env.test` - Committed test configuration (non-sensitive defaults)
+- `.env` - Sensitive values (DYNAMIC_ENVIRONMENT_ID, DYNAMIC_API_TOKEN, ENCRYPTION_KEY) - **NEVER COMMIT**
+
+**Required Environment Variables (in `.env`):**
 
 - `DYNAMIC_ENVIRONMENT_ID` - Your Dynamic environment ID
 - `DYNAMIC_API_TOKEN` - Your Dynamic API token
 - `ENCRYPTION_KEY` - Encryption key (32+ characters)
 
-**Optional:**
+**Optional Environment Variables:**
 
 - `USE_LOCAL_BLOCKCHAIN` - Use local Anvil blockchain (default: `true`). Set to `false` to use testnet.
 - `FAUCET_PRIVATE_KEY` - Private key for testnet faucet (only needed if `USE_LOCAL_BLOCKCHAIN=false` and you want automated funding)
 - `RPC_URL_<CHAIN_ID>` - Override RPC URLs for specific chains. For local testing, set `RPC_URL_421614=http://localhost:8545` to point Arbitrum Sepolia to Anvil.
 - `TEST_AUTH_TOKEN` - Pre-configured JWT token for testing (optional). In test mode (`NODE_ENV=test`), the API key is used directly for authentication.
+
+**Database Initialization:**
+
+- Database schema is automatically initialized when tests run (in test mode only)
+- Tables are created directly using SQL (no migration files needed for tests)
+- Each test suite gets a fresh PGLite database instance
+- Schema initialization happens automatically in `DatabaseModule` when `NODE_ENV=test`
 
 **Local Blockchain Setup:**
 
@@ -513,7 +525,16 @@ All tests verify that:
 - User isolation is enforced (users can only access their own wallets)
 - Error handling works correctly for invalid inputs
 
-### Getting a Test Auth Token
+### Test Environment Features
+
+**Automatic Database Initialization:**
+
+- Database schema is automatically created when `NODE_ENV=test`
+- No manual migration steps required for tests
+- Each test suite gets a fresh database instance
+- Schema initialization uses SQL directly (simpler than migrations for tests)
+
+**Test Authentication Bypass:**
 
 For automated testing in test mode (`NODE_ENV=test`):
 
@@ -522,6 +543,7 @@ For automated testing in test mode (`NODE_ENV=test`):
 
 **How it works:**
 
+- Test scripts automatically set `NODE_ENV=test` (see `package.json` test scripts)
 - In test mode, `getTestAuthToken()` returns `DYNAMIC_API_TOKEN` directly
 - The `AuthGuard` accepts API key as authentication when `NODE_ENV=test`
 - A consistent test user (`test-user-${environmentId}`) is created/used for all tests

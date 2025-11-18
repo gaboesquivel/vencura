@@ -15,7 +15,8 @@
     }]
   },
   "transformIgnorePatterns": [
-    "node_modules/(?!.*(@vencura))"
+    "node_modules/(?!.*(@vencura))",
+    "node_modules/@dynamic-labs-wallet/.*"
   ],
   "setupFilesAfterEnv": ["<rootDir>/setup.ts"],
   "testTimeout": 120000,

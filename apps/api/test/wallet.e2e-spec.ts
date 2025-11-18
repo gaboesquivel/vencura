@@ -119,7 +119,7 @@ describe('WalletController (e2e)', () => {
         .send({ chainId: 999999 })
         .expect(400)
         .expect(res => {
-          expect(res.body.message).toContain('not supported')
+          expect(res.body.message).toContain('supported chain')
         }))
 
     it('should return 400 for invalid chain ID format', async () =>

@@ -101,13 +101,24 @@ await assertBalanceDelta({
 - **Token balance reads**: Currently require a generic read endpoint (not yet implemented)
 - **Test tokens**: Use testnet ERC-20 tokens (e.g., DNMC on Arbitrum Sepolia)
 
-## Test Account Authentication
+## Test Environment Setup
+
+### Database Initialization
+
+- **Automatic Schema Creation**: Database schema is automatically initialized when tests run
+- **Test Mode Detection**: Schema initialization happens automatically when `NODE_ENV=test`
+- **Fresh Database Per Suite**: Each test suite gets a fresh PGLite database instance
+- **No Migrations Required**: Tests use direct SQL table creation (simpler than migrations for test environment)
+- **Implementation**: Schema initialization is handled in `DatabaseModule` - no manual setup needed
+
+### Test Account Authentication
 
 - **Test Mode Bypass**: When `NODE_ENV=test`, tests use `DYNAMIC_API_TOKEN` directly for authentication
 - **API Key Authentication**: The `AuthGuard` accepts API key as authentication in test mode, eliminating the need for JWT generation
 - **Test User**: A consistent test user (`test-user-${environmentId}`) is created/used for all tests, allowing wallet reuse across test runs
 - **Auth Helper**: `getTestAuthToken()` returns the API key directly in test mode
 - **No Network Calls**: Test authentication doesn't require any external API calls, making tests faster and more reliable
+- **Automatic**: Test scripts automatically set `NODE_ENV=test` (configured in `package.json`)
 
 ## Automated Gas Faucet
 

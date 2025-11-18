@@ -30,7 +30,9 @@ export interface VencuraClientConfig {
  * const wallets = await client.wallet.list()
  * ```
  */
-export function createVencuraClient(config: VencuraClientConfig = {}) {
+export function createVencuraClient(config: VencuraClientConfig = {}): {
+  wallet: ReturnType<typeof initClient<typeof walletAPIContract>>
+} {
   const { baseUrl = '', headers = {} } = config
 
   const client = initClient(walletAPIContract, {
