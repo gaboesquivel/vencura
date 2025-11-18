@@ -1,13 +1,11 @@
 'use client'
 
-import { useBalance, useTotalSupply } from '@vencura/evm/hooks'
 import { FAUCET_TOKENS } from '@/lib/tokens'
 import { formatUnits, getAddress } from 'viem'
-import { useAccount } from 'wagmi'
 import { Button } from '@workspace/ui/components/button'
 import { FaucetDialog } from './faucet-dialog'
 import { useQueryStates } from 'nuqs'
-import { useEffect } from 'react'
+import { useDynamicContext } from '@dynamic-labs/sdk-react-core'
 
 const DEFAULT_BALANCE = '0.00'
 
@@ -35,22 +33,14 @@ function useFaucetStates() {
 }
 
 function TokenRow({ token }: { token: (typeof FAUCET_TOKENS)[number] }) {
-  const { address } = useAccount()
-  const [{ refetch_data }, setQueryStates] = useFaucetStates()
+  const { user } = useDynamicContext()
+  const [, setQueryStates] = useFaucetStates()
   const tokenAddress = getAddress(token.address)
 
-  const balanceResult = useBalance({
-    token: tokenAddress,
-    address,
-  })
-  const supplyResult = useTotalSupply({
-    token: tokenAddress,
-  })
-
-  const tokenBalance = balanceResult.balance
-  const tokenSupply = supplyResult.supply
-  const refetchBalance = balanceResult.refetch
-  const refetchSupply = supplyResult.refetch
+  // Token balance and supply reads are not yet implemented (require generic read endpoint)
+  // For now, display placeholder values
+  const tokenBalance: bigint | undefined = undefined
+  const tokenSupply: bigint | undefined = undefined
 
   const handleAction = (action: 'mint' | 'burn') => {
     setQueryStates({
@@ -60,13 +50,8 @@ function TokenRow({ token }: { token: (typeof FAUCET_TOKENS)[number] }) {
     })
   }
 
-  useEffect(() => {
-    if (!refetch_data) return
-
-    refetchSupply()
-    refetchBalance()
-    setQueryStates({ refetch_data: false })
-  }, [refetch_data, setQueryStates, refetchSupply, refetchBalance])
+  // Note: Token balance and supply reads will be implemented when generic read endpoint is available
+  // The refetch_data mechanism is handled by the dialog component after successful mint/burn
 
   const balanceValue =
     tokenBalance !== undefined && typeof tokenBalance === 'bigint' && tokenBalance > 0n
@@ -86,19 +71,14 @@ function TokenRow({ token }: { token: (typeof FAUCET_TOKENS)[number] }) {
       <td className="px-4 py-2">{supplyValue}</td>
       <td className="px-4 py-2">
         <div className="flex gap-2">
-          <Button
-            size="sm"
-            variant="default"
-            onClick={() => handleAction('mint')}
-            disabled={!address}
-          >
+          <Button size="sm" variant="default" onClick={() => handleAction('mint')} disabled={!user}>
             Mint
           </Button>
           <Button
             size="sm"
             variant="destructive"
             onClick={() => handleAction('burn')}
-            disabled={!address}
+            disabled={!user}
           >
             Burn
           </Button>

@@ -1,9 +1,10 @@
 import { Injectable, UnauthorizedException, Inject } from '@nestjs/common'
 import { ConfigService } from '@nestjs/config'
+import { isEmpty } from 'lodash'
 import jwt, { type JwtPayload } from 'jsonwebtoken'
 import * as schema from '../database/schema'
 import { eq } from 'drizzle-orm'
-import { fetchWithTimeout } from '@vencura/lib'
+import { fetchWithTimeout, getErrorMessage } from '@vencura/lib'
 
 @Injectable()
 export class AuthService {
@@ -17,66 +18,76 @@ export class AuthService {
     const environmentId = this.configService.get<string>('dynamic.environmentId')
     const apiToken = this.configService.get<string>('dynamic.apiToken')
 
-    if (!environmentId || !apiToken) throw new Error('Dynamic configuration is not set')
+    if (isEmpty(environmentId) || isEmpty(apiToken))
+      throw new Error('Dynamic configuration is not set')
 
     // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-unsafe-call
     const response: Response = await fetchWithTimeout({
       url: `https://app.dynamicauth.com/api/v0/environments/${environmentId}/keys`,
       options: {
-        headers: {
-          Authorization: `Bearer ${apiToken}`,
-        },
+        headers: { Authorization: `Bearer ${apiToken}` },
       },
       timeoutMs: 5000,
     })
 
     if (!response.ok) throw new Error('Failed to fetch Dynamic public key')
 
-    type DynamicKeyResponse = {
-      key: {
-        publicKey: string
-      }
-    }
+    const data = (await response.json()) as { key: { publicKey: string } }
+    return Buffer.from(data.key.publicKey, 'base64').toString('ascii')
+  }
 
-    const data = (await response.json()) as DynamicKeyResponse
-    const publicKey = Buffer.from(data.key.publicKey, 'base64').toString('ascii')
-    return publicKey
+  /**
+   * Verify API key for testing purposes (test mode only).
+   * Returns a consistent test user based on environment ID.
+   */
+  async verifyApiKeyForTesting(apiToken: string): Promise<{ id: string; email: string }> {
+    const expectedApiToken = this.configService.get<string>('dynamic.apiToken')
+    const environmentId = this.configService.get<string>('dynamic.environmentId')
+
+    if (isEmpty(expectedApiToken) || isEmpty(environmentId))
+      throw new UnauthorizedException('Dynamic configuration is not set')
+
+    if (apiToken !== expectedApiToken)
+      throw new UnauthorizedException('Invalid API token for testing')
+
+    const testUserId = `test-user-${environmentId}`
+    const [existingUser] = await this.db
+      .select()
+      .from(schema.users)
+      .where(eq(schema.users.id, testUserId))
+      .limit(1)
+
+    if (!existingUser)
+      await this.db.insert(schema.users).values({ id: testUserId, email: 'test@vencura.test' })
+
+    return { id: testUserId, email: 'test@vencura.test' }
   }
 
   async verifyToken(token: string): Promise<{ id: string; email: string }> {
     try {
-      const publicKey = await this.getPublicKey()
-
-      const decoded = jwt.verify(token, publicKey, {
+      const decoded = jwt.verify(token, await this.getPublicKey(), {
         algorithms: ['RS256'],
       }) as JwtPayload
 
-      if (!decoded || !decoded.sub) throw new UnauthorizedException('Invalid token')
+      if (!decoded?.sub) throw new UnauthorizedException('Invalid token')
 
       const userId = decoded.sub
       const email = (decoded.email as string) || ''
 
-      // Ensure user exists in database
       const [existingUser] = await this.db
         .select()
         .from(schema.users)
         .where(eq(schema.users.id, userId))
         .limit(1)
 
-      if (!existingUser)
-        await this.db.insert(schema.users).values({
-          id: userId,
-          email,
-        })
+      if (!existingUser) await this.db.insert(schema.users).values({ id: userId, email })
 
-      return {
-        id: userId,
-        email,
-      }
+      return { id: userId, email }
     } catch (error) {
       if (error instanceof UnauthorizedException) throw error
       if (error instanceof jwt.JsonWebTokenError) throw new UnauthorizedException('Invalid token')
-      throw new UnauthorizedException('Token verification failed')
+      // eslint-disable-next-line @typescript-eslint/no-unsafe-call
+      throw new UnauthorizedException(`Token verification failed: ${getErrorMessage(error)}`)
     }
   }
 }

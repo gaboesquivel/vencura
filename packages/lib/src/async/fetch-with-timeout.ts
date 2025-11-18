@@ -37,6 +37,23 @@ export async function fetchWithTimeout({
       signal: controller.signal,
     })) as Response
     return response
+  } catch (error) {
+    // Enhance error with more context
+    if (error instanceof Error) {
+      if (controller.signal.aborted) {
+        const timeoutError = new Error(`Request to ${url} timed out after ${timeoutMs}ms`)
+        timeoutError.cause = error
+        throw timeoutError
+      }
+      // Preserve original error with URL context
+      const enhancedError = new Error(`Failed to fetch ${url}: ${error.message}`)
+      enhancedError.cause = error
+      if ('code' in error) {
+        ;(enhancedError as Error & { code: unknown }).code = error.code
+      }
+      throw enhancedError
+    }
+    throw error
   } finally {
     clearTimeout(timeoutId)
   }

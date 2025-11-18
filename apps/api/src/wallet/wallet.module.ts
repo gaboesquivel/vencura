@@ -11,5 +11,6 @@ import { AuthModule } from '../auth/auth.module'
   imports: [ConfigModule, AuthModule],
   controllers: [WalletController, WalletContractController],
   providers: [WalletService, EncryptionService, WalletClientFactory],
+  exports: [WalletService],
 })
 export class WalletModule {}

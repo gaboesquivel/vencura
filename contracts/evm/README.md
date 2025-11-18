@@ -166,6 +166,17 @@ anvil
 pnpm run contracts:evm:deploy:anvil
 ```
 
+### Integration with API Tests
+
+Anvil is automatically used by the API E2E tests for automated gas faucet functionality:
+
+- **API tests start Anvil automatically** before running (see `apps/api/test/setup-anvil.ts`)
+- **Wallets are auto-funded** with ETH from Anvil's default account
+- **Point test chains to Anvil** by setting `RPC_URL_<CHAIN_ID>=http://localhost:8545` in API `.env`
+- **No manual funding required** - tests run faster and more reliably
+
+See [API Test Documentation](../apps/api/test/README.md) for details on automated gas faucet.
+
 ### Environment Setup
 
 Create a `.env` file in the `contracts/evm/` directory (copy from `.env.sample`):

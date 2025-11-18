@@ -66,32 +66,31 @@ pnpm install
 
 ### Environment Variables
 
-Create a `.env` file in the root directory:
+This API uses environment-specific configuration files. Environment files are loaded in priority order:
 
-```env
-PORT=3000
-DYNAMIC_ENVIRONMENT_ID=your_dynamic_environment_id
-DYNAMIC_API_TOKEN=your_dynamic_api_token
-ENCRYPTION_KEY=your_encryption_key_32_chars_minimum
+1. `.env` (highest priority, sensitive data, never committed, overrides everything)
+2. `.env.development` / `.env.staging` / `.env.production` / `.env.test` (based on NODE_ENV, committed configs)
 
-# Optional: Per-chain RPC URL overrides
-# Format: RPC_URL_<CHAIN_ID>=... or RPC_URL_<DYNAMIC_NETWORK_ID>=...
-RPC_URL_421614=https://arbitrum-sepolia.infura.io/v3/your_key
-RPC_URL_84532=https://base-sepolia.infura.io/v3/your_key
-SOLANA_RPC_URL=https://api.mainnet-beta.solana.com
+**File Structure:**
 
-# Backward compatibility: ARBITRUM_SEPOLIA_RPC_URL still works
-ARBITRUM_SEPOLIA_RPC_URL=https://arbitrum-sepolia.infura.io/v3/your_key
+- `.env` - Sensitive data (API keys, tokens, secrets) - **NEVER COMMIT**
+- `.env.development` - Development configuration (committed, non-sensitive)
+- `.env.staging` - Staging configuration (committed, non-sensitive)
+- `.env.production` - Production configuration (committed, non-sensitive)
+- `.env-example` - Template for `.env` file (shows required sensitive variables)
 
-# Optional: Sentry error tracking
-SENTRY_DSN=https://your-sentry-dsn@sentry.io/project-id
-SENTRY_ENVIRONMENT=production
+**Setup for Local Development:**
 
-# Optional: Swagger UI feature flag (default: false for security)
-ENABLE_SWAGGER_UI=false
+```bash
+# Copy the example file for sensitive data
+cp .env-example .env
 
-# Optional: CORS origin (default: * for all origins)
-CORS_ORIGIN=https://your-frontend-domain.com
+# Fill in your actual sensitive values in .env
+# DYNAMIC_ENVIRONMENT_ID=your_environment_id
+# DYNAMIC_API_TOKEN=your_api_token
+# ENCRYPTION_KEY=your_32_char_encryption_key_minimum
+
+# .env.development is already committed with non-sensitive configs
 ```
 
 **Required Environment Variables:**
@@ -100,12 +99,21 @@ CORS_ORIGIN=https://your-frontend-domain.com
 - `DYNAMIC_API_TOKEN`: Your Dynamic API token for server-side authentication
 - `ENCRYPTION_KEY`: Encryption key for private keys (minimum 32 characters)
 
+**Environment-Specific Configuration:**
+
+- **Development** (`.env.development`): Uses local Anvil blockchain (`USE_LOCAL_BLOCKCHAIN=true`)
+- **Staging** (`.env.staging`): Uses testnet networks (`USE_LOCAL_BLOCKCHAIN=false`)
+- **Production** (`.env.production`): Uses mainnet networks (`USE_LOCAL_BLOCKCHAIN=false`)
+- **Test** (`.env.test`): Uses local Anvil blockchain for CI/CD (`USE_LOCAL_BLOCKCHAIN=true`)
+
 **Optional RPC Configuration:**
 
 - `RPC_URL_<CHAIN_ID>`: Custom RPC URL for a specific chain (e.g., `RPC_URL_421614` for Arbitrum Sepolia)
 - `RPC_URL_<DYNAMIC_NETWORK_ID>`: Custom RPC URL using Dynamic network ID (e.g., `RPC_URL_solana-mainnet`)
 - `SOLANA_RPC_URL`: Custom Solana RPC URL (applies to all Solana networks)
 - `ARBITRUM_SEPOLIA_RPC_URL`: Backward compatibility for Arbitrum Sepolia (maps to `RPC_URL_421614`)
+
+See [Environment Strategy](../../docs/environment-strategy.md) for detailed configuration instructions.
 
 **Optional Error Tracking:**
 
@@ -258,6 +266,69 @@ Content-Type: application/json
 }
 ```
 
+### Token Operations via Generic Transaction Endpoint
+
+The `POST /wallets/:id/send` endpoint supports contract calls via the optional `data` parameter. This allows you to call any contract function, including ERC20 token operations (mint, burn, transfer, etc.), without needing chain-specific endpoints.
+
+**Example: Mint ERC20 Tokens**
+
+```http
+POST /wallets/:id/send
+Authorization: Bearer <dynamic-auth-token>
+Content-Type: application/json
+
+{
+  "to": "0x4F28D4eD49E20d064C9052E7Ff4Fd12878aBA09F",
+  "amount": 0,
+  "data": "0x40c10f19000000000000000000000000742d35cc6634c0532925a3b844bc9e7595f0beb0000000000000000000000000000000000000000000000000de0b6b3a7640000"
+}
+```
+
+**Request Body:**
+
+- `to`: Contract address (token contract for mint/burn operations)
+- `amount`: Native token amount (use `0` for pure contract calls)
+- `data`: Encoded function call data (hex string)
+
+**Encoding Contract Calls:**
+
+Use `viem` (or similar) to encode function calls:
+
+```typescript
+import { encodeFunctionData } from 'viem'
+import { testnetTokenAbi } from '@vencura/evm/abis'
+
+// Encode mint function call
+const mintData = encodeFunctionData({
+  abi: testnetTokenAbi,
+  functionName: 'mint',
+  args: [recipientAddress, amount], // [address, uint256]
+})
+
+// Use with transaction endpoint
+await fetch('/wallets/:id/send', {
+  method: 'POST',
+  headers: {
+    Authorization: `Bearer ${token}`,
+    'Content-Type': 'application/json',
+  },
+  body: JSON.stringify({
+    to: tokenAddress,
+    amount: 0,
+    data: mintData,
+  }),
+})
+```
+
+**Benefits:**
+
+- **Multichain**: Works for EVM, Solana (future), and other chains
+- **Generic**: No need for chain-specific endpoints (mint, burn, etc.)
+- **Type-safe**: Use TypeScript utilities at client layer for encoding/decoding
+- **Portable**: No vendor lock-in, works with any backend
+
+**Note**: Token balance and supply reads currently require a generic read endpoint (not yet implemented). For now, use client-side RPC calls or implement a read endpoint if needed.
+
 ## Dynamic SDK Integration
 
 Vencura API uses Dynamic SDK for all wallet operations:
@@ -268,6 +339,31 @@ Vencura API uses Dynamic SDK for all wallet operations:
 - **Wallet Management**: All wallets are created with `ThresholdSignatureScheme.TWO_OF_TWO` for enhanced security
 
 Both EVM and Solana wallet clients authenticate with Dynamic using `DYNAMIC_ENVIRONMENT_ID` and `DYNAMIC_API_TOKEN`, ensuring all wallet operations go through Dynamic's secure infrastructure.
+
+### Data Storage Strategy
+
+We store all wallet and user data in our own database rather than relying on Dynamic SDK metadata. See [ADR 015](../../.adrs/015-database-vs-dynamic-metadata.md) and [Dynamic Integration Architecture](../../docs/dynamic-integration.md#data-storage-strategy) for details.
+
+**What We Store in Database:**
+
+- Wallet ID, User ID, Address, Encrypted key shares, Network/chain type, Timestamps
+- User ID, Email, Timestamps
+
+**What Dynamic SDK Manages:**
+
+- Client-side key shares (not stored in our DB)
+- Threshold signature scheme configuration
+- Dynamic's internal wallet metadata and associations
+- Wallet state and transaction history (queried via SDK)
+
+**Why Database Instead of Dynamic Metadata:**
+
+- Backend needs direct access to query wallets by user ID
+- Dynamic's backend SDK doesn't expose user metadata APIs
+- Wallet operations require database lookups for encrypted key retrieval
+- User isolation enforced at database level
+
+Dynamic user metadata (via frontend `useUserUpdateRequest()` hook) can be used for frontend-only data like game history or UI preferences, but all backend operations require our database.
 
 ## Testing
 
@@ -282,12 +378,12 @@ The API includes comprehensive blackbox E2E tests that use the real Dynamic SDK.
 - All API calls use actual credentials from environment variables
 - Tests verify end-to-end functionality with real infrastructure
 
-**Exception**: Transaction sending tests are currently mocked due to requiring test token deployments and faucet infrastructure. These will be implemented with real tokens and faucet in a follow-up PR.
+**Automated Gas Faucet**: Transaction tests use an automated gas faucet infrastructure. By default, tests use a local Anvil blockchain where wallets are automatically funded. This eliminates the need for manual wallet funding and makes tests faster and more reliable. For testnet testing, you can set `USE_LOCAL_BLOCKCHAIN=false` and optionally provide `FAUCET_PRIVATE_KEY` for automated funding.
 
 ### Running Tests
 
 ```bash
-# E2E tests (blackbox API tests)
+# E2E tests with local Anvil blockchain (default, fastest)
 pnpm run test:e2e
 
 # E2E tests in watch mode
@@ -296,6 +392,9 @@ pnpm run test:e2e:watch
 # E2E tests for CI (with coverage)
 pnpm run test:e2e:ci
 
+# E2E tests on testnet (requires manual funding or FAUCET_PRIVATE_KEY)
+pnpm run test:e2e:testnet
+
 # Unit tests
 pnpm run test
 
@@ -303,14 +402,37 @@ pnpm run test
 pnpm run test:cov
 ```
 
+**Prerequisites for Local Blockchain Tests**:
+
+- [Foundry](https://book.getfoundry.sh/getting-started/installation) must be installed
+- Anvil will start automatically before tests run
+- Wallets are automatically funded with ETH from Anvil's default account
+
 ### Test Setup
 
 E2E tests require the following environment variables in `.env`:
 
+**Required:**
+
 - `DYNAMIC_ENVIRONMENT_ID` - Your Dynamic environment ID
 - `DYNAMIC_API_TOKEN` - Your Dynamic API token
 - `ENCRYPTION_KEY` - Encryption key (32+ characters)
-- `TEST_AUTH_TOKEN` (optional) - Pre-configured JWT token for testing. If not provided, tests will attempt to create a test user and session automatically.
+
+**Optional:**
+
+- `USE_LOCAL_BLOCKCHAIN` - Use local Anvil blockchain (default: `true`). Set to `false` to use testnet.
+- `FAUCET_PRIVATE_KEY` - Private key for testnet faucet (only needed if `USE_LOCAL_BLOCKCHAIN=false` and you want automated funding)
+- `RPC_URL_<CHAIN_ID>` - Override RPC URLs for specific chains. For local testing, set `RPC_URL_421614=http://localhost:8545` to point Arbitrum Sepolia to Anvil.
+- `TEST_AUTH_TOKEN` - Pre-configured JWT token for testing (optional). In test mode (`NODE_ENV=test`), the API key is used directly for authentication.
+
+**Local Blockchain Setup:**
+
+- Install [Foundry](https://book.getfoundry.sh/getting-started/installation) to get Anvil
+- Anvil starts automatically before tests run
+- Wallets are automatically funded with ETH (no manual funding needed)
+- **Important**: Use Arbitrum Sepolia (421614) as the chain ID for local testing. Dynamic SDK doesn't support localhost chains, so we use Arbitrum Sepolia chain ID while RPC URLs point to localhost:8545
+- Point Arbitrum Sepolia to Anvil by setting `RPC_URL_421614=http://localhost:8545`
+- The WalletService automatically maps local chain IDs (like 31337) to Arbitrum Sepolia (421614) for Dynamic SDK compatibility
 
 ### Test Structure
 
@@ -322,7 +444,7 @@ E2E tests require the following environment variables in `.env`:
 ### Test Files
 
 - `test/wallet.e2e-spec.ts` - Main wallet endpoint tests (uses real Dynamic SDK)
-- `test/wallet-transactions.e2e-spec.ts` - Transaction sending tests (**currently mocked** - see Future Work)
+- `test/wallet-transactions.e2e-spec.ts` - Transaction sending tests (uses real transactions on testnets)
 - `test/wallet-edge-cases.e2e-spec.ts` - Edge case and error handling tests (uses real Dynamic SDK)
 - `test/wallet-multichain.e2e-spec.ts` - Multichain wallet creation tests (uses real Dynamic SDK)
 - `test/app.e2e-spec.ts` - Basic health check tests
@@ -334,7 +456,7 @@ The test suite covers all requirements from the backend specification:
 - ✅ **Wallet Creation**: Tests verify wallets are created via Dynamic SDK for both EVM and Solana chains
 - ✅ **getBalance()**: Tests verify balance queries work correctly for all supported chains
 - ✅ **signMessage()**: Tests verify message signing works via Dynamic SDK for both chain types
-- ⚠️ **sendTransaction()**: Tests are mocked - real transaction tests will be added in follow-up PR (see Future Work)
+- ✅ **sendTransaction()**: Tests use real transactions with automated gas funding (local Anvil) or testnet (with optional faucet)
 
 All tests verify that:
 
@@ -346,10 +468,19 @@ All tests verify that:
 
 ### Getting a Test Auth Token
 
-For automated testing, you can either:
+For automated testing in test mode (`NODE_ENV=test`):
 
-1. **Set TEST_AUTH_TOKEN**: Get a JWT token from Dynamic's UI (after logging in) and set it as `TEST_AUTH_TOKEN` in your `.env` file
-2. **Automatic Token Generation**: Tests will attempt to create a test user and get a token automatically (requires Dynamic API access)
+1. **API Key Authentication (Recommended)**: When `NODE_ENV=test`, tests automatically use `DYNAMIC_API_TOKEN` directly for authentication. No JWT generation needed.
+2. **Set TEST_AUTH_TOKEN** (Optional): You can still set `TEST_AUTH_TOKEN` if you want to use a specific JWT token instead of the API key.
+
+**How it works:**
+
+- In test mode, `getTestAuthToken()` returns `DYNAMIC_API_TOKEN` directly
+- The `AuthGuard` accepts API key as authentication when `NODE_ENV=test`
+- A consistent test user (`test-user-${environmentId}`) is created/used for all tests
+- This eliminates the need for complex JWT generation and makes tests faster and more reliable
+
+**Note**: In non-test environments (production/staging), JWT tokens are still required for authentication.
 
 ## Database
 
@@ -642,27 +773,25 @@ const [wallet] = await this.db
 
 ## Future Work
 
-### Real Transaction Testing
+### Enhanced Testing Infrastructure
 
-Currently, transaction sending tests (`test/wallet-transactions.e2e-spec.ts`) are mocked. A follow-up PR will implement:
+Transaction sending tests now use real transactions on testnets. Future enhancements may include:
 
-1. **Token Deployment**:
-   - Deploy SPL token on Solana testnet
-   - Deploy ERC20 token on Arbitrum Sepolia
-   - Save token addresses to configuration
+1. **Enhanced Token Support**:
+   - ERC20 token transfer support in the API (currently only native token transfers are supported)
+   - SPL token operations on Solana
+   - Token balance queries for ERC20/SPL tokens
 
-2. **Faucet Infrastructure**:
-   - Create faucet API endpoints for funding test wallets
-   - Implement rate limiting and security controls
-   - Support both native tokens (SOL, ETH) and test tokens (SPL, ERC20)
+2. **Automated Faucet Infrastructure**:
+   - Automated faucet API endpoints for funding test wallets
+   - Rate limiting and security controls
+   - Support for both native tokens (SOL, ETH) and test tokens (SPL, ERC20)
 
-3. **Real Transaction Tests**:
-   - Replace mocked transaction tests with real blockchain transactions
-   - Test actual transaction sending on testnets
-   - Verify transaction hashes on blockchain explorers
-   - Test error cases (insufficient balance, invalid addresses)
-
-This will enable comprehensive end-to-end testing of the transaction sending functionality with real blockchain interactions.
+3. **Advanced Test Scenarios**:
+   - Multi-token transaction tests
+   - Batch transaction tests
+   - Gas optimization tests
+   - Cross-chain bridge tests (when supported)
 
 ## License
 

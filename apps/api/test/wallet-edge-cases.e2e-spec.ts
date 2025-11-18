@@ -1,11 +1,11 @@
 import { Test, TestingModule } from '@nestjs/testing'
 import { INestApplication, ValidationPipe } from '@nestjs/common'
-import * as request from 'supertest'
-import { App } from 'supertest/types'
+import request from 'supertest'
+import type { App } from 'supertest/types'
 import { AppModule } from '../src/app.module'
 import { getTestAuthToken } from './auth'
 import { TEST_CHAINS, TEST_MESSAGES } from './fixtures'
-import { createTestWallet } from './helpers'
+import { createTestWallet, getOrCreateTestWallet } from './helpers'
 
 describe('WalletController Edge Cases (e2e)', () => {
   let app: INestApplication<App>
@@ -103,7 +103,7 @@ describe('WalletController Edge Cases (e2e)', () => {
 
   describe('Message Signing Edge Cases', () => {
     it('should handle empty message', async () => {
-      const wallet = await createTestWallet({
+      const wallet = await getOrCreateTestWallet({
         app,
         authToken,
         chainId: TEST_CHAINS.EVM.ARBITRUM_SEPOLIA,
@@ -121,7 +121,7 @@ describe('WalletController Edge Cases (e2e)', () => {
     })
 
     it('should handle long message', async () => {
-      const wallet = await createTestWallet({
+      const wallet = await getOrCreateTestWallet({
         app,
         authToken,
         chainId: TEST_CHAINS.EVM.ARBITRUM_SEPOLIA,
@@ -139,7 +139,7 @@ describe('WalletController Edge Cases (e2e)', () => {
     })
 
     it('should handle special characters in message', async () => {
-      const wallet = await createTestWallet({
+      const wallet = await getOrCreateTestWallet({
         app,
         authToken,
         chainId: TEST_CHAINS.EVM.ARBITRUM_SEPOLIA,
@@ -157,7 +157,7 @@ describe('WalletController Edge Cases (e2e)', () => {
     })
 
     it('should return 400 for non-string message', async () => {
-      const wallet = await createTestWallet({
+      const wallet = await getOrCreateTestWallet({
         app,
         authToken,
         chainId: TEST_CHAINS.EVM.ARBITRUM_SEPOLIA,
@@ -173,7 +173,7 @@ describe('WalletController Edge Cases (e2e)', () => {
 
   describe('Transaction Sending Edge Cases', () => {
     it('should return 400 for invalid EVM address format', async () => {
-      const wallet = await createTestWallet({
+      const wallet = await getOrCreateTestWallet({
         app,
         authToken,
         chainId: TEST_CHAINS.EVM.ARBITRUM_SEPOLIA,
@@ -190,7 +190,7 @@ describe('WalletController Edge Cases (e2e)', () => {
     })
 
     it('should return 400 for address that is too short', async () => {
-      const wallet = await createTestWallet({
+      const wallet = await getOrCreateTestWallet({
         app,
         authToken,
         chainId: TEST_CHAINS.EVM.ARBITRUM_SEPOLIA,
@@ -207,7 +207,7 @@ describe('WalletController Edge Cases (e2e)', () => {
     })
 
     it('should return 400 for negative amount', async () => {
-      const wallet = await createTestWallet({
+      const wallet = await getOrCreateTestWallet({
         app,
         authToken,
         chainId: TEST_CHAINS.EVM.ARBITRUM_SEPOLIA,
@@ -224,7 +224,7 @@ describe('WalletController Edge Cases (e2e)', () => {
     })
 
     it('should return 400 for zero amount', async () => {
-      const wallet = await createTestWallet({
+      const wallet = await getOrCreateTestWallet({
         app,
         authToken,
         chainId: TEST_CHAINS.EVM.ARBITRUM_SEPOLIA,
@@ -241,7 +241,7 @@ describe('WalletController Edge Cases (e2e)', () => {
     })
 
     it('should return 400 for very large amount', async () => {
-      const wallet = await createTestWallet({
+      const wallet = await getOrCreateTestWallet({
         app,
         authToken,
         chainId: TEST_CHAINS.EVM.ARBITRUM_SEPOLIA,
@@ -258,7 +258,7 @@ describe('WalletController Edge Cases (e2e)', () => {
     })
 
     it('should return 400 for non-numeric amount', async () => {
-      const wallet = await createTestWallet({
+      const wallet = await getOrCreateTestWallet({
         app,
         authToken,
         chainId: TEST_CHAINS.EVM.ARBITRUM_SEPOLIA,

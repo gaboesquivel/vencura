@@ -78,6 +78,10 @@ export type SignMessageResult = z.infer<typeof SignMessageResult>
 export const SendTransactionInput = z.object({
   to: z.string().min(1).describe('Recipient address - format validated based on wallet chain type'),
   amount: z.number().min(0).describe('Amount in native token units'),
+  data: z
+    .string()
+    .optional()
+    .describe('Optional contract call data (hex string). Used for calling contract functions.'),
 })
 
 export type SendTransactionInput = z.infer<typeof SendTransactionInput>

@@ -31,6 +31,7 @@
 export { VencuraProvider, type VencuraProviderProps } from './provider'
 export * from './hooks'
 export * from './context'
+export * from './utils/token-encoding'
 
 // Re-export types from @vencura/core for convenience
 export type {

@@ -248,6 +248,142 @@ function SendButton({ walletId }: { walletId: string }) {
 
 **Returns:** `UseMutationResult<SendTransactionResult, Error, SendTransactionInput>`
 
+### Token Operations
+
+Token operations use the generic transaction endpoint with encoded contract call data. This provides type safety at the client layer while keeping the API generic and multichain-compatible.
+
+#### useMintToken
+
+Mint ERC20 tokens via contract call.
+
+```tsx
+import { useMintToken } from '@vencura/react'
+import { parseUnits } from 'viem'
+import { testnetTokenAbi } from '@vencura/evm/abis'
+
+function MintButton({ walletId, tokenAddress }: Props) {
+  const mintToken = useMintToken({
+    onSuccess: data => {
+      console.log('Mint transaction:', data.transactionHash)
+    },
+  })
+
+  return (
+    <button
+      onClick={() =>
+        mintToken.mutate({
+          walletId,
+          tokenAddress,
+          recipient: '0x742d35Cc6634C0532925a3b844Bc9e7595f0bEb0',
+          amount: parseUnits('1000', 18),
+          abi: testnetTokenAbi,
+        })
+      }
+      disabled={mintToken.isPending}
+    >
+      {mintToken.isPending ? 'Minting...' : 'Mint Tokens'}
+    </button>
+  )
+}
+```
+
+**Parameters:**
+
+- `walletId: string` - Wallet ID to send transaction from
+- `tokenAddress: Address` - Token contract address
+- `recipient: Address` - Address to mint tokens to
+- `amount: bigint` - Amount to mint (in token's smallest unit)
+- `abi: Abi` - Token contract ABI
+
+**Returns:** `UseMutationResult<SendTransactionResult, Error, MintTokenInput>`
+
+#### useBurnToken
+
+Burn ERC20 tokens via contract call.
+
+```tsx
+import { useBurnToken } from '@vencura/react'
+import { parseUnits } from 'viem'
+import { testnetTokenAbi } from '@vencura/evm/abis'
+
+function BurnButton({ walletId, tokenAddress, accountAddress }: Props) {
+  const burnToken = useBurnToken({
+    onSuccess: data => {
+      console.log('Burn transaction:', data.transactionHash)
+    },
+  })
+
+  return (
+    <button
+      onClick={() =>
+        burnToken.mutate({
+          walletId,
+          tokenAddress,
+          account: accountAddress,
+          amount: parseUnits('100', 18),
+          abi: testnetTokenAbi,
+        })
+      }
+      disabled={burnToken.isPending}
+    >
+      {burnToken.isPending ? 'Burning...' : 'Burn Tokens'}
+    </button>
+  )
+}
+```
+
+**Parameters:**
+
+- `walletId: string` - Wallet ID to send transaction from
+- `tokenAddress: Address` - Token contract address
+- `account: Address` - Address to burn tokens from
+- `amount: bigint` - Amount to burn (in token's smallest unit)
+- `abi: Abi` - Token contract ABI
+
+**Returns:** `UseMutationResult<SendTransactionResult, Error, BurnTokenInput>`
+
+#### Token Encoding Utilities
+
+The package provides encoding utilities for encoding contract calls:
+
+```tsx
+import { encodeTokenMint, encodeTokenBurn } from '@vencura/react/utils/token-encoding'
+import { parseUnits } from 'viem'
+import { testnetTokenAbi } from '@vencura/evm/abis'
+
+// Encode mint function call
+const mintData = encodeTokenMint({
+  recipient: '0x742d35Cc6634C0532925a3b844Bc9e7595f0bEb0',
+  amount: parseUnits('1000', 18),
+  abi: testnetTokenAbi,
+})
+
+// Encode burn function call
+const burnData = encodeTokenBurn({
+  account: '0x742d35Cc6634C0532925a3b844Bc9e7595f0bEb0',
+  amount: parseUnits('100', 18),
+  abi: testnetTokenAbi,
+})
+```
+
+**Note**: Token balance and supply reads (`useTokenBalance`, `useTokenSupply`) are placeholders that require a generic read endpoint (not yet implemented).
+
+## Type-Safe Token Operations Pattern
+
+This package follows a **type-safe utilities pattern**:
+
+1. **Generic API**: The backend provides generic endpoints (`POST /wallets/:id/send` with `data` parameter)
+2. **Type-safe client**: React hooks encode contract calls using TypeScript utilities (`encodeTokenMint`, `encodeTokenBurn`)
+3. **Multichain support**: Works for EVM, Solana (future), and other chains
+4. **Portability**: No vendor lock-in, works with any backend
+
+This approach provides:
+
+- **Type safety**: TypeScript utilities ensure correct function encoding
+- **Flexibility**: Generic endpoints work for any contract call
+- **Portability**: No chain-specific endpoints needed
+- **Consistency**: Same pattern for all token operations
+
 ## Query Key Factory
 
 The `wallets` query key factory provides centralized, type-safe query keys for cache management.

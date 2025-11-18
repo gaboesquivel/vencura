@@ -78,8 +78,10 @@ export class WalletContractController {
         const to: string = body.to
         // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-unsafe-member-access
         const amount: number = body.amount
+        // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-unsafe-member-access
+        const data: string | undefined = body.data
 
-        const result = await this.walletService.sendTransaction(id, user.id, to, amount)
+        const result = await this.walletService.sendTransaction(id, user.id, to, amount, data)
         return {
           status: 200 as const,
           body: result,

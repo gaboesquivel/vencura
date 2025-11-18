@@ -92,17 +92,29 @@ The application will be available at `http://localhost:3002` (or the next availa
 
 ### Environment Variables
 
-Create a `.env.local` file in the `apps/mathler` directory (you can copy from `.env.example`):
+This Next.js app uses environment-specific configuration files. Next.js automatically loads environment files in priority order:
 
-```env
-# Dynamic SDK Configuration
-# Get your Dynamic environment ID from https://app.dynamic.xyz/
-# Required for authentication to work properly
-NEXT_PUBLIC_DYNAMIC_ENVIRONMENT_ID=your_dynamic_environment_id
+1. `.env` (highest priority, sensitive data, never committed, overrides everything)
+2. `.env.development` / `.env.staging` / `.env.production` (based on NODE_ENV, committed configs)
 
-# Optional: Sentry error tracking
-NEXT_PUBLIC_SENTRY_DSN=https://your-sentry-dsn@sentry.io/project-id
-NEXT_PUBLIC_SENTRY_ENVIRONMENT=production
+**File Structure:**
+
+- `.env` - Sensitive data (API keys, tokens, secrets) - **NEVER COMMIT**
+- `.env.development` - Development configuration (committed, non-sensitive)
+- `.env.staging` - Staging configuration (committed, non-sensitive)
+- `.env.production` - Production configuration (committed, non-sensitive)
+- `.env-example` - Template for `.env` file (shows required sensitive variables)
+
+**Setup for Local Development:**
+
+```bash
+# Copy the example file for sensitive data
+cp .env-example .env
+
+# Fill in your actual sensitive values in .env
+# NEXT_PUBLIC_DYNAMIC_ENVIRONMENT_ID=your_dynamic_environment_id
+
+# .env.development is already committed with non-sensitive configs
 ```
 
 **Required Environment Variables:**
@@ -114,6 +126,14 @@ NEXT_PUBLIC_SENTRY_ENVIRONMENT=production
 - `NEXT_PUBLIC_SENTRY_DSN`: Sentry DSN URL for error tracking (optional, defaults to disabled)
 - `NEXT_PUBLIC_SENTRY_ENVIRONMENT`: Environment name for Sentry (optional, defaults to `NODE_ENV`)
 
+**Environment-Specific Configuration:**
+
+- **Development** (`.env.development` + `.env`): Local development
+- **Staging** (`.env.staging` + `.env`): Staging environment
+- **Production** (`.env.production` + `.env`): Production environment
+
+**Note**: `.env.development`, `.env.staging`, and `.env.production` are committed files with non-sensitive configuration. Sensitive data (like `NEXT_PUBLIC_DYNAMIC_ENVIRONMENT_ID`) should be in `.env` file (never committed).
+
 **Getting Your Dynamic Environment ID:**
 
 1. Go to [app.dynamic.xyz](https://app.dynamic.xyz/)
@@ -123,6 +143,8 @@ NEXT_PUBLIC_SENTRY_ENVIRONMENT=production
 5. Add it to your `.env.local` file as `NEXT_PUBLIC_DYNAMIC_ENVIRONMENT_ID`
 
 **Note**: If `NEXT_PUBLIC_DYNAMIC_ENVIRONMENT_ID` is not set, the app will use a placeholder ID and show warnings in development mode. Authentication will not work properly without a valid environment ID.
+
+See [Environment Strategy](../../docs/environment-strategy.md) for detailed configuration instructions.
 
 ## Development
 
