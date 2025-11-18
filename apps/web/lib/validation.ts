@@ -49,7 +49,7 @@ export function validateAddressInput({
   }
 
   // Use EVM as default if chainType is not provided
-  const validationChainType: ChainType = chainType || 'evm'
+  const validationChainType = chainType || 'evm'
 
   try {
     const schema = createAddressSchema({ chainType: validationChainType })

@@ -40,7 +40,7 @@ export class AuthService {
       throw new Error('Dynamic configuration is not set')
 
     // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-unsafe-call
-    const response: Response = await fetchWithTimeout({
+    const response = await fetchWithTimeout({
       url: `https://app.dynamicauth.com/api/v0/environments/${environmentId}/keys`,
       options: {
         headers: { Authorization: `Bearer ${apiToken}` },
@@ -48,9 +48,11 @@ export class AuthService {
       timeoutMs: 5000,
     })
 
+    // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
     if (!response.ok) throw new Error('Failed to fetch Dynamic public key')
 
-    const jsonData: unknown = await response.json()
+    // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-unsafe-call, @typescript-eslint/no-unsafe-member-access
+    const jsonData = await response.json()
     const data = dynamicPublicKeyResponseSchema.parse(jsonData)
     return Buffer.from(data.key.publicKey, 'base64').toString('ascii')
   }
