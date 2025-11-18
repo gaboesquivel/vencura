@@ -1,5 +1,5 @@
 import { Parser } from 'expr-eval'
-import { isEmpty, uniq } from 'lodash'
+import { isEmpty, uniq, isString } from 'lodash'
 
 /**
  * Singleton parser instance configured for basic arithmetic only.
@@ -108,7 +108,7 @@ export function generateEquationsForTarget(target: number, maxLength = 9): strin
  */
 function seededRandom(seed: number | string): number {
   let numericSeed: number
-  if (typeof seed === 'string') {
+  if (isString(seed)) {
     // Simple hash function to convert string to number
     let hash = 0
     for (let i = 0; i < seed.length; i++) {

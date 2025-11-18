@@ -1,6 +1,6 @@
 import { isEmpty } from 'lodash'
 import { z } from 'zod'
-import type { ChainType } from '@vencura/types'
+import type { ChainType } from '@vencura/core'
 import { createAddressSchema } from '@vencura/types/schemas'
 
 /**

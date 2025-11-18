@@ -10,4 +10,5 @@ export type {
   SignMessageResult,
   SendTransactionInput,
   SendTransactionResult,
+  ChainType,
 } from '@vencura/types'

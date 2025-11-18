@@ -1,6 +1,7 @@
 'use client'
 
 import { useRef, useEffect } from 'react'
+import { isEmpty } from 'lodash'
 import { useSetState } from 'react-use'
 
 interface UseSpeechRecognitionOptions {
@@ -67,7 +68,7 @@ export function useSpeechRecognition({
 
     recognition.onresult = (event: SpeechRecognitionEvent) => {
       const lastResult = event.results[event.results.length - 1]
-      if (!lastResult || lastResult.length === 0) return
+      if (!lastResult || isEmpty(lastResult)) return
 
       const firstAlternative = lastResult[0]
       if (!firstAlternative) return

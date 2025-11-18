@@ -1,5 +1,6 @@
 import { execSync } from 'child_process';
 import { GoogleAuth } from 'google-auth-library';
+import { isString, isPlainObject } from 'lodash';
 import * as pulumi from '@pulumi/pulumi';
 
 export const isCi = (): boolean =>
@@ -41,7 +42,7 @@ export function getGcpAccessToken(): pulumi.Output<string> {
       auth.getAccessToken().then(
         (token): string => {
           // getAccessToken() returns string | null | AccessTokenResponse
-          if (typeof token === 'string') {
+          if (isString(token)) {
             return token;
           }
           if (token === null) {
@@ -50,9 +51,9 @@ export function getGcpAccessToken(): pulumi.Output<string> {
             );
           }
           // Handle AccessTokenResponse type (has .token property)
-          if (typeof token === 'object' && token !== null && 'token' in token) {
+          if (isPlainObject(token) && 'token' in token) {
             const tokenValue = (token as { token: string }).token;
-            if (typeof tokenValue === 'string') {
+            if (isString(tokenValue)) {
               return tokenValue;
             }
           }

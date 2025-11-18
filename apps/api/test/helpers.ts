@@ -1,5 +1,6 @@
 import request from 'supertest'
 import { INestApplication } from '@nestjs/common'
+import { isNumber } from 'lodash'
 import { getTestAuthToken } from './auth'
 import type { App } from 'supertest/types'
 import { delay } from '@vencura/lib'
@@ -112,7 +113,7 @@ export async function getOrCreateTestWallet({
   chainId?: number | string
 }): Promise<TestWallet> {
   const effectiveChainId =
-    process.env.USE_LOCAL_BLOCKCHAIN !== 'false' && typeof chainId === 'number' && chainId === 31337
+    process.env.USE_LOCAL_BLOCKCHAIN !== 'false' && isNumber(chainId) && chainId === 31337
       ? 421614
       : chainId
 
