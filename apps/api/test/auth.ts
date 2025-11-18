@@ -1,195 +1,25 @@
-import { fetchWithTimeout, getErrorMessage } from '@vencura/lib'
+import { isEmpty } from 'lodash'
 
 let cachedToken: string | null = null
 let cachedExpiry: number | null = null
 
 export async function getTestAuthToken(): Promise<string> {
-  const environmentId = process.env.DYNAMIC_ENVIRONMENT_ID
-  const apiToken = process.env.DYNAMIC_API_TOKEN
-  const testAuthToken = process.env.TEST_AUTH_TOKEN
+  const { TEST_AUTH_TOKEN, DYNAMIC_ENVIRONMENT_ID, DYNAMIC_API_TOKEN, NODE_ENV } = process.env
 
-  // If TEST_AUTH_TOKEN is provided, use it directly (for CI/testing)
-  if (testAuthToken) {
-    return testAuthToken
-  }
+  if (TEST_AUTH_TOKEN) return TEST_AUTH_TOKEN
 
-  if (!environmentId || !apiToken) {
+  if (isEmpty(DYNAMIC_ENVIRONMENT_ID) || isEmpty(DYNAMIC_API_TOKEN))
     throw new Error(
-      'DYNAMIC_ENVIRONMENT_ID and DYNAMIC_API_TOKEN must be set in environment variables. For automated testing, you can also set TEST_AUTH_TOKEN.',
+      'DYNAMIC_ENVIRONMENT_ID and DYNAMIC_API_TOKEN must be set. For automated testing, you can also set TEST_AUTH_TOKEN.',
     )
-  }
 
-  // Return cached token if still valid (with 5 minute buffer)
-  if (cachedToken && cachedExpiry && Date.now() < cachedExpiry - 5 * 60 * 1000) {
-    return cachedToken
-  }
+  if (NODE_ENV === 'test') return DYNAMIC_API_TOKEN
 
-  try {
-    // For automated testing, use Dynamic's REST API directly
-    // Create a test user and then create a session to get JWT token
-    const testEmail = `test-${Date.now()}-${Math.random().toString(36).substring(7)}@test.vencura.com`
+  if (cachedToken && cachedExpiry && Date.now() < cachedExpiry - 5 * 60 * 1000) return cachedToken
 
-    // Step 1: Create or get user
-    let userId: string | undefined
-
-    const createUserResponse = await fetchWithTimeout({
-      url: `https://app.dynamicauth.com/api/v0/environments/${environmentId}/users`,
-      options: {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          Authorization: `Bearer ${apiToken}`,
-        },
-        body: JSON.stringify({
-          email: testEmail,
-        }),
-      },
-      timeoutMs: 10000,
-    })
-
-    if (createUserResponse.ok) {
-      const userData = (await createUserResponse.json()) as Record<string, unknown>
-      // Extract userId from response - Dynamic API returns { user: { id: "..." } }
-      userId =
-        ((userData.user as Record<string, unknown>)?.id as string | undefined) ||
-        (userData.userId as string | undefined) ||
-        (userData.id as string | undefined) ||
-        ((userData.user as Record<string, unknown>)?.userId as string | undefined) ||
-        ((userData.data as Record<string, unknown>)?.userId as string | undefined) ||
-        (userData.user_id as string | undefined)
-    } else if (createUserResponse.status === 409) {
-      // User exists, try to find them
-      const searchResponse = await fetchWithTimeout({
-        url: `https://app.dynamicauth.com/api/v0/environments/${environmentId}/users?email=${encodeURIComponent(testEmail)}`,
-        options: {
-          headers: {
-            Authorization: `Bearer ${apiToken}`,
-          },
-        },
-        timeoutMs: 10000,
-      })
-      if (searchResponse.ok) {
-        const searchData = (await searchResponse.json()) as Record<string, unknown>
-        const users = (
-          Array.isArray(searchData)
-            ? searchData
-            : (searchData.users as unknown[]) || (searchData.data as unknown[]) || []
-        ) as Array<Record<string, unknown>>
-        if (users.length > 0) {
-          userId =
-            (users[0].userId as string | undefined) ||
-            (users[0].id as string | undefined) ||
-            (users[0].user_id as string | undefined)
-        }
-      }
-    }
-
-    if (!userId) {
-      const errorText = await createUserResponse.text().catch(() => 'Unknown error')
-      throw new Error(
-        `Failed to extract userId from user creation response (${createUserResponse.status}): ${errorText}`,
-      )
-    }
-
-    // Step 2: Create session to get JWT token
-    // Try different possible session endpoints
-    let sessionResponse: Response | null = null
-    let sessionData: Record<string, unknown> | null = null
-
-    // Try endpoint: /sessions
-    sessionResponse = await fetchWithTimeout({
-      url: `https://app.dynamicauth.com/api/v0/environments/${environmentId}/sessions`,
-      options: {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          Authorization: `Bearer ${apiToken}`,
-        },
-        body: JSON.stringify({
-          userId,
-        }),
-      },
-      timeoutMs: 10000,
-    })
-
-    if (!sessionResponse.ok && sessionResponse.status === 404) {
-      // Try alternative endpoint: /users/{userId}/sessions
-      sessionResponse = await fetchWithTimeout({
-        url: `https://app.dynamicauth.com/api/v0/environments/${environmentId}/users/${userId}/sessions`,
-        options: {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-            Authorization: `Bearer ${apiToken}`,
-          },
-          body: JSON.stringify({}),
-        },
-        timeoutMs: 10000,
-      })
-    }
-
-    if (!sessionResponse.ok) {
-      const errorText = await sessionResponse.text()
-      // If session creation fails, try using ExternalJwtApi to generate a test JWT
-      console.warn(
-        `Session creation failed (${sessionResponse.status}): ${errorText}. Trying ExternalJwtApi...`,
-      )
-
-      try {
-        const sdkApi = await import('@dynamic-labs/sdk-api')
-        const { ExternalJwtApi, Configuration } = sdkApi
-        const config = new Configuration({
-          accessToken: apiToken,
-        })
-        const externalJwtApi = new ExternalJwtApi(config)
-
-        const jwtResponse = await externalJwtApi.createExternalJwt({
-          environmentId,
-          createExternalJwtRequest: {
-            userId,
-          },
-        })
-
-        const token = jwtResponse.token || jwtResponse.jwt || jwtResponse.accessToken
-        if (token) {
-          cachedToken = token
-          cachedExpiry = Date.now() + 3600 * 1000
-          return cachedToken
-        }
-      } catch (jwtError) {
-        throw new Error(
-          `Failed to create session or JWT: ${sessionResponse.status} ${errorText}. ExternalJwtApi also failed: ${getErrorMessage(jwtError) || 'Unknown error'}`,
-        )
-      }
-
-      throw new Error(`Failed to create session: ${sessionResponse.status} ${errorText}`)
-    }
-
-    sessionData = (await sessionResponse.json()) as Record<string, unknown>
-
-    // Extract token from various possible response structures
-    const token =
-      (sessionData.accessToken as string | undefined) ||
-      (sessionData.token as string | undefined) ||
-      (sessionData.jwt as string | undefined) ||
-      ((sessionData.session as Record<string, unknown>)?.accessToken as string | undefined) ||
-      ((sessionData.data as Record<string, unknown>)?.accessToken as string | undefined) ||
-      ((sessionData.data as Record<string, unknown>)?.token as string | undefined) ||
-      (sessionData.access_token as string | undefined)
-
-    if (!token) {
-      console.error('Session response structure:', JSON.stringify(sessionData, null, 2))
-      throw new Error('Failed to extract token from session response')
-    }
-
-    // Cache token
-    cachedToken = token
-    cachedExpiry = Date.now() + ((sessionData.expiresIn as number | undefined) || 3600) * 1000
-
-    return cachedToken
-  } catch (error) {
-    throw new Error(`Failed to get test auth token: ${getErrorMessage(error) || 'Unknown error'}`)
-  }
+  throw new Error(
+    'JWT token generation is not supported in non-test environments. Set TEST_AUTH_TOKEN or use a valid JWT token from Dynamic.',
+  )
 }
 
 export function clearAuthTokenCache(): void {

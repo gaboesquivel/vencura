@@ -80,20 +80,29 @@ pnpm install
 
 ### Environment Variables
 
-Create a `.env.local` file in the `apps/web` directory (you can copy from `.env.example`):
+This Next.js app uses environment-specific configuration files. Next.js automatically loads environment files in priority order:
 
-```env
-# Dynamic SDK Configuration
-# Get your Dynamic environment ID from https://app.dynamic.xyz/
-NEXT_PUBLIC_DYNAMIC_ENVIRONMENT_ID=your_dynamic_environment_id
+1. `.env` (highest priority, sensitive data, never committed, overrides everything)
+2. `.env.development` / `.env.staging` / `.env.production` (based on NODE_ENV, committed configs)
 
-# Vencura API URL
-# Default: http://localhost:3000 (for local development)
-NEXT_PUBLIC_API_URL=http://localhost:3000
+**File Structure:**
 
-# Optional: Sentry error tracking
-NEXT_PUBLIC_SENTRY_DSN=https://your-sentry-dsn@sentry.io/project-id
-NEXT_PUBLIC_SENTRY_ENVIRONMENT=production
+- `.env` - Sensitive data (API keys, tokens, secrets) - **NEVER COMMIT**
+- `.env.development` - Development configuration (committed, non-sensitive)
+- `.env.staging` - Staging configuration (committed, non-sensitive)
+- `.env.production` - Production configuration (committed, non-sensitive)
+- `.env-example` - Template for `.env` file (shows required sensitive variables)
+
+**Setup for Local Development:**
+
+```bash
+# Copy the example file for sensitive data
+cp .env-example .env
+
+# Fill in your actual sensitive values in .env
+# NEXT_PUBLIC_DYNAMIC_ENVIRONMENT_ID=your_dynamic_environment_id
+
+# .env.development is already committed with non-sensitive configs
 ```
 
 **Required Environment Variables:**
@@ -102,9 +111,17 @@ NEXT_PUBLIC_SENTRY_ENVIRONMENT=production
 
 **Optional Environment Variables:**
 
-- `NEXT_PUBLIC_API_URL`: The URL of the Vencura API backend. Defaults to `http://localhost:3000` if not provided.
+- `NEXT_PUBLIC_API_URL`: The URL of the Vencura API backend. Defaults to `http://localhost:3077` if not provided.
 - `NEXT_PUBLIC_SENTRY_DSN`: Sentry DSN URL for error tracking (optional, defaults to disabled)
 - `NEXT_PUBLIC_SENTRY_ENVIRONMENT`: Environment name for Sentry (optional, defaults to `NODE_ENV`)
+
+**Environment-Specific Configuration:**
+
+- **Development** (`.env.development` + `.env`): Local development with API at `http://localhost:3077`
+- **Staging** (`.env.staging` + `.env`): Staging environment with testnet API
+- **Production** (`.env.production` + `.env`): Production environment with mainnet API
+
+**Note**: `.env.development`, `.env.staging`, and `.env.production` are committed files with non-sensitive configuration. Sensitive data (like `NEXT_PUBLIC_DYNAMIC_ENVIRONMENT_ID`) should be in `.env` file (never committed).
 
 **Getting Your Dynamic Environment ID:**
 
@@ -112,9 +129,11 @@ NEXT_PUBLIC_SENTRY_ENVIRONMENT=production
 2. Sign up for a free account (if you don't have one)
 3. Create a new project or select an existing one
 4. Copy the Environment ID from your project settings
-5. Add it to your `.env.local` file as `NEXT_PUBLIC_DYNAMIC_ENVIRONMENT_ID`
+5. Add it to your `.env` file as `NEXT_PUBLIC_DYNAMIC_ENVIRONMENT_ID`
 
 **Note**: If `NEXT_PUBLIC_DYNAMIC_ENVIRONMENT_ID` is not set, the app will use a placeholder ID and show warnings in development mode. Authentication will not work properly without a valid environment ID.
+
+See [Environment Strategy](../../docs/environment-strategy.md) for detailed configuration instructions.
 
 ### Running the Application
 

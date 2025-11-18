@@ -1,7 +1,6 @@
 'use client'
 
-import { useDynamicContext, getAuthToken } from '@dynamic-labs/sdk-react-core'
-import { delay } from '@vencura/lib'
+import { useDynamicContext } from '@dynamic-labs/sdk-react-core'
 import { DynamicWidget } from '@/lib/dynamic'
 import { Button } from '@workspace/ui/components/button'
 import { WalletDashboard } from '@/components/wallet-dashboard'
@@ -12,7 +11,6 @@ import * as React from 'react'
 interface PageState {
   showToken: boolean
   copied: boolean
-  authToken: string | null
 }
 
 export default function Page() {
@@ -20,32 +18,7 @@ export default function Page() {
   const [state, setState] = useSetState<PageState>({
     showToken: false,
     copied: false,
-    authToken: null,
   })
-
-  // Update token when authentication state changes
-  React.useEffect(() => {
-    if (user) {
-      setState({ authToken: getAuthToken() || null })
-    } else {
-      setState({ authToken: null })
-    }
-  }, [user, setState])
-
-  const handleCopyToken = async () => {
-    const token = getAuthToken()
-    if (token) {
-      try {
-        await navigator.clipboard.writeText(token)
-        setState({ copied: true })
-        await delay(2000)
-        setState({ copied: false })
-      } catch (err) {
-        console.error('Failed to copy token:', err)
-        setState({ copied: false })
-      }
-    }
-  }
 
   return (
     <div className="min-h-svh p-4 md:p-8">
@@ -90,20 +63,16 @@ export default function Page() {
               ) : null}
               {state.showToken ? (
                 <div className="mt-4 space-y-2">
-                  <div className="flex gap-2">
-                    <input
-                      type="text"
-                      value={state.authToken || ''}
-                      readOnly
-                      className="flex-1 px-3 py-2 border rounded-md text-xs font-mono bg-muted"
-                    />
-                    <Button onClick={handleCopyToken} size="sm" variant="outline">
-                      {state.copied ? 'Copied!' : 'Copy'}
-                    </Button>
+                  <div className="p-3 bg-muted rounded-md">
+                    <p className="text-xs text-muted-foreground">
+                      Auth token is automatically included in API requests via{' '}
+                      <code className="text-xs">useVencuraHeaders</code> hook.
+                    </p>
+                    <p className="text-xs text-muted-foreground mt-2">
+                      For API testing, use Swagger UI at <code className="text-xs">/api</code> with
+                      Dynamic authentication.
+                    </p>
                   </div>
-                  <p className="text-xs text-muted-foreground">
-                    Copy this token to use in Swagger UI for API testing
-                  </p>
                 </div>
               ) : null}
             </div>

@@ -9,12 +9,18 @@
       "env": [
         "DYNAMIC_ENVIRONMENT_ID",
         "DYNAMIC_API_TOKEN",
-        "SEPOLIA_RPC_URL",
         "ENCRYPTION_KEY",
         "RPC_URL_*",
         "ARBITRUM_SEPOLIA_RPC_URL",
         "SOLANA_RPC_URL",
-        "NODE_ENV"
+        "USE_LOCAL_BLOCKCHAIN",
+        "NODE_ENV",
+        "PORT",
+        "OPEN_AI_KEY",
+        "SENTRY_DSN",
+        "SENTRY_ENVIRONMENT",
+        "ENABLE_SWAGGER_UI",
+        "FAUCET_PRIVATE_KEY"
       ]
     },
     "lint": {
@@ -41,12 +47,17 @@
         "DYNAMIC_ENVIRONMENT_ID",
         "DYNAMIC_API_TOKEN",
         "ENCRYPTION_KEY",
+        "USE_LOCAL_BLOCKCHAIN",
+        "RPC_URL_*",
         "TEST_AUTH_TOKEN",
         "NEXT_PUBLIC_DYNAMIC_ENVIRONMENT_ID",
         "NEXT_PUBLIC_API_URL",
+        "NEXT_PUBLIC_SENTRY_DSN",
+        "NEXT_PUBLIC_SENTRY_ENVIRONMENT",
         "PORT",
         "PLAYWRIGHT_TEST_BASE_URL",
-        "CI"
+        "CI",
+        "NODE_ENV"
       ]
     },
     "dev": {

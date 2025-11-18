@@ -97,6 +97,62 @@ export default function Page() {
   - ESLint is configured to allow default exports for these specific file patterns
 - **Components**: All other components should use named exports
 
+## Environment Variables
+
+### File Structure Pattern
+
+All Next.js apps follow a consistent environment variable pattern:
+
+**Files:**
+- `.env` - Sensitive data (API keys, tokens, secrets) - **NEVER COMMIT**
+- `.env.development` - Development configuration (committed, non-sensitive)
+- `.env.staging` - Staging configuration (committed, non-sensitive)
+- `.env.production` - Production configuration (committed, non-sensitive)
+- `.env-example` - Template for `.env` file (shows required sensitive variables)
+
+**Loading Priority (highest to lowest):**
+1. `.env` (sensitive data, never committed, overrides everything)
+2. `.env.development` / `.env.staging` / `.env.production` (based on NODE_ENV, committed configs)
+
+**Next.js automatically loads these files** - no manual loading needed. The pattern matches the backend API.
+
+### Validation Pattern
+
+Always use Zod for environment variable validation:
+
+```typescript
+import { z } from 'zod'
+import { validateEnv } from '@vencura/lib'
+
+const envSchema = z.object({
+  NEXT_PUBLIC_DYNAMIC_ENVIRONMENT_ID: z.string().min(1).optional(),
+  NEXT_PUBLIC_API_URL: z.string().url().optional(),
+  NEXT_PUBLIC_SENTRY_DSN: z.string().url().optional(),
+})
+
+export type Env = z.infer<typeof envSchema>
+
+export function validateAppEnv({ env = process.env }: { env?: NodeJS.ProcessEnv } = {}) {
+  return validateEnv({ schema: envSchema, env })
+}
+
+export function getEnv(): Env {
+  const result = validateAppEnv()
+  if (!result.isValid) {
+    const errorMessage = result.errors?.join('\n') || 'Environment validation failed'
+    if (process.env.NODE_ENV === 'production') {
+      throw new Error(`Environment validation failed:\n${errorMessage}`)
+    }
+    console.warn(`Environment validation warnings:\n${errorMessage}`)
+  }
+  return {
+    NEXT_PUBLIC_DYNAMIC_ENVIRONMENT_ID: process.env.NEXT_PUBLIC_DYNAMIC_ENVIRONMENT_ID,
+    NEXT_PUBLIC_API_URL: process.env.NEXT_PUBLIC_API_URL,
+    NEXT_PUBLIC_SENTRY_DSN: process.env.NEXT_PUBLIC_SENTRY_DSN,
+  }
+}
+```
+
 ## Code Style
 - See [TypeScript Rules](../base/typescript.mdc) for code style guidelines
 

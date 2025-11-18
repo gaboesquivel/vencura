@@ -1,11 +1,11 @@
 import { Test, TestingModule } from '@nestjs/testing'
 import { INestApplication, ValidationPipe } from '@nestjs/common'
-import * as request from 'supertest'
-import { App } from 'supertest/types'
+import request from 'supertest'
+import type { App } from 'supertest/types'
 import { AppModule } from '../src/app.module'
 import { getTestAuthToken } from './auth'
 import { TEST_CHAINS, TEST_ADDRESSES, TEST_MESSAGES } from './fixtures'
-import { createTestWallet } from './helpers'
+import { createTestWallet, getOrCreateTestWallet } from './helpers'
 
 /**
  * E2E tests for WalletController.
@@ -42,7 +42,9 @@ describe('WalletController (e2e)', () => {
   })
 
   afterAll(async () => {
-    await app.close()
+    if (app) {
+      await app.close()
+    }
   })
 
   describe('GET /wallets', () => {
@@ -191,8 +193,8 @@ describe('WalletController (e2e)', () => {
 
   describe('GET /wallets/:id/balance', () => {
     it('should return balance for existing wallet created via Dynamic SDK', async () => {
-      // Create a wallet first (via Dynamic SDK)
-      const wallet = await createTestWallet({
+      // Get or create a wallet (via Dynamic SDK)
+      const wallet = await getOrCreateTestWallet({
         app,
         authToken,
         chainId: TEST_CHAINS.EVM.ARBITRUM_SEPOLIA,
@@ -234,8 +236,8 @@ describe('WalletController (e2e)', () => {
 
   describe('POST /wallets/:id/sign', () => {
     it('should sign a message using Dynamic SDK', async () => {
-      // Create a wallet first (via Dynamic SDK)
-      const wallet = await createTestWallet({
+      // Get or create a wallet (via Dynamic SDK)
+      const wallet = await getOrCreateTestWallet({
         app,
         authToken,
         chainId: TEST_CHAINS.EVM.ARBITRUM_SEPOLIA,
@@ -257,7 +259,7 @@ describe('WalletController (e2e)', () => {
     })
 
     it('should return 400 for missing message', async () => {
-      const wallet = await createTestWallet({
+      const wallet = await getOrCreateTestWallet({
         app,
         authToken,
         chainId: TEST_CHAINS.EVM.ARBITRUM_SEPOLIA,
@@ -280,8 +282,8 @@ describe('WalletController (e2e)', () => {
     })
 
     it('should return 401 for unauthorized access to sign endpoint', async () => {
-      // Create a wallet first
-      const wallet = await createTestWallet({
+      // Get or create a wallet
+      const wallet = await getOrCreateTestWallet({
         app,
         authToken,
         chainId: TEST_CHAINS.EVM.ARBITRUM_SEPOLIA,
@@ -297,7 +299,7 @@ describe('WalletController (e2e)', () => {
 
   describe('POST /wallets/:id/send', () => {
     it('should return 400 for invalid address format', async () => {
-      const wallet = await createTestWallet({
+      const wallet = await getOrCreateTestWallet({
         app,
         authToken,
         chainId: TEST_CHAINS.EVM.ARBITRUM_SEPOLIA,
@@ -314,7 +316,7 @@ describe('WalletController (e2e)', () => {
     })
 
     it('should return 400 for missing to address', async () => {
-      const wallet = await createTestWallet({
+      const wallet = await getOrCreateTestWallet({
         app,
         authToken,
         chainId: TEST_CHAINS.EVM.ARBITRUM_SEPOLIA,
@@ -330,7 +332,7 @@ describe('WalletController (e2e)', () => {
     })
 
     it('should return 400 for missing amount', async () => {
-      const wallet = await createTestWallet({
+      const wallet = await getOrCreateTestWallet({
         app,
         authToken,
         chainId: TEST_CHAINS.EVM.ARBITRUM_SEPOLIA,

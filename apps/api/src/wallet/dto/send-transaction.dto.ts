@@ -17,4 +17,12 @@ export class SendTransactionDto {
   @IsNumber()
   @Min(0)
   amount!: number
+
+  @ApiProperty({
+    example: '0x...',
+    description: 'Optional contract call data (hex string). Used for calling contract functions.',
+    required: false,
+  })
+  @IsString()
+  data?: string
 }

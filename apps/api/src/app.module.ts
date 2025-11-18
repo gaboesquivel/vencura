@@ -9,6 +9,10 @@ import { AuthModule } from './auth/auth.module'
 import { WalletModule } from './wallet/wallet.module'
 import { ChatModule } from './chat/chat.module'
 import configuration from './config/configuration'
+import { loadEnv } from './config/load-env'
+
+// Load environment-specific .env files before ConfigModule initializes
+loadEnv()
 
 @Module({
   imports: [

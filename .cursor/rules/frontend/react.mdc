@@ -14,10 +14,15 @@ alwaysApply: false
 - Group related state into a single state object instead of multiple `useState` calls
 
 ## Rendering Optimization
-- Memoize expensive calculations with useMemo
-- Use memo for pure components that render often
-- Use useCallback for functions passed to child components
-- Avoid creating new objects/arrays in render
+- **Default to NOT using `useMemo` or `useCallback`** - Modern React optimizations make them mostly unnecessary
+- Only use `useMemo` for computationally expensive operations (e.g., complex calculations, large data transformations)
+- Only use `useCallback` when:
+  - Function identity is required as a dependency in hooks (useEffect, useMemo, etc.)
+  - Passing functions through React Context to prevent unnecessary re-renders
+  - You've profiled and identified a real performance bottleneck
+- Prefer `React.memo` for pure components that render often instead of wrapping every function with `useCallback`
+- Inline functions are cheap in modern JavaScript engines - don't optimize prematurely
+- Trust React's automatic optimizations and only add memoization when profiling reveals actual UX issues (lagging, stuttering, delays)
 
 ## State Management
 

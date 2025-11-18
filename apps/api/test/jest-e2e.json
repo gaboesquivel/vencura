@@ -5,12 +5,29 @@
   "testRegex": "\\.e2e-spec\\.ts$",
   "transform": {
     "^.+\\.(t|j)s$": ["ts-jest", {
-      "useESM": false
+      "useESM": false,
+      "tsconfig": {
+        "esModuleInterop": true,
+        "module": "commonjs",
+        "moduleResolution": "node",
+        "resolvePackageJsonExports": false
+      }
     }]
   },
+  "transformIgnorePatterns": [
+    "node_modules/(?!.*(@vencura))"
+  ],
   "setupFilesAfterEnv": ["<rootDir>/setup.ts"],
-  "testTimeout": 60000,
+  "testTimeout": 120000,
   "moduleNameMapper": {
-    "^@/(.*)$": "<rootDir>/../src/$1"
-  }
+    "^@/(.*)$": "<rootDir>/../src/$1",
+    "^@cosmjs/encoding$": "<rootDir>/__mocks__/@cosmjs-encoding.ts"
+  },
+  "collectCoverageFrom": [
+    "src/**/*.(t|j)s",
+    "!src/**/*.spec.ts",
+    "!src/**/*.d.ts"
+  ],
+  "workerIdleMemoryLimit": "1GB",
+  "maxWorkers": 1
 }

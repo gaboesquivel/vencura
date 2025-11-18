@@ -87,6 +87,10 @@ Architectural decisions are documented in [Architecture Decision Records (ADRs)]
 - [009: Viem vs Ethers](./.adrs/009-viem-vs-ethers.md)
 - [010: Vencura Infrastructure Orchestration](./.adrs/010-vencura-infra-orchestration.md)
 - [011: Vencura API ORM Selection](./.adrs/011-vencura-api-orm.md)
+- [012: Vencura AI Architecture](./.adrs/012-vencura-ai-architecture.md)
+- [013: Vencura API Test Gas Faucet](./.adrs/013-vencura-api-test-gas-faucet.md)
+- [014: Environment Strategy](./.adrs/014-environment-strategy.md)
+- [015: Database Storage vs Dynamic SDK Metadata](./.adrs/015-database-vs-dynamic-metadata.md)
 
 ## AI-Assisted Development
 
@@ -134,8 +138,11 @@ See [`.cursor/README.md`](.cursor/README.md) for MCP server configuration detail
 # Install dependencies
 pnpm install
 
-# Run all apps in development mode
-pnpm dev
+# Run all apps in development mode (with local Anvil blockchain)
+pnpm dev:local
+
+# Run all apps in staging mode (with testnets)
+pnpm dev:staging
 
 # Build all apps
 pnpm build
@@ -156,9 +163,47 @@ pnpm run contracts:solana:build  # Build Solana programs
 # Test contracts
 pnpm run contracts:evm:test       # Test EVM contracts
 pnpm run contracts:solana:test    # Test Solana programs
+
+# Test API (requires Foundry for Anvil local blockchain)
+cd apps/api && pnpm run test:e2e  # E2E tests with automated gas faucet
 ```
 
+### Environment Setup
+
+This monorepo uses environment-specific configuration files. See [Environment Strategy](./docs/environment-strategy.md) for detailed setup instructions.
+
+**Quick Start:**
+
+1. Copy example env files: `cp apps/api/.env.development.example apps/api/.env.development`
+2. Fill in your values (Dynamic environment ID, API token, etc.)
+3. Start local development: `pnpm dev:local`
+
+**Environments:**
+
+- **Development**: `.env.development` - Local Anvil blockchain
+- **Staging**: `.env.staging` - Testnet networks
+- **Production**: `.env.production` - Mainnet networks
+- **Test**: `.env.test` - Local Anvil blockchain (for CI/CD)
+
 For project-specific setup, see individual project READMEs linked in [Projects](#projects).
+
+### Deployment and Branching
+
+This monorepo uses **GitHub Flow** with `develop` as the primary development branch. All systems follow a consistent deployment strategy:
+
+- **Branching**: `develop` → `main` workflow with feature branches and hotfixes
+- **Deployments**: All systems (`api`, `web`, `mathler`) deploy to Vercel by default
+- **Vercel**: No-lock approach - code remains portable, excellent DX
+- **Google Cloud**: Available as alternative via Pulumi for enhanced security
+- **Hybrid**: Documented as future option for production security requirements
+
+See [Deployment and Branching Strategy](./docs/deployment-and-branching-strategy.md) for comprehensive documentation on:
+
+- Branching strategy and workflows
+- Deployment targets (Vercel, Google Cloud)
+- Environment configuration
+- CI/CD integration
+- Hybrid deployment options
 
 ## Contracts
 

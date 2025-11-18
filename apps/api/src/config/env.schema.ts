@@ -14,9 +14,9 @@ export const envSchema = z.object({
   PORT: z
     .string()
     .regex(/^\d+$/, 'PORT must be a valid number')
+    .default('3077')
     .transform(val => parseInt(val, 10))
-    .pipe(z.number().int().positive())
-    .optional(),
+    .pipe(z.number().int().positive()),
 
   // AI/LLM configuration (optional)
   OPEN_AI_KEY: z.string().min(1).optional(),
@@ -32,9 +32,19 @@ export const envSchema = z.object({
   // Swagger UI feature flag (optional, default: false for security)
   ENABLE_SWAGGER_UI: z
     .string()
+    .default('false')
     .transform(val => val === 'true')
-    .pipe(z.boolean())
-    .optional(),
+    .pipe(z.boolean()),
+
+  // Testing: Local blockchain configuration (optional, default: true for development/test, false for staging/production)
+  USE_LOCAL_BLOCKCHAIN: z
+    .string()
+    .default('true')
+    .transform(val => val === 'true')
+    .pipe(z.boolean()),
+
+  // Testing: Faucet private key for testnet funding (optional)
+  FAUCET_PRIVATE_KEY: z.string().min(1).optional(),
 
   // Dynamic RPC_URL_* variables (validated as URLs when present)
   // Note: These are collected dynamically, so we validate them in the config function
@@ -50,27 +60,21 @@ export type EnvSchema = z.infer<typeof envSchema>
  * Follows RORO pattern (Receive an Object, Return an Object).
  */
 export function validateEnv({ env = process.env }: { env?: NodeJS.ProcessEnv } = {}) {
-  // Extract required fields for validation
-  const requiredFields = {
-    DYNAMIC_ENVIRONMENT_ID: env.DYNAMIC_ENVIRONMENT_ID,
-    DYNAMIC_API_TOKEN: env.DYNAMIC_API_TOKEN,
-    ENCRYPTION_KEY: env.ENCRYPTION_KEY,
-    PORT: env.PORT,
-    OPEN_AI_KEY: env.OPEN_AI_KEY,
-    ARBITRUM_SEPOLIA_RPC_URL: env.ARBITRUM_SEPOLIA_RPC_URL,
-    SOLANA_RPC_URL: env.SOLANA_RPC_URL,
-    SENTRY_DSN: env.SENTRY_DSN,
-    SENTRY_ENVIRONMENT: env.SENTRY_ENVIRONMENT,
-    ENABLE_SWAGGER_UI: env.ENABLE_SWAGGER_UI,
+  // Prepare env object with defaults (matching Next.js pattern)
+  const nodeEnv = env.NODE_ENV || 'development'
+  const envData: NodeJS.ProcessEnv = {
+    ...env,
+    // Set defaults for optional fields (matching Next.js behavior)
+    PORT: env.PORT || '3077',
+    ENABLE_SWAGGER_UI: env.ENABLE_SWAGGER_UI || 'false',
+    // Set default for USE_LOCAL_BLOCKCHAIN based on NODE_ENV (like Next.js)
+    USE_LOCAL_BLOCKCHAIN:
+      env.USE_LOCAL_BLOCKCHAIN ||
+      (nodeEnv === 'development' || nodeEnv === 'test' ? 'true' : 'false'),
   }
 
-  // Set default for ENABLE_SWAGGER_UI if not provided
-  if (!requiredFields.ENABLE_SWAGGER_UI) {
-    requiredFields.ENABLE_SWAGGER_UI = 'false'
-  }
-
-  // Validate required fields
-  const result = envSchema.safeParse(requiredFields)
+  // Validate with Zod schema (all validation logic in schema)
+  const result = envSchema.safeParse(envData)
 
   if (!result.success) {
     const errors = result.error.errors

@@ -154,6 +154,7 @@ export class WalletController {
       user.id,
       sendTransactionDto.to,
       sendTransactionDto.amount,
+      sendTransactionDto.data,
     )
   }
 }

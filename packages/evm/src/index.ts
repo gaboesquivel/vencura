@@ -1,26 +1,27 @@
 /**
  * @vencura/evm
  *
- * TypeScript package for interacting with EVM token contracts using Wagmi v2 and Viem v2.
- * Provides React hooks for UI components and Node.js utilities for backend usage.
+ * TypeScript package for EVM token contract ABIs and Node.js utilities.
+ *
+ * **Note**: React hooks have been removed. Use `@vencura/react` hooks instead,
+ * which call the Ventura API (single integration point to Dynamic SDK).
  *
  * @example
- * ```tsx
- * // Using hooks in React components
- * import { useMint, useBalance } from '@vencura/evm/hooks'
+ * ```ts
+ * // Using ABIs for encoding contract calls
+ * import { testnetTokenAbi } from '@vencura/evm/abis'
+ * import { encodeFunctionData } from 'viem'
  *
- * function FaucetComponent() {
- *   const { mint, isPending } = useMint({
- *     tokenAddress: '0x...',
- *     amount: parseEther('1000')
- *   })
- *   // ...
- * }
+ * const mintData = encodeFunctionData({
+ *   abi: testnetTokenAbi,
+ *   functionName: 'mint',
+ *   args: [recipient, amount],
+ * })
  * ```
  *
  * @example
  * ```ts
- * // Using Node.js utilities
+ * // Using Node.js utilities (backend only)
  * import { getTestTokenContract } from '@vencura/evm/node'
  * import { createPublicClient } from 'viem'
  *
@@ -35,6 +36,5 @@
  * @packageDocumentation
  */
 
-export * from './hooks'
 export * from './abis'
 export * from './node'

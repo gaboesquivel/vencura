@@ -133,6 +133,11 @@ The following ESLint rules enforce these codestyle guidelines:
   - All schemas should use zod for runtime validation and type inference
   - NestJS DTOs are the exception - they correctly use `class-validator` per NestJS conventions
   - Use zod for environment variables, API responses, form validation, and tool parameters
+  - **Environment Variables**: Always use zod for env validation with `validateEnv` from `@vencura/lib`
+    - Define env schema with zod: `const envSchema = z.object({ ... })`
+    - Use `validateEnv({ schema: envSchema })` for validation
+    - Infer types: `type Env = z.infer<typeof envSchema>`
+    - All apps (Next.js, NestJS) should follow the same pattern
 
 ## ts-reset Type Safety
 

@@ -4,7 +4,9 @@
   "private": true,
   "scripts": {
     "build": "turbo build",
-    "dev": "turbo dev",
+    "dev": "NODE_ENV=development turbo dev",
+    "dev:local": "NODE_ENV=development ./scripts/start-anvil.sh & turbo dev",
+    "dev:staging": "NODE_ENV=staging turbo dev",
     "lint": "turbo lint",
     "format": "prettier --write \"**/*.{ts,tsx,md}\"",
     "hooks:pre-commit": "pnpm lint && pnpm format",

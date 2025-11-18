@@ -1,10 +1,8 @@
 'use client'
 
-import { useMint, useBurn } from '@vencura/evm/hooks'
+import { useMintToken, useBurnToken, useWallets, useCreateWallet } from '@vencura/react'
 import { FAUCET_TOKENS } from '@/lib/tokens'
-import { useAccount, useSwitchChain } from 'wagmi'
-import { arbitrumSepolia } from 'viem/chains'
-import { parseUnits, getAddress } from 'viem'
+import { parseUnits, getAddress, type Address } from 'viem'
 import { useQueryStates } from 'nuqs'
 import {
   Dialog,
@@ -16,6 +14,9 @@ import {
 } from '@workspace/ui/components/dialog'
 import { Button } from '@workspace/ui/components/button'
 import { useDynamicContext } from '@dynamic-labs/sdk-react-core'
+import { testnetTokenAbi } from '@vencura/evm/abis'
+import { arbitrumSepolia } from 'viem/chains'
+import * as React from 'react'
 
 function useFaucetStates() {
   return useQueryStates({
@@ -41,22 +42,38 @@ function useFaucetStates() {
 }
 
 export function FaucetDialog() {
-  const account = useAccount()
-  const { setShowAuthFlow } = useDynamicContext()
-  const { switchChain } = useSwitchChain()
+  const { user, setShowAuthFlow } = useDynamicContext()
   const [{ action, quantity, token }, setQueryStates] = useFaucetStates()
+
+  // Get or create a wallet for Arbitrum Sepolia
+  const { data: wallets = [] } = useWallets()
+  const createWallet = useCreateWallet()
+  const arbitrumSepoliaWallet = wallets.find(w => w.network === String(arbitrumSepolia.id))
+
+  // Ensure we have a wallet for Arbitrum Sepolia
+  React.useEffect(() => {
+    if (!arbitrumSepoliaWallet && user && !createWallet.isPending) {
+      createWallet.mutate({ chainId: arbitrumSepolia.id })
+    }
+  }, [arbitrumSepoliaWallet, user, createWallet])
 
   const tokenConfig = FAUCET_TOKENS.find(t => t.address === token)
   const amount = tokenConfig ? parseUnits(quantity || '0', tokenConfig.decimals) : 0n
   const tokenAddress = tokenConfig?.address
 
-  const minter = useMint({
-    tokenAddress: tokenAddress,
-    amount,
+  // Use the custodial wallet address as recipient (mint/burn to self)
+  const connectedAddress = arbitrumSepoliaWallet?.address as Address | undefined
+
+  const minter = useMintToken({
+    onSuccess: () => {
+      setQueryStates({ refetch_data: true })
+    },
   })
-  const burner = useBurn({
-    tokenAddress: tokenAddress,
-    amount,
+
+  const burner = useBurnToken({
+    onSuccess: () => {
+      setQueryStates({ refetch_data: true })
+    },
   })
 
   const handleClose = () => {
@@ -70,22 +87,36 @@ export function FaucetDialog() {
 
   const handleMint = async (e: React.MouseEvent<HTMLButtonElement>) => {
     e.preventDefault()
-    await switchChain({ chainId: arbitrumSepolia.id })
-    minter.mint()
+    if (!arbitrumSepoliaWallet || !tokenAddress || !connectedAddress) return
+
+    minter.mutate({
+      walletId: arbitrumSepoliaWallet.id,
+      tokenAddress,
+      recipient: connectedAddress,
+      amount,
+      abi: testnetTokenAbi,
+    })
   }
 
   const handleBurn = async (e: React.MouseEvent<HTMLButtonElement>) => {
     e.preventDefault()
-    await switchChain({ chainId: arbitrumSepolia.id })
-    burner.burn()
+    if (!arbitrumSepoliaWallet || !tokenAddress || !connectedAddress) return
+
+    burner.mutate({
+      walletId: arbitrumSepoliaWallet.id,
+      tokenAddress,
+      account: connectedAddress,
+      amount,
+      abi: testnetTokenAbi,
+    })
   }
 
   const isOpen = action === 'mint' || action === 'burn'
-  const isPending = minter.isPending || burner.isPending
+  const isPending = minter.isPending || burner.isPending || createWallet.isPending
   const isCurrentAction = (currentAction: string) => action === currentAction
-  const hash = isCurrentAction('mint') ? minter.hash : burner.hash
+  const hash = isCurrentAction('mint') ? minter.data?.transactionHash : burner.data?.transactionHash
   const isSuccess = Boolean(hash)
-  const failureReason = minter.error || burner.error
+  const failureReason = minter.error || burner.error || createWallet.error
 
   if (!tokenConfig) return null
 
@@ -154,7 +185,7 @@ export function FaucetDialog() {
               <Button variant="outline" onClick={handleClose} className="h-10 min-w-[150px]">
                 Cancel
               </Button>
-              {account.address ? (
+              {user && arbitrumSepoliaWallet && connectedAddress ? (
                 <Button
                   onClick={isCurrentAction('mint') ? handleMint : handleBurn}
                   disabled={isPending}
