@@ -1,10 +1,28 @@
 import { Injectable, UnauthorizedException, Inject } from '@nestjs/common'
 import { ConfigService } from '@nestjs/config'
 import { isEmpty } from 'lodash'
-import jwt, { type JwtPayload } from 'jsonwebtoken'
+import jwt from 'jsonwebtoken'
+import { z } from 'zod'
 import * as schema from '../database/schema'
 import { eq } from 'drizzle-orm'
 import { fetchWithTimeout, getErrorMessage } from '@vencura/lib'
+
+// Zod schema for Dynamic API public key response
+const dynamicPublicKeyResponseSchema = z.object({
+  key: z.object({
+    publicKey: z.string(),
+  }),
+})
+
+// Zod schema for JWT payload structure
+const jwtPayloadSchema = z.object({
+  sub: z.string(),
+  email: z.string().optional(),
+  iat: z.number().optional(),
+  exp: z.number().optional(),
+  iss: z.string().optional(),
+  aud: z.string().optional(),
+})
 
 @Injectable()
 export class AuthService {
@@ -32,7 +50,8 @@ export class AuthService {
 
     if (!response.ok) throw new Error('Failed to fetch Dynamic public key')
 
-    const data = (await response.json()) as { key: { publicKey: string } }
+    const jsonData: unknown = await response.json()
+    const data = dynamicPublicKeyResponseSchema.parse(jsonData)
     return Buffer.from(data.key.publicKey, 'base64').toString('ascii')
   }
 
@@ -65,14 +84,13 @@ export class AuthService {
 
   async verifyToken(token: string): Promise<{ id: string; email: string }> {
     try {
-      const decoded = jwt.verify(token, await this.getPublicKey(), {
+      const decodedRaw = jwt.verify(token, await this.getPublicKey(), {
         algorithms: ['RS256'],
-      }) as JwtPayload
-
-      if (!decoded?.sub) throw new UnauthorizedException('Invalid token')
+      })
+      const decoded = jwtPayloadSchema.parse(decodedRaw)
 
       const userId = decoded.sub
-      const email = (decoded.email as string) || ''
+      const email = decoded.email || ''
 
       const [existingUser] = await this.db
         .select()

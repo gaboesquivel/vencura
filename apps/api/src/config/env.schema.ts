@@ -1,4 +1,5 @@
-import { z } from 'zod'
+import { z, type ZodError } from 'zod'
+import { formatZodErrors } from '@vencura/lib'
 
 /**
  * Schema for environment variables.
@@ -59,7 +60,7 @@ export type EnvSchema = z.infer<typeof envSchema>
  * Validates environment variables and returns typed config.
  * Follows RORO pattern (Receive an Object, Return an Object).
  */
-export function validateEnv({ env = process.env }: { env?: NodeJS.ProcessEnv } = {}) {
+export function validateEnv({ env = process.env }: { env?: NodeJS.ProcessEnv } = {}): EnvSchema {
   // Prepare env object with defaults (matching Next.js pattern)
   const nodeEnv = env.NODE_ENV || 'development'
   const envData: NodeJS.ProcessEnv = {
@@ -77,9 +78,11 @@ export function validateEnv({ env = process.env }: { env?: NodeJS.ProcessEnv } =
   const result = envSchema.safeParse(envData)
 
   if (!result.success) {
-    const errors = result.error.errors
-      .map(err => `${err.path.join('.')}: ${err.message}`)
-      .join('\n')
+    // Type assertion needed due to ts-reset making result.error unknown
+    const zodError = result.error as ZodError
+    // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-unsafe-call
+    const errorMessages: string[] = formatZodErrors(zodError)
+    const errors = errorMessages.join('\n')
     throw new Error(`Environment validation failed:\n${errors}`)
   }
 
