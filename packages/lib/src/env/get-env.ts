@@ -53,4 +53,3 @@ export function getEnvHelper<T extends z.ZodTypeAny>({
 
   return result.data as z.infer<T>
 }
-

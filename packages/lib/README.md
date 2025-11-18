@@ -201,11 +201,13 @@ import { delay, getErrorMessage, getDateKey, getEnvHelper, validateEnv } from '@
 ### Environment Validation
 
 **Next.js Apps:**
+
 - Use `getEnvHelper` to eliminate boilerplate of manually reconstructing env objects
 - Define zod schema and use `z.infer<typeof schema>` for type inference
 - Let zod handle object reconstruction automatically
 
 **NestJS Apps:**
+
 - Use `validateEnv` with `throwOnError: true` for NestJS pattern
 - Define zod schema and use `z.infer<typeof schema>` for type inference
 - Use `formatZodErrors` from @lib for consistent error formatting

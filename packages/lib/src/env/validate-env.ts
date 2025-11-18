@@ -47,11 +47,13 @@ export function validateEnv<T extends z.ZodTypeAny>({
   schema: T
   env?: NodeJS.ProcessEnv
   throwOnError?: boolean
-}): {
-  isValid: boolean
-  data?: z.infer<T>
-  errors?: string[]
-} | z.infer<T> {
+}):
+  | {
+      isValid: boolean
+      data?: z.infer<T>
+      errors?: string[]
+    }
+  | z.infer<T> {
   const result = schema.safeParse(env)
 
   if (!result.success) {
