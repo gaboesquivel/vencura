@@ -12,7 +12,7 @@ export const VencuraContext = createContext<VencuraClient | null>(null)
  * @throws {Error} If used outside of VencuraProvider
  * @returns The Vencura API client instance
  */
-export function useVencuraClient() {
+export function useVencuraClient(): VencuraClient {
   const client = useContext(VencuraContext)
   if (!client) {
     throw new Error('useVencuraClient must be used within VencuraProvider')

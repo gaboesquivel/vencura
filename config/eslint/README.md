@@ -77,6 +77,80 @@ This package is part of the monorepo and is automatically available to all packa
 - **Turbo Support**: Monorepo-aware linting with Turbo plugin
 - **Modern ESLint**: Uses ESLint 9+ flat config format
 
+## Type Safety Model: Zod-First Validation Strategy
+
+This project uses a **Zod-first validation strategy** instead of relying on TypeScript ESLint's "unsafe" rules for type safety. The following TypeScript ESLint rules are intentionally disabled globally:
+
+- `@typescript-eslint/no-unsafe-assignment`
+- `@typescript-eslint/no-unsafe-call`
+- `@typescript-eslint/no-unsafe-member-access`
+- `@typescript-eslint/no-unsafe-return`
+- `@typescript-eslint/no-unsafe-argument`
+
+### Why These Rules Are Disabled
+
+These rules are disabled because:
+
+1. **AI-Assisted Development**: They are incompatible with AI-assisted development workflows and generate excessive noise around unavoidable `any` types that occur when working with external APIs, libraries, and frameworks.
+
+2. **Runtime Validation Over Static Analysis**: Our safety model is based on **runtime validation** (Zod schemas), not static ESLint rules. We validate data at runtime boundaries where it enters our system, ensuring type safety through actual data validation rather than type assertions.
+
+3. **Reduced Noise**: These rules create false positives and require numerous inline disables, cluttering code without providing meaningful safety guarantees.
+
+### Our Type Safety Approach
+
+Instead of relying on ESLint's unsafe rules, we enforce type safety through:
+
+1. **Zod Schema Validation**: All external or untrusted data must be validated using Zod (or equivalent schemas) before being used. This includes:
+   - API responses
+   - Database reads
+   - Webhook payloads
+   - RPC calls
+   - AI/LLM responses
+   - User input
+   - Environment variables
+
+2. **Fully Typed Interfaces**: All internal modules should export fully typed interfaces, DTOs, or schemas to maintain strong type guarantees. Consumers can rely on type inference from these well-defined boundaries.
+
+3. **Data Boundary Validation**: Data boundaries (where external data enters the system) must be validated at the edges using Zod schemas. Once validated, data flows through the system with full type safety.
+
+4. **Type Inference**: We prefer type inference over explicit type annotations in consumer code. Functions define return types; consumers infer types from function return values.
+
+### Example: Proper Validation Pattern
+
+```typescript
+// ✅ Good: Validate at the boundary
+import { z } from 'zod'
+
+const apiResponseSchema = z.object({
+  id: z.string(),
+  name: z.string(),
+})
+
+async function fetchUser(id: string) {
+  const response = await fetch(`/api/users/${id}`)
+  const data = await response.json() // Returns unknown
+  const validated = apiResponseSchema.parse(data) // Runtime validation
+  return validated // Fully typed, safe to use
+}
+
+// ✅ Good: Consumer infers type
+const user = await fetchUser('123') // Type: { id: string; name: string }
+```
+
+### Guidelines for Contributors
+
+- **Never add inline `eslint-disable` comments** for unsafe rules - they are disabled globally
+- **Always validate external data** with Zod schemas at data boundaries
+- **Export typed interfaces** from internal modules for type safety
+- **Trust type inference** - let TypeScript infer types from validated data and function return types
+- **Validate, don't assert** - Use Zod's `.parse()` or `.safeParse()` instead of type assertions
+
+For more details, see:
+
+- [TypeScript Rules](../../.cursor/rules/base/typescript.mdc) - Type safety patterns and guidelines
+- [CONTRIBUTING.md](../../CONTRIBUTING.md) - Project contribution guidelines
+
 ## Plugins Included
 
 - `@typescript-eslint/eslint-plugin` - TypeScript-specific rules

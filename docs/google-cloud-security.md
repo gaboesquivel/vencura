@@ -376,4 +376,3 @@ Each stack can target a different GCP project.
 - [Vencura API Security](../apps/api/SECURITY.md) - Main security documentation (Vercel deployment)
 - [Vercel Portability Strategy](./vercel-portability-strategy.md) - Current deployment strategy
 - [Google Cloud Deployment Option](./google-cloud-deployment.md) - Deployment guide
-

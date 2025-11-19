@@ -19,10 +19,8 @@ interface AuthenticatedRequest extends Request {
 export class WalletContractController {
   constructor(private readonly walletService: WalletService) {}
 
-  // eslint-disable-next-line @typescript-eslint/no-unsafe-argument
   @TsRestHandler(walletAPIContract)
   handler(@Req() req: AuthenticatedRequest) {
-    // eslint-disable-next-line @typescript-eslint/no-unsafe-return
     return tsRestHandler(walletAPIContract, {
       list: async () => {
         const user = req.user
@@ -36,7 +34,6 @@ export class WalletContractController {
         const user = req.user
         const { chainId } = body
 
-        // eslint-disable-next-line @typescript-eslint/no-unsafe-argument
         const wallet = await this.walletService.createWallet(user.id, chainId)
         return {
           status: 201 as const,
@@ -58,7 +55,6 @@ export class WalletContractController {
         const { id } = params
         const { message } = body
 
-        // eslint-disable-next-line @typescript-eslint/no-unsafe-argument
         const result = await this.walletService.signMessage(id, user.id, message)
         return {
           status: 200 as const,
@@ -76,7 +72,6 @@ export class WalletContractController {
         const { id } = params
         const { to, amount, data } = body
 
-        // eslint-disable-next-line @typescript-eslint/no-unsafe-argument
         const result = await this.walletService.sendTransaction(id, user.id, to, amount, data)
         return {
           status: 200 as const,

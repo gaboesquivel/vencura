@@ -225,6 +225,7 @@ All apps use the same environment file structure:
 3. `.env` fallback (lowest priority)
 
 For project-specific setup, see individual project READMEs:
+
 - [Vencura API](./apps/api/README.md#environment-variables)
 - [Vencura Web](./apps/web/README.md#environment-variables)
 - [Mathler](./apps/mathler/README.md#environment-variables)

@@ -6,7 +6,7 @@
       "@vencura/evm/*": ["./src/*"]
     }
   },
-  "include": [".", "../../typescript-config/reset.d.ts"],
+  "include": [".", "../../config/typescript/reset.d.ts"],
   "exclude": ["node_modules", "dist"]
 }
 

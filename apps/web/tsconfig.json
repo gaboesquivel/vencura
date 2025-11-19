@@ -18,7 +18,7 @@
     "**/*.ts",
     "**/*.tsx",
     ".next/types/**/*.ts",
-    "../../packages/typescript-config/reset.d.ts"
+    "../../config/typescript/reset.d.ts"
   ],
   "exclude": ["node_modules"]
 }

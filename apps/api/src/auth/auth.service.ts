@@ -39,7 +39,6 @@ export class AuthService {
     if (isEmpty(environmentId) || isEmpty(apiToken))
       throw new Error('Dynamic configuration is not set')
 
-    // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-unsafe-call
     const response = await fetchWithTimeout({
       url: `https://app.dynamicauth.com/api/v0/environments/${environmentId}/keys`,
       options: {
@@ -48,10 +47,8 @@ export class AuthService {
       timeoutMs: 5000,
     })
 
-    // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
     if (!response.ok) throw new Error('Failed to fetch Dynamic public key')
 
-    // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-unsafe-call, @typescript-eslint/no-unsafe-member-access
     const jsonData = await response.json()
     const data = dynamicPublicKeyResponseSchema.parse(jsonData)
     return Buffer.from(data.key.publicKey, 'base64').toString('ascii')
@@ -106,7 +103,6 @@ export class AuthService {
     } catch (error) {
       if (error instanceof UnauthorizedException) throw error
       if (error instanceof jwt.JsonWebTokenError) throw new UnauthorizedException('Invalid token')
-      // eslint-disable-next-line @typescript-eslint/no-unsafe-call
       throw new UnauthorizedException(`Token verification failed: ${getErrorMessage(error)}`)
     }
   }

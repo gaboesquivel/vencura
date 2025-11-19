@@ -52,5 +52,5 @@ export function getEnvHelper<T extends z.ZodTypeAny>({
     throw new Error(`Environment validation failed in development:\n${errorMessage}`)
   }
 
-  return result.data as z.infer<T>
+  return result.data
 }

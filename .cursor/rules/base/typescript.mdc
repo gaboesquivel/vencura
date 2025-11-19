@@ -31,6 +31,14 @@ alwaysApply: false
 
 ### Function Definitions
 
+**Function Declaration Style:**
+
+- **NEVER use `const` for function definitions. ALWAYS USE `function` declarations for all exported functions**
+  - ✅ **Good**: `export function createClient(): Client { ... }`
+  - ❌ **Bad**: `export const createClient = (): Client => { ... }`
+  - ❌ **Bad**: `export const createClient = function(): Client { ... }`
+  - **Rationale**: Function declarations are hoisted, more readable, and align with the codebase's functional programming style
+
 **Return Type Rules:**
 
 - **Simple functions** (single-expression returns, one-liners, pure functions): Can rely on type inference
@@ -45,21 +53,35 @@ alwaysApply: false
 
 - **Exported/public functions**: Prefer explicit return types for API clarity and documentation
   - ✅ **Good**: `export function getUser(id: string): User { ... }`
-  - ✅ **Good**: `export const createClient = (config: Config): Client => { ... }`
 - **@vencura/lib functions**: MUST always have explicit return types - no exceptions
   - ✅ **Good**: `export function delay(ms: number): Promise<void> { ... }`
   - ✅ **Good**: `export function getErrorMessage(error: unknown): string | null { ... }`
-  - ❌ **Bad**: `export const delay = (ms: number) => new Promise(...)` (missing return type)
+  - ❌ **Bad**: `export const delay = (ms: number) => new Promise(...)` (missing return type, wrong declaration style)
   - **Rationale**: Consumers should never need to cast types when using @vencura/lib functions
+- **ALL exported functions from @vencura packages** (except React components): MUST have explicit return types - no exceptions
+  - ✅ **Good**: `export function createClient(): Client { ... }`
+  - ✅ **Good**: `export function useVencuraClient(): VencuraClient { ... }`
+  - ✅ **Good**: `export function useMintToken(): UseMutationResult<...> { ... }`
+  - ❌ **Bad**: `export function createClient() { ... }` (missing return type)
+  - ❌ **Bad**: `export function useMintToken(): ReturnType<typeof useMutation<...>> { ... }` (should use explicit type, not ReturnType)
+  - **Rationale**: Explicit return types ensure consumers never need type assertions, casting, or parsing
 
 - **React components**: NEVER have explicit return types - always rely on inference
   - ✅ **Good**: `export function Component() { return <div>...</div> }` (inferred JSX.Element)
   - ❌ **Bad**: `export function Component(): JSX.Element { ... }` (redundant)
-  - ❌ **Bad**: `export const Component: React.FC<Props> = () => { ... }` (avoid React.FC)
+  - ❌ **Bad**: `export const Component: React.FC<Props> = () => { ... }` (avoid React.FC, wrong declaration style)
 
-- **Use `ReturnType<typeof function>` only in function definitions**, not in consumers
+- **React hooks (non-component functions)**: MUST have explicit return types
+  - ✅ **Good**: `export function useVencuraClient(): VencuraClient { ... }`
+  - ✅ **Good**: `export function useMintToken(): UseMutationResult<SendTransactionResult, Error, MintTokenInput> { ... }`
+  - ✅ **Good**: `export function useTokenBalance(): UseQueryResult<TokenBalance, Error> { ... }`
+  - ❌ **Bad**: `export function useMintToken(): ReturnType<typeof useMutation<...>> { ... }` (should use explicit type)
+
+- **Use `ReturnType<typeof function>` only in type definitions**, never as function return types
   - ✅ **Good**: `type Handler = ReturnType<typeof createHandler>` (in type definition)
-  - ❌ **Bad**: `const handler: ReturnType<typeof createHandler> = createHandler()` (in consumer)
+  - ✅ **Good**: `export type VencuraClient = ReturnType<typeof createVencuraClient>` (in type definition)
+  - ❌ **Bad**: `export function createClient(): ReturnType<typeof initClient> { ... }` (should use explicit return type)
+  - ❌ **Bad**: `const handler: ReturnType<typeof createHandler> = createHandler()` (in consumer - should infer)
 
 ### Consumer Code
 - **Consumers MUST infer types from function return values**: Never explicitly type variables that receive function results
@@ -183,7 +205,11 @@ The following ESLint rules enforce these codestyle guidelines:
 
 ## ts-reset Type Safety
 
-This monorepo uses `@total-typescript/ts-reset` to enhance TypeScript's built-in type safety. The following changes apply automatically:
+This monorepo uses `@total-typescript/ts-reset` to enhance TypeScript's built-in type safety. ts-reset is configured globally via `config/typescript/reset.d.ts` and is automatically included in all TypeScript configurations that extend `@workspace/typescript-config/base.json`, `@workspace/typescript-config/nextjs.json`, or `@workspace/typescript-config/react-library.json`.
+
+**Configuration**: The `reset.d.ts` file imports `@total-typescript/ts-reset`, which applies type improvements across the entire monorepo. All apps and packages automatically benefit from these enhanced types.
+
+### Key Type Improvements
 
 - **`JSON.parse()` returns `unknown`**: Always validate parsed JSON data before use
   - ✅ **Good**: `const data = mySchema.parse(JSON.parse(jsonString))` (validate with zod)
@@ -198,9 +224,88 @@ This monorepo uses `@total-typescript/ts-reset` to enhance TypeScript's built-in
 - **`.filter(Boolean)` correctly filters falsy values**: Returns properly typed array without `undefined`, `null`, `false`, `0`, `NaN`, `""`
   - ✅ **Good**: `const numbers = [1, 2, undefined, 3].filter(Boolean)` (type: `number[]`)
 
-- **`.includes()` on `as const` arrays**: Less strict type checking for array includes operations
+- **`.includes()` on `as const` arrays**: Less strict type checking for array includes operations, making it more ergonomic to use
 
-**Best Practice**: Since `JSON.parse()` and `response.json()` return `unknown`, always validate with zod schemas. This aligns with the monorepo's zod-first approach and ensures type safety at runtime.
+- **`.indexOf()` on `as const` arrays**: Less strict type checking for array indexOf operations
+
+- **`Set.has()` and `Map.has()`**: Less strict type checking, making these methods more ergonomic
+
+- **`Array.isArray()`**: Removes `any[]` from the return type, improving type safety
+
+- **`localStorage` and `sessionStorage`**: Returns `unknown` instead of `string`, requiring explicit validation (when using DOM rules)
+
+**Best Practice**: Since `JSON.parse()` and `response.json()` return `unknown`, always validate with zod schemas. This aligns with the monorepo's zod-first approach and ensures type safety at runtime. The zod-first validation strategy (see below) complements ts-reset by enforcing runtime validation at data boundaries.
+
+**Reference**: See [ts-reset documentation](https://www.totaltypescript.com/ts-reset) for complete details on all type improvements.
+
+## Type Safety Model: Zod-First Validation Strategy
+
+This project uses a **Zod-first validation strategy** instead of relying on TypeScript ESLint's "unsafe" rules for type safety. The following TypeScript ESLint rules are intentionally disabled globally:
+
+- `@typescript-eslint/no-unsafe-assignment`
+- `@typescript-eslint/no-unsafe-call`
+- `@typescript-eslint/no-unsafe-member-access`
+- `@typescript-eslint/no-unsafe-return`
+- `@typescript-eslint/no-unsafe-argument`
+
+### Why These Rules Are Disabled
+
+These rules are disabled because:
+
+1. **AI-Assisted Development**: They are incompatible with AI-assisted development workflows and generate excessive noise around unavoidable `any` types that occur when working with external APIs, libraries, and frameworks.
+
+2. **Runtime Validation Over Static Analysis**: Our safety model is based on **runtime validation** (Zod schemas), not static ESLint rules. We validate data at runtime boundaries where it enters our system, ensuring type safety through actual data validation rather than type assertions.
+
+3. **Reduced Noise**: These rules create false positives and require numerous inline disables, cluttering code without providing meaningful safety guarantees.
+
+### Our Type Safety Approach
+
+Instead of relying on ESLint's unsafe rules, we enforce type safety through:
+
+1. **Zod Schema Validation**: All external or untrusted data must be validated using Zod (or equivalent schemas) before being used. This includes:
+   - API responses
+   - Database reads
+   - Webhook payloads
+   - RPC calls
+   - AI/LLM responses
+   - User input
+   - Environment variables
+
+2. **Fully Typed Interfaces**: All internal modules should export fully typed interfaces, DTOs, or schemas to maintain strong type guarantees. Consumers can rely on type inference from these well-defined boundaries.
+
+3. **Data Boundary Validation**: Data boundaries (where external data enters the system) must be validated at the edges using Zod schemas. Once validated, data flows through the system with full type safety.
+
+4. **Type Inference**: We prefer type inference over explicit type annotations in consumer code. Functions define return types; consumers infer types from function return values.
+
+### Validation Requirements
+
+- **Never add inline `eslint-disable` comments** for unsafe rules - they are disabled globally
+- **Always validate external data** with Zod schemas at data boundaries
+- **Export typed interfaces** from internal modules for type safety
+- **Trust type inference** - let TypeScript infer types from validated data and function return types
+- **Validate, don't assert** - Use Zod's `.parse()` or `.safeParse()` instead of type assertions
+
+### Example: Proper Validation Pattern
+
+```typescript
+// ✅ Good: Validate at the boundary
+import { z } from 'zod'
+
+const apiResponseSchema = z.object({
+  id: z.string(),
+  name: z.string(),
+})
+
+async function fetchUser(id: string): Promise<{ id: string; name: string }> {
+  const response = await fetch(`/api/users/${id}`)
+  const data = await response.json() // Returns unknown
+  const validated = apiResponseSchema.parse(data) // Runtime validation
+  return validated // Fully typed, safe to use
+}
+
+// ✅ Good: Consumer infers type
+const user = await fetchUser('123') // Type inferred from function return type
+```
 
 ## Error Handling
 - Fail fast: Handle errors early using guard clauses & early returns

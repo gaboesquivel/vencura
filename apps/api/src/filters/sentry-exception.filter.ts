@@ -19,9 +19,7 @@ interface AuthenticatedRequest extends Request {
 function normalizeExceptionMessage(exception: unknown, isProduction: boolean): string {
   if (!(exception instanceof HttpException)) {
     // Use @lib's getErrorMessage for non-HttpException cases
-    // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-unsafe-call
     const message = getErrorMessage(exception) || 'Internal server error'
-    // eslint-disable-next-line @typescript-eslint/no-unsafe-call, @typescript-eslint/no-unsafe-assignment
     return sanitizeErrorMessage({ message, isProduction }) as string
   }
 
@@ -44,7 +42,6 @@ function normalizeExceptionMessage(exception: unknown, isProduction: boolean): s
   }
 
   // Sanitize error message to prevent information leakage in production
-  // eslint-disable-next-line @typescript-eslint/no-unsafe-call
   return sanitizeErrorMessage({ message, isProduction }) as string
 }
 

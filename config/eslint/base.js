@@ -28,6 +28,14 @@ export const config = [
       "arrow-body-style": ["error", "as-needed", { requireReturnForObjectLiteral: false }],
       // Prefer interfaces over types for object definitions
       "@typescript-eslint/consistent-type-definitions": ["error", "interface"],
+      // Disable unsafe rules - we use Zod-first validation strategy instead
+      // This aligns with ts-reset (JSON.parse/response.json return unknown) which requires runtime validation
+      // See config/eslint/README.md for details and .cursor/rules/base/typescript.mdc for ts-reset documentation
+      "@typescript-eslint/no-unsafe-assignment": "off",
+      "@typescript-eslint/no-unsafe-call": "off",
+      "@typescript-eslint/no-unsafe-member-access": "off",
+      "@typescript-eslint/no-unsafe-return": "off",
+      "@typescript-eslint/no-unsafe-argument": "off",
     },
   },
   {
