@@ -9,6 +9,48 @@ alwaysApply: false
 - Organize code by domain/feature modules
 - Keep modules focused and single-purpose
 
+## Development Workflow
+
+**Development uses `tsx watch` for fast TypeScript execution:**
+- `pnpm start:dev` runs `tsx watch src/main.ts` (development mode)
+- `pnpm start:staging` runs `tsx watch src/main.ts` (staging mode)
+- `pnpm start:debug` runs `tsx watch src/main.ts` with `--inspect` flag
+- Production uses `node dist/main.js` (built CJS output)
+
+**Benefits:**
+- Faster startup than Nest CLI + ts-node
+- Direct TypeScript execution without compilation step
+- Better error messages and debugging support
+- No loader configuration needed
+
+## ESM (ECMAScript Modules) Support
+
+**All NestJS apps use ESM** - ensure `package.json` includes `"type": "module"`.
+
+### Import Extensions
+- **Relative imports do NOT require `.js` extensions** (bundler mode handles resolution)
+- TypeScript bundler mode resolves imports automatically
+- Example: `import { x } from './file'` (clean imports without extensions)
+- Barrel files (`index.ts`) work without extensions: `export * from './module'`
+
+### CommonJS Pattern Conversions
+- **Never use `__dirname` or `__filename`** - use ESM pattern instead:
+  ```typescript
+  import { fileURLToPath } from 'node:url'
+  import { dirname } from 'node:path'
+  
+  const __filename = fileURLToPath(import.meta.url)
+  const __dirname = dirname(__filename)
+  ```
+- **Never use `require()`** - use dynamic `import()` instead:
+  ```typescript
+  // For loading compiled modules dynamically
+  import { pathToFileURL } from 'node:url'
+  
+  const moduleUrl = pathToFileURL(join(__dirname, '../dist/app.module.js')).href
+  const { AppModule } = await import(moduleUrl)
+  ```
+
 ## API Design
 - Use DTOs with class-validator for input validation
   - **DTOs (Data Transfer Objects)** in NestJS controllers should use `class-validator` decorators
@@ -63,6 +105,23 @@ All NestJS apps follow a consistent environment variable pattern:
 
 **Manual Loading Required:**
 NestJS requires manual loading via `loadEnv()` function (see `src/config/load-env.ts`). Call this before app initialization.
+
+**ESM Pattern for load-env.ts:**
+```typescript
+import { config } from 'dotenv'
+import { resolve } from 'path'
+import { fileURLToPath } from 'node:url'
+import { dirname } from 'node:path'
+
+const __filename = fileURLToPath(import.meta.url)
+const __dirname = dirname(__filename)
+
+export function loadEnv(): void {
+  const nodeEnv = process.env.NODE_ENV || 'development'
+  const envDir = resolve(__dirname, '../../')
+  // ... rest of implementation
+}
+```
 
 ### Validation Pattern
 

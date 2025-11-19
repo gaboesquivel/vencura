@@ -1,6 +1,13 @@
-import { Injectable, NotFoundException, BadRequestException, Inject } from '@nestjs/common'
+import {
+  Injectable,
+  NotFoundException,
+  BadRequestException,
+  InternalServerErrorException,
+  Inject,
+} from '@nestjs/common'
 import { ConfigService } from '@nestjs/config'
 import { EncryptionService } from '../common/encryption.service'
+import { LoggerService } from '../common/logger/logger.service'
 import {
   getChainMetadata,
   getDynamicNetworkId,
@@ -15,7 +22,7 @@ import type {
   SignMessageResult,
   SendTransactionResult,
 } from './clients/base-wallet-client'
-import * as schema from '../database/schema'
+import * as schema from '../database/schema/index'
 import { eq, and } from 'drizzle-orm'
 import { keySharesSchema, chainTypeSchema, parseJsonWithSchema } from '@vencura/lib'
 
@@ -27,6 +34,7 @@ export class WalletService {
     private readonly encryptionService: EncryptionService,
     private readonly configService: ConfigService,
     private readonly walletClientFactory: WalletClientFactory,
+    @Inject(LoggerService) private readonly logger: LoggerService,
   ) {}
 
   /**
@@ -52,54 +60,80 @@ export class WalletService {
     userId: string,
     chainId: number | string,
   ): Promise<{ id: string; address: string; network: string; chainType: ChainType }> {
-    // Validate chain is supported
-    if (!isSupportedChain(chainId)) {
-      throw new BadRequestException(
-        `Unsupported chain: ${chainId}. Please provide a valid chain ID or Dynamic network ID.`,
+    try {
+      // Validate chain is supported
+      if (!isSupportedChain(chainId)) {
+        throw new BadRequestException(
+          `Unsupported chain: ${chainId}. Please provide a valid chain ID or Dynamic network ID.`,
+        )
+      }
+
+      // Get chain metadata and Dynamic network ID
+      const chainMetadata = getChainMetadata(chainId)
+      if (!chainMetadata) throw new BadRequestException(`Invalid chain: ${chainId}`)
+
+      const dynamicNetworkId = getDynamicNetworkId(chainId)
+      if (!dynamicNetworkId)
+        throw new BadRequestException(
+          `Could not determine Dynamic network ID for chain: ${chainId}`,
+        )
+
+      const chainType = getChainType(chainId)
+      if (!chainType)
+        throw new BadRequestException(`Could not determine chain type for chain: ${chainId}`)
+
+      // Get appropriate wallet client
+      const walletClient = this.walletClientFactory.createWalletClient(chainId)
+      if (!walletClient)
+        throw new BadRequestException(`Wallet client not available for chain: ${chainId}`)
+
+      // Create wallet using chain-specific client
+      const wallet = await walletClient.createWallet()
+
+      // Encrypt and store the key shares
+      const keySharesEncrypted = await this.encryptionService.encrypt(
+        JSON.stringify(wallet.externalServerKeyShares),
       )
-    }
 
-    // Get chain metadata and Dynamic network ID
-    const chainMetadata = getChainMetadata(chainId)
-    if (!chainMetadata) throw new BadRequestException(`Invalid chain: ${chainId}`)
+      const walletId = crypto.randomUUID()
 
-    const dynamicNetworkId = getDynamicNetworkId(chainId)
-    if (!dynamicNetworkId)
-      throw new BadRequestException(`Could not determine Dynamic network ID for chain: ${chainId}`)
+      await this.db.insert(schema.wallets).values({
+        id: walletId,
+        userId,
+        address: wallet.accountAddress,
+        privateKeyEncrypted: keySharesEncrypted,
+        network: dynamicNetworkId,
+        chainType,
+      })
 
-    const chainType = getChainType(chainId)
-    if (!chainType)
-      throw new BadRequestException(`Could not determine chain type for chain: ${chainId}`)
+      return {
+        id: walletId,
+        address: wallet.accountAddress,
+        network: dynamicNetworkId,
+        chainType,
+      }
+    } catch (error) {
+      // Re-throw HTTP exceptions as-is (BadRequestException, etc.)
+      if (
+        error instanceof BadRequestException ||
+        error instanceof NotFoundException ||
+        error instanceof InternalServerErrorException
+      ) {
+        throw error
+      }
 
-    // Get appropriate wallet client
-    const walletClient = this.walletClientFactory.createWalletClient(chainId)
-    if (!walletClient)
-      throw new BadRequestException(`Wallet client not available for chain: ${chainId}`)
+      // Log full error details for debugging
+      const errorMessage = error instanceof Error ? error.message : String(error)
+      const errorStack = error instanceof Error ? error.stack : undefined
+      this.logger.error('WalletService.createWallet error', {
+        message: errorMessage,
+        stack: errorStack,
+        chainId,
+        userId,
+      })
 
-    // Create wallet using chain-specific client
-    const wallet = await walletClient.createWallet()
-
-    // Encrypt and store the key shares
-    const keySharesEncrypted = await this.encryptionService.encrypt(
-      JSON.stringify(wallet.externalServerKeyShares),
-    )
-
-    const walletId = crypto.randomUUID()
-
-    await this.db.insert(schema.wallets).values({
-      id: walletId,
-      userId,
-      address: wallet.accountAddress,
-      privateKeyEncrypted: keySharesEncrypted,
-      network: dynamicNetworkId,
-      chainType,
-    })
-
-    return {
-      id: walletId,
-      address: wallet.accountAddress,
-      network: dynamicNetworkId,
-      chainType,
+      // Convert unexpected errors to InternalServerErrorException
+      throw new InternalServerErrorException(`Failed to create wallet: ${errorMessage}`)
     }
   }
 

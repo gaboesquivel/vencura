@@ -1,9 +1,9 @@
 import { Injectable, UnauthorizedException, Inject } from '@nestjs/common'
 import { ConfigService } from '@nestjs/config'
-import { isEmpty } from 'lodash'
+import isEmpty from 'lodash/isEmpty'
 import jwt from 'jsonwebtoken'
 import { z } from 'zod'
-import * as schema from '../database/schema'
+import * as schema from '../database/schema/index'
 import { eq } from 'drizzle-orm'
 import { fetchWithTimeout, getErrorMessage } from '@vencura/lib'
 

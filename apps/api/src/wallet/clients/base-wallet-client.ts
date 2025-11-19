@@ -1,3 +1,14 @@
+import { HttpException } from '@nestjs/common'
+
+/**
+ * Safe check if error is an HttpException.
+ * Uses HttpException base class instead of specific exception types to avoid
+ * "Right-hand side of 'instanceof' is not an object" errors when classes aren't loaded.
+ */
+export function isHttpException(error: unknown): error is HttpException {
+  return error instanceof HttpException
+}
+
 /**
  * Result type from Dynamic SDK's createWalletAccount().
  * Aligned with Dynamic SDK return type: { accountAddress: string, externalServerKeyShares: string[] }

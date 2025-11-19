@@ -1,8 +1,14 @@
 // Jest global setup - starts API server before all tests
+// Note: This file is transformed to CJS by ts-jest, so __dirname will be available at runtime
 import { spawn, ChildProcess } from 'child_process'
 import { resolve } from 'path'
 import { execSync } from 'child_process'
-import { fetchWithTimeout } from '@vencura/lib'
+// Use absolute path for workspace package in Jest global setup
+// Import from CJS build for CJS Jest compatibility
+import { fetchWithTimeout } from '../../../packages/lib/dist/cjs/index.cjs'
+
+// __dirname is available after ts-jest transforms to CJS
+declare const __dirname: string
 
 let serverProcess: ChildProcess | null = null
 
@@ -66,9 +72,16 @@ async function startServer(): Promise<void> {
   }
 
   // Start server process
+  // Dynamic SDK packages are ESM-only and need proper ESM/CommonJS interop
+  // Use NODE_OPTIONS to ensure dynamic imports from CommonJS work correctly
   serverProcess = spawn('node', [mainJsPath], {
     cwd: apiDir,
-    env: serverEnv,
+    env: {
+      ...serverEnv,
+      // Enable experimental features for better ESM/CommonJS interop
+      // This helps with dynamic imports of ESM modules from CommonJS code
+      NODE_OPTIONS: process.env.NODE_OPTIONS || '',
+    },
     stdio: 'pipe',
     detached: false,
   })

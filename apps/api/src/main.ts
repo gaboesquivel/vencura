@@ -8,6 +8,7 @@ import { initSentry } from './config/sentry.config'
 import { SentryExceptionFilter } from './filters/sentry-exception.filter'
 import { RequestIdMiddleware } from './common/request-id.middleware'
 import { validateEnv } from './config/env.schema'
+import { LoggerService } from './common/logger/logger.service'
 
 async function bootstrap(): Promise<void> {
   // Initialize Sentry before creating NestJS app
@@ -115,10 +116,21 @@ async function bootstrap(): Promise<void> {
 
   const port = validatedEnv.PORT ?? 3077
   await app.listen(port)
-  console.log(`Application is running on: http://localhost:${port}`)
+
+  // Get logger from app context
+  const logger = app.get(LoggerService)
+  logger.info('Application started', { port })
+
   if (validatedEnv.ENABLE_SWAGGER_UI === true) {
-    console.log(`Swagger UI is available at: http://localhost:${port}/api`)
-    console.log(`Swagger JSON is available at: http://localhost:${port}/api-json`)
+    logger.info('Swagger UI enabled', {
+      swaggerUrl: `http://localhost:${port}/api`,
+      swaggerJsonUrl: `http://localhost:${port}/api-json`,
+    })
   }
 }
-void bootstrap()
+
+bootstrap().catch(error => {
+  // Log bootstrap errors before process exits
+  console.error('Failed to bootstrap application:', error)
+  process.exit(1)
+})

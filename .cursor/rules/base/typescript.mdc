@@ -142,6 +142,28 @@ const response: Promise<Response> = await fetchWithTimeout({ url })
 - **Type safety**: TypeScript's inference is powerful - trust it instead of fighting it
 - **Code clarity**: Explicit types in consumers add noise and can become stale
 
+## ESM (ECMAScript Modules) Requirements
+
+**All TypeScript configs use bundler mode** (`module: "ESNext"`, `moduleResolution: "bundler"`):
+
+- **Relative imports do NOT require `.js` extensions** in source code
+  - ✅ **Good**: `import { x } from './file'` (bundler mode resolves automatically)
+  - ✅ **Good**: `export * from './module'` (barrel files work without extensions)
+  - **Rationale**: Bundler mode allows clean imports without explicit extensions
+  - TypeScript and bundlers (tsx, Next.js, tsup) handle resolution automatically
+
+- **Never use CommonJS patterns** (`require()`, `__dirname`, `__filename`, `module.exports`)
+  - Use ESM equivalents: `import()`, `import.meta.url` + `fileURLToPath()`, `export`
+
+- **Dynamic imports** for loading compiled modules:
+  ```typescript
+  import { pathToFileURL } from 'node:url'
+  import { join } from 'node:path'
+  
+  const moduleUrl = pathToFileURL(join(__dirname, '../dist/app.module.js')).href
+  const { AppModule } = await import(moduleUrl)
+  ```
+
 ## Framework Exceptions
 - **NestJS**: Classes are required for decorators (@Injectable, @Controller, etc.), so the "avoid classes" rule doesn't apply to NestJS services/controllers
 - **RORO Pattern**: Applies to utility functions, not NestJS method signatures (which use decorators)

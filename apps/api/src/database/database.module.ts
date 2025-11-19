@@ -2,7 +2,7 @@ import { Module, Global } from '@nestjs/common'
 import { PGlite } from '@electric-sql/pglite'
 import { drizzle } from 'drizzle-orm/pglite'
 import { getErrorMessage } from '@vencura/lib'
-import * as schema from './schema'
+import * as schema from './schema/index'
 
 /**
  * Initialize database schema for tests.

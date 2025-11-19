@@ -84,7 +84,7 @@ describe('WalletController Transactions (e2e)', () => {
     it('should return error for insufficient balance', async () => {
       // Create a fresh wallet (not reused) to test insufficient balance
       // Note: This wallet will still be auto-funded, but we send a very large amount
-      const { createTestWallet } = await import('./helpers.js')
+      const { createTestWallet } = await import('./helpers')
       const wallet = await createTestWallet({
         authToken,
         chainId: TEST_CHAINS.EVM.ARBITRUM_SEPOLIA,

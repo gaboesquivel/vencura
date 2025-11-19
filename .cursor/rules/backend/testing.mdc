@@ -200,6 +200,43 @@ Use test helpers from `test/helpers.ts`:
 - `TEST_CHAINS` - Test chain IDs (from `test/fixtures.ts`)
 - `TEST_ADDRESSES` - Test addresses for validation (from `test/fixtures.ts`)
 
+## Jest Configuration
+
+**All NestJS tests run in CommonJS mode** - Jest must be configured for CJS to test against built output:
+
+```json
+{
+  "preset": "ts-jest/presets/default",
+  "moduleFileExtensions": ["js", "json", "ts"],
+  "transform": {
+    "^.+\\.ts$": ["ts-jest", {
+      "tsconfig": {
+        "module": "CommonJS",
+        "moduleResolution": "node"
+      }
+    }]
+  }
+}
+```
+
+**Key Points:**
+- Tests run against built `dist/` output (CJS), not TypeScript source
+- Jest runs in CommonJS mode for stability and compatibility
+- No NodeNext, no ts-node, no ESM loaders required
+- Test setup files import from `dist/` (e.g., `import { validateEnv } from '../dist/config/env.schema'`)
+- Server starts via `node dist/main.js` (built output)
+
+**Test Setup Files (ESM Pattern):**
+- All test setup files (`setup-server.ts`, `setup.ts`, `setup-tokens.ts`) must use ESM patterns
+- Replace `__dirname` with ESM equivalent:
+  ```typescript
+  import { fileURLToPath } from 'node:url'
+  import { dirname } from 'node:path'
+  
+  const __filename = fileURLToPath(import.meta.url)
+  const __dirname = dirname(__filename)
+  ```
+
 ## Running Tests
 
 ```bash

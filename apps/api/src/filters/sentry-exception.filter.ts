@@ -1,14 +1,23 @@
-import { Catch, ExceptionFilter, ArgumentsHost, HttpException, HttpStatus } from '@nestjs/common'
+import {
+  Catch,
+  ExceptionFilter,
+  ArgumentsHost,
+  HttpException,
+  HttpStatus,
+  Inject,
+} from '@nestjs/common'
 import { Request, Response } from 'express'
 import * as Sentry from '@sentry/node'
 import { sanitizeErrorMessage, getErrorMessage } from '@vencura/lib'
-import { isPlainObject } from 'lodash'
+import isPlainObject from 'lodash/isPlainObject'
+import { LoggerService } from '../common/logger/logger.service'
 
 interface AuthenticatedRequest extends Request {
   user?: {
     id: string
     email: string
   }
+  requestId?: string
 }
 
 /**
@@ -20,7 +29,7 @@ function normalizeExceptionMessage(exception: unknown, isProduction: boolean): s
   if (!(exception instanceof HttpException)) {
     // Use @lib's getErrorMessage for non-HttpException cases
     const message = getErrorMessage(exception) || 'Internal server error'
-    return sanitizeErrorMessage({ message, isProduction }) as string
+    return sanitizeErrorMessage({ message, isProduction })
   }
 
   const response = exception.getResponse()
@@ -42,7 +51,7 @@ function normalizeExceptionMessage(exception: unknown, isProduction: boolean): s
   }
 
   // Sanitize error message to prevent information leakage in production
-  return sanitizeErrorMessage({ message, isProduction }) as string
+  return sanitizeErrorMessage({ message, isProduction })
 }
 
 /**
@@ -52,6 +61,8 @@ function normalizeExceptionMessage(exception: unknown, isProduction: boolean): s
  */
 @Catch()
 export class SentryExceptionFilter implements ExceptionFilter {
+  constructor(@Inject(LoggerService) private readonly logger: LoggerService) {}
+
   catch(exception: unknown, host: ArgumentsHost) {
     const ctx = host.switchToHttp()
     const response = ctx.getResponse<Response>()
@@ -59,6 +70,24 @@ export class SentryExceptionFilter implements ExceptionFilter {
 
     const status =
       exception instanceof HttpException ? exception.getStatus() : HttpStatus.INTERNAL_SERVER_ERROR
+
+    // Extract safe fields for logging (DO NOT log request.body or authorization headers)
+    const errorMessage = exception instanceof Error ? exception.message : String(exception)
+    const errorStack = exception instanceof Error ? exception.stack : undefined
+    const sanitizedUrl = request.url.split('?')[0] // Remove query params
+
+    // Log structured error before rethrowing
+    const logMetadata = {
+      method: request.method,
+      url: sanitizedUrl,
+      statusCode: status,
+      requestId: request.requestId,
+      ...(request.user?.id && { userId: request.user.id }),
+      error: errorMessage,
+      ...(errorStack && { stack: errorStack }),
+    }
+
+    this.logger.error('Exception caught by global filter', logMetadata)
 
     // Report to Sentry if initialized - only send safe fields to prevent PII exposure
     if (Sentry.getCurrentHub().getClient()) {
@@ -73,7 +102,7 @@ export class SentryExceptionFilter implements ExceptionFilter {
 
       Sentry.captureException(exception, {
         tags: {
-          path: request.url,
+          path: sanitizedUrl,
           method: request.method,
         },
         extra: safeExtras,
@@ -87,7 +116,7 @@ export class SentryExceptionFilter implements ExceptionFilter {
     response.status(status).json({
       statusCode: status,
       timestamp: new Date().toISOString(),
-      path: request.url,
+      path: sanitizedUrl,
       message,
     })
   }

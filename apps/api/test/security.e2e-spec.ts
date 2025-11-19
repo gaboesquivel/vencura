@@ -81,11 +81,16 @@ describe('Security Features (e2e)', () => {
     it('should accept requests smaller than 10kb', async () => {
       const normalPayload = { chainId: TEST_CHAINS.EVM.ARBITRUM_SEPOLIA }
 
-      await request(TEST_SERVER_URL)
+      const response = await request(TEST_SERVER_URL)
         .post('/wallets')
         .set('Authorization', `Bearer ${authToken}`)
         .send(normalPayload)
-        .expect(201)
+
+      // Accept both 201 (created) and 400 (already exists) as valid responses
+      expect([201, 400]).toContain(response.status)
+      if (response.status === 400) {
+        expect(response.body.message).toContain('Wallet already exists')
+      }
     })
   })
 

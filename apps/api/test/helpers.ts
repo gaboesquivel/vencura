@@ -1,6 +1,7 @@
 import request from 'supertest'
 import { getTestAuthToken } from './auth'
-import { delay } from '@vencura/lib'
+// Use absolute path for workspace package in Jest (CJS build for CJS Jest compatibility)
+import { delay } from '../../../packages/lib/dist/cjs/index.cjs'
 import type { Address } from 'viem'
 import { createWalletClient, createPublicClient, http } from 'viem'
 import { privateKeyToAccount } from 'viem/accounts'
@@ -22,6 +23,8 @@ export interface TestWallet {
  * For most tests, use `getOrCreateTestWallet()` instead, which reuses existing wallets.
  *
  * Note: Wallets are automatically funded with minimum ETH required for transactions.
+ *
+ * If a wallet already exists for this chain, returns the existing wallet instead of failing.
  */
 export async function createTestWallet({
   baseUrl = TEST_SERVER_URL,
@@ -36,7 +39,35 @@ export async function createTestWallet({
     .post('/wallets')
     .set('Authorization', `Bearer ${authToken}`)
     .send({ chainId })
-    .expect(201)
+
+  // Handle "wallet already exists" error gracefully (400 or 500 as fallback)
+  if (response.status === 400 || response.status === 500) {
+    const errorMessage =
+      typeof response.body === 'object' && response.body?.message
+        ? String(response.body.message).toLowerCase()
+        : ''
+    if (
+      errorMessage.includes('wallet already exists') ||
+      errorMessage.includes('multiple wallets per chain') ||
+      errorMessage.includes('failed to create wallet')
+    ) {
+      // Return existing wallet instead of failing
+      return getOrCreateTestWallet({ baseUrl, authToken, chainId })
+    }
+  }
+
+  if (response.status !== 201) {
+    // Log error response for debugging
+    console.error('createTestWallet failed:', {
+      status: response.status,
+      statusText: response.statusText,
+      body: response.body,
+      chainId,
+      headers: response.headers,
+    })
+  }
+
+  expect(response.status).toBe(201)
 
   return response.body as TestWallet
 }

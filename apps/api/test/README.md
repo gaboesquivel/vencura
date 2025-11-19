@@ -2,22 +2,22 @@
 
 ## Blackbox Testing Strategy
 
-Our testing strategy emphasizes **blackbox testing** using local chains for automation. This approach ensures end-to-end validation while maintaining fast, reliable test execution.
+Our testing strategy emphasizes **blackbox testing** using testnet networks for automation. This approach ensures end-to-end validation while maintaining fast, reliable test execution.
 
 ### Core Principles
 
 1. **Blackbox Testing Only**: All API tests are blackbox - they only interact with HTTP endpoints, no unit tests. This ensures we test the complete flow from HTTP request to blockchain transaction.
 
-2. **Local Chain Automation**: We spin up a local Anvil blockchain automatically before tests run to save gas costs and eliminate network dependencies.
+2. **Testnet-Only Mode**: Tests run exclusively against Arbitrum Sepolia testnet (chain ID: 421614). We previously explored local blockchain testing (Anvil) but removed it because Dynamic SDK doesn't support localhost chains. Dynamic SDK requires real network IDs that it recognizes, so we cannot use local chains even with RPC URL overrides.
 
-3. **Test Tokens with Open Mint**: We deploy test tokens (USDT, USDC, DNMC) using the `TestToken` contract with open minting functionality, allowing any wallet to mint tokens as a faucet.
+3. **Test Tokens with Open Mint**: Test tokens (USDT, USDC, DNMC) are deployed on Arbitrum Sepolia using the `TestToken` contract with open minting functionality, allowing any wallet to mint tokens as a faucet.
 
 4. **Dynamic SDK Integration**: All transaction signing uses the real Dynamic SDK (no mocks), ensuring we test against actual wallet infrastructure.
 
 ### Testing Flow
 
-1. **Spin up local chain**: Anvil starts automatically before tests run
-2. **Deploy test tokens**: Test tokens (USDT, USDC, DNMC) are automatically deployed to Anvil with open mint functionality
+1. **Use testnet**: All tests run against Arbitrum Sepolia testnet (chain ID: 421614)
+2. **Test tokens**: Test tokens (USDT, USDC, DNMC) are deployed on Arbitrum Sepolia with open mint functionality
 3. **Use Dynamic SDK**: All wallet operations and transaction signing use the real Dynamic SDK
 4. **Blackbox test endpoints**: Tests hit HTTP endpoints only, verifying complete end-to-end functionality
 
@@ -48,10 +48,7 @@ All three tokens are deployed using the `TestToken` contract which provides:
 - Transferring tokens to another address via the API transaction endpoint
 - Verifying transaction success and hash format
 
-**Token Addresses**: Token addresses are automatically detected based on environment:
-
-- **Local Chain**: Tokens are deployed to Anvil and addresses are stored after deployment
-- **Testnet**: Tokens use hardcoded addresses on Arbitrum Sepolia (Chain ID: 421614)
+**Token Addresses**: Token addresses use hardcoded addresses on Arbitrum Sepolia (Chain ID: 421614). All test tokens are deployed on the testnet and their addresses are configured in test fixtures.
 
 See [EVM Contracts README](../../../contracts/evm/README.md) for token contract details.
 

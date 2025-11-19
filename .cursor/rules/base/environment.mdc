@@ -121,6 +121,39 @@ import { loadEnv } from './config/load-env'
 loadEnv() // Load .env files before app initialization
 ```
 
+**Note:** In bundler-mode TypeScript, relative imports must NOT include `.js` extensions. Extensions are only used when importing compiled runtime files from `dist/` (special cases).
+
+**ESM Pattern for load-env.ts:**
+```typescript
+import { config } from 'dotenv'
+import { resolve } from 'path'
+import { fileURLToPath } from 'node:url'
+import { dirname } from 'node:path'
+
+const __filename = fileURLToPath(import.meta.url)
+const __dirname = dirname(__filename)
+
+export function loadEnv(): void {
+  const nodeEnv = process.env.NODE_ENV || 'development'
+  const envDir = resolve(__dirname, '../../')
+  
+  const envFileMap: Record<string, string> = {
+    development: '.env.development',
+    staging: '.env.staging',
+    production: '.env.production',
+    test: '.env.test',
+  }
+  
+  const envFileName = envFileMap[nodeEnv] || '.env.development'
+  
+  // Load environment-specific config first
+  config({ path: resolve(envDir, envFileName) })
+  
+  // Load .env last (highest priority, sensitive data)
+  config({ path: resolve(envDir, '.env') })
+}
+```
+
 ## Key Principles
 
 1. **Sensitive vs Non-Sensitive**: Clear separation between sensitive data (`.env`) and configuration (`.env.{environment}`)
