@@ -1,44 +1,22 @@
-# Vencura Documentation Site
+# [Nextra Docs](https://nextra.vercel.app)
 
-Documentation site built with Nextra and Shadcn/ui components from `@vencura/ui`.
+_Warning: this project is not production ready, API might change without notice._
 
-## Features
+[![](https://vercel.com/button)](https://vercel.com/import/git?s=https%3A%2F%2Fgithub.com%2Fshuding%2Fnextra&c=1)
 
-- **Nextra**: Documentation framework built on Next.js
-- **Shadcn/ui**: UI components from `@vencura/ui`
-- **Dark Mode**: Theme support via `next-themes`
-- **Mobile-First**: Responsive design following mobile-first principles
+**Nextra** is a [Next.js](https://nextjs.org) and [MDX](https://mdxjs.com) powered, no-code site generator.
+
+![](/public/demo.png)
 
 ## Development
 
-```bash
-# Start development server
-pnpm dev
+The code of Nextra is under the [`core`](https://github.com/shuding/nextra/tree/core) branch.
 
-# Build
-pnpm build
+## Themes
 
-# Start production server
-pnpm start
+- [nextra-theme-docs](https://github.com/vercel/swr-site) ([demo](https://swr.vercel.app))
+- [nextra-theme-blog](https://github.com/shuding/site) ([demo](https://shud.in))
 
-# Lint
-pnpm lint
-```
+---
 
-## Structure
-
-- `app/docs/` - Documentation pages (MDX files)
-- `theme.config.tsx` - Nextra theme configuration
-- `app/layout.tsx` - Root layout with theme provider
-
-## Adding Documentation
-
-Add new documentation pages by creating MDX files in `app/docs/`:
-
-```mdx
-# My New Page
-
-Content here...
-```
-
-Nextra will automatically generate navigation from the file structure.
+Created by [@shuding](https://github.com/shuding) and [@pacocoursey](https://github.com/pacocoursey) at [Vercel](https://vercel.com). Released under the MIT license.
