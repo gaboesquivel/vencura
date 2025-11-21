@@ -28,10 +28,7 @@ describe('CAIP utilities', () => {
 
     for (const { namespace, reference, caip2 } of Object.values(CHAINS))
       it(`parse(${caip2})`, async function () {
-        expect(await this.caip2.$parse(caip2)).to.deep.equal([
-          namespace,
-          reference,
-        ])
+        expect(await this.caip2.$parse(caip2)).to.deep.equal([namespace, reference])
       })
   })
 
@@ -40,18 +37,13 @@ describe('CAIP utilities', () => {
 
     it(`local(${account})`, async function () {
       const { caip10 } = await getLocalCAIP(account)
-      expect(await this.caip10.$local(ethers.Typed.address(account))).to.equal(
-        caip10,
-      )
+      expect(await this.caip10.$local(ethers.Typed.address(account))).to.equal(caip10)
     })
 
     for (const { account, caip2, caip10 } of Object.values(CHAINS))
       it(`format(${caip2}, ${account})`, async function () {
         expect(
-          await this.caip10.$format(
-            ethers.Typed.string(caip2),
-            ethers.Typed.string(account),
-          ),
+          await this.caip10.$format(ethers.Typed.string(caip2), ethers.Typed.string(account)),
         ).to.equal(caip10)
       })
 

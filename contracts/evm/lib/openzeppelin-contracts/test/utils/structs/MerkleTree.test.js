@@ -8,12 +8,12 @@ const { generators } = require('../../helpers/random')
 
 const makeTree = (leaves = [ethers.ZeroHash]) =>
   StandardMerkleTree.of(
-    leaves.map((leaf) => [leaf]),
+    leaves.map(leaf => [leaf]),
     ['bytes32'],
     { sortLeaves: false },
   )
 
-const hashLeaf = (leaf) => makeTree().leafHash([leaf])
+const hashLeaf = leaf => makeTree().leafHash([leaf])
 
 const DEPTH = 4n // 16 slots
 const ZERO = hashLeaf(ethers.ZeroHash)
@@ -30,9 +30,7 @@ describe('MerkleTree', () => {
   })
 
   it('sets initial values at setup', async function () {
-    const merkleTree = makeTree(
-      Array.from({ length: 2 ** Number(DEPTH) }, () => ethers.ZeroHash),
-    )
+    const merkleTree = makeTree(Array.from({ length: 2 ** Number(DEPTH) }, () => ethers.ZeroHash))
 
     expect(await this.mock.root()).to.equal(merkleTree.root)
     expect(await this.mock.depth()).to.equal(DEPTH)
@@ -41,10 +39,7 @@ describe('MerkleTree', () => {
 
   describe('push', () => {
     it('tree is correctly updated', async function () {
-      const leaves = Array.from(
-        { length: 2 ** Number(DEPTH) },
-        () => ethers.ZeroHash,
-      )
+      const leaves = Array.from({ length: 2 ** Number(DEPTH) }, () => ethers.ZeroHash)
 
       // for each leaf slot
       for (const i in leaves) {
@@ -67,9 +62,7 @@ describe('MerkleTree', () => {
 
     it('revert when tree is full', async function () {
       await Promise.all(
-        Array.from({ length: 2 ** Number(DEPTH) }).map(() =>
-          this.mock.push(ethers.ZeroHash),
-        ),
+        Array.from({ length: 2 ** Number(DEPTH) }).map(() => this.mock.push(ethers.ZeroHash)),
       )
 
       await expect(this.mock.push(ethers.ZeroHash)).to.be.revertedWithPanic(
@@ -80,17 +73,11 @@ describe('MerkleTree', () => {
 
   it('reset', async function () {
     // empty tree
-    const zeroLeaves = Array.from(
-      { length: 2 ** Number(DEPTH) },
-      () => ethers.ZeroHash,
-    )
+    const zeroLeaves = Array.from({ length: 2 ** Number(DEPTH) }, () => ethers.ZeroHash)
     const zeroTree = makeTree(zeroLeaves)
 
     // tree with one element
-    const leaves = Array.from(
-      { length: 2 ** Number(DEPTH) },
-      () => ethers.ZeroHash,
-    )
+    const leaves = Array.from({ length: 2 ** Number(DEPTH) }, () => ethers.ZeroHash)
     const hashedLeaf = hashLeaf((leaves[0] = generators.bytes32())) // fill first leaf and hash it
     const tree = makeTree(leaves)
 

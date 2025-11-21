@@ -12,9 +12,7 @@ describe('ERC1155URIStorage', () => {
     async function fixture() {
       const [holder] = await ethers.getSigners()
 
-      const token = await ethers.deployContract('$ERC1155URIStorage', [
-        erc1155Uri,
-      ])
+      const token = await ethers.deployContract('$ERC1155URIStorage', [erc1155Uri])
       await token.$_setBaseURI(baseUri)
       await token.$_mint(holder, tokenId, value, '0x')
 

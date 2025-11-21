@@ -46,9 +46,7 @@ describe('ERC721Wrapper', () => {
     it('works with token approval', async function () {
       await this.underlying.connect(this.owner).approve(this.token, tokenId)
 
-      await expect(
-        this.token.connect(this.owner).depositFor(this.owner, [tokenId]),
-      )
+      await expect(this.token.connect(this.owner).depositFor(this.owner, [tokenId]))
         .to.emit(this.underlying, 'Transfer')
         .withArgs(this.owner, this.token, tokenId)
         .to.emit(this.token, 'Transfer')
@@ -56,13 +54,9 @@ describe('ERC721Wrapper', () => {
     })
 
     it('works with approval for all', async function () {
-      await this.underlying
-        .connect(this.owner)
-        .setApprovalForAll(this.token, true)
+      await this.underlying.connect(this.owner).setApprovalForAll(this.token, true)
 
-      await expect(
-        this.token.connect(this.owner).depositFor(this.owner, [tokenId]),
-      )
+      await expect(this.token.connect(this.owner).depositFor(this.owner, [tokenId]))
         .to.emit(this.underlying, 'Transfer')
         .withArgs(this.owner, this.token, tokenId)
         .to.emit(this.token, 'Transfer')
@@ -72,9 +66,7 @@ describe('ERC721Wrapper', () => {
     it('works sending to another account', async function () {
       await this.underlying.connect(this.owner).approve(this.token, tokenId)
 
-      await expect(
-        this.token.connect(this.owner).depositFor(this.other, [tokenId]),
-      )
+      await expect(this.token.connect(this.owner).depositFor(this.other, [tokenId]))
         .to.emit(this.underlying, 'Transfer')
         .withArgs(this.owner, this.token, tokenId)
         .to.emit(this.token, 'Transfer')
@@ -83,15 +75,9 @@ describe('ERC721Wrapper', () => {
 
     it('works with multiple tokens', async function () {
       await this.underlying.connect(this.owner).approve(this.token, tokenId)
-      await this.underlying
-        .connect(this.owner)
-        .approve(this.token, otherTokenId)
+      await this.underlying.connect(this.owner).approve(this.token, otherTokenId)
 
-      await expect(
-        this.token
-          .connect(this.owner)
-          .depositFor(this.owner, [tokenId, otherTokenId]),
-      )
+      await expect(this.token.connect(this.owner).depositFor(this.owner, [tokenId, otherTokenId]))
         .to.emit(this.underlying, 'Transfer')
         .withArgs(this.owner, this.token, tokenId)
         .to.emit(this.token, 'Transfer')
@@ -103,9 +89,7 @@ describe('ERC721Wrapper', () => {
     })
 
     it('reverts with missing approval', async function () {
-      await expect(
-        this.token.connect(this.owner).depositFor(this.owner, [tokenId]),
-      )
+      await expect(this.token.connect(this.owner).depositFor(this.owner, [tokenId]))
         .to.be.revertedWithCustomError(this.token, 'ERC721InsufficientApproval')
         .withArgs(this.token, tokenId)
     })
@@ -118,9 +102,7 @@ describe('ERC721Wrapper', () => {
     })
 
     it('works for an owner', async function () {
-      await expect(
-        this.token.connect(this.owner).withdrawTo(this.owner, [tokenId]),
-      )
+      await expect(this.token.connect(this.owner).withdrawTo(this.owner, [tokenId]))
         .to.emit(this.underlying, 'Transfer')
         .withArgs(this.token, this.owner, tokenId)
         .to.emit(this.token, 'Transfer')
@@ -130,9 +112,7 @@ describe('ERC721Wrapper', () => {
     it('works for an approved', async function () {
       await this.token.connect(this.owner).approve(this.approved, tokenId)
 
-      await expect(
-        this.token.connect(this.approved).withdrawTo(this.owner, [tokenId]),
-      )
+      await expect(this.token.connect(this.approved).withdrawTo(this.owner, [tokenId]))
         .to.emit(this.underlying, 'Transfer')
         .withArgs(this.token, this.owner, tokenId)
         .to.emit(this.token, 'Transfer')
@@ -140,13 +120,9 @@ describe('ERC721Wrapper', () => {
     })
 
     it('works for an approved for all', async function () {
-      await this.token
-        .connect(this.owner)
-        .setApprovalForAll(this.approved, true)
+      await this.token.connect(this.owner).setApprovalForAll(this.approved, true)
 
-      await expect(
-        this.token.connect(this.approved).withdrawTo(this.owner, [tokenId]),
-      )
+      await expect(this.token.connect(this.approved).withdrawTo(this.owner, [tokenId]))
         .to.emit(this.underlying, 'Transfer')
         .withArgs(this.token, this.owner, tokenId)
         .to.emit(this.token, 'Transfer')
@@ -154,26 +130,16 @@ describe('ERC721Wrapper', () => {
     })
 
     it("doesn't work for a non-owner nor approved", async function () {
-      await expect(
-        this.token.connect(this.other).withdrawTo(this.owner, [tokenId]),
-      )
+      await expect(this.token.connect(this.other).withdrawTo(this.owner, [tokenId]))
         .to.be.revertedWithCustomError(this.token, 'ERC721InsufficientApproval')
         .withArgs(this.other, tokenId)
     })
 
     it('works with multiple tokens', async function () {
-      await this.underlying
-        .connect(this.owner)
-        .approve(this.token, otherTokenId)
-      await this.token
-        .connect(this.owner)
-        .depositFor(this.owner, [otherTokenId])
+      await this.underlying.connect(this.owner).approve(this.token, otherTokenId)
+      await this.token.connect(this.owner).depositFor(this.owner, [otherTokenId])
 
-      await expect(
-        this.token
-          .connect(this.owner)
-          .withdrawTo(this.owner, [tokenId, otherTokenId]),
-      )
+      await expect(this.token.connect(this.owner).withdrawTo(this.owner, [tokenId, otherTokenId]))
         .to.emit(this.underlying, 'Transfer')
         .withArgs(this.token, this.owner, tokenId)
         .to.emit(this.underlying, 'Transfer')
@@ -185,9 +151,7 @@ describe('ERC721Wrapper', () => {
     })
 
     it('works to another account', async function () {
-      await expect(
-        this.token.connect(this.owner).withdrawTo(this.other, [tokenId]),
-      )
+      await expect(this.token.connect(this.owner).withdrawTo(this.other, [tokenId]))
         .to.emit(this.underlying, 'Transfer')
         .withArgs(this.token, this.other, tokenId)
         .to.emit(this.token, 'Transfer')
@@ -211,9 +175,7 @@ describe('ERC721Wrapper', () => {
 
     it('mints a token to from', async function () {
       await expect(
-        this.underlying
-          .connect(this.owner)
-          .safeTransferFrom(this.owner, this.token, tokenId),
+        this.underlying.connect(this.owner).safeTransferFrom(this.owner, this.token, tokenId),
       )
         .to.emit(this.token, 'Transfer')
         .withArgs(ethers.ZeroAddress, this.owner, tokenId)
@@ -223,9 +185,7 @@ describe('ERC721Wrapper', () => {
   describe('_recover', () => {
     it('works if there is something to recover', async function () {
       // Should use `transferFrom` to avoid `onERC721Received` minting
-      await this.underlying
-        .connect(this.owner)
-        .transferFrom(this.owner, this.token, tokenId)
+      await this.underlying.connect(this.owner).transferFrom(this.owner, this.token, tokenId)
 
       await expect(this.token.$_recover(this.other, tokenId))
         .to.emit(this.token, 'Transfer')

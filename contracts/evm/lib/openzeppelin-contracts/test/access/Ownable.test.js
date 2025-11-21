@@ -21,10 +21,7 @@ describe('Ownable', () => {
 
   it('rejects zero address for initialOwner', async function () {
     await expect(ethers.deployContract('$Ownable', [ethers.ZeroAddress]))
-      .to.be.revertedWithCustomError(
-        { interface: this.ownable.interface },
-        'OwnableInvalidOwner',
-      )
+      .to.be.revertedWithCustomError({ interface: this.ownable.interface }, 'OwnableInvalidOwner')
       .withArgs(ethers.ZeroAddress)
   })
 
@@ -34,9 +31,7 @@ describe('Ownable', () => {
 
   describe('transfer ownership', () => {
     it('changes owner after transfer', async function () {
-      await expect(
-        this.ownable.connect(this.owner).transferOwnership(this.other),
-      )
+      await expect(this.ownable.connect(this.owner).transferOwnership(this.other))
         .to.emit(this.ownable, 'OwnershipTransferred')
         .withArgs(this.owner, this.other)
 
@@ -44,20 +39,13 @@ describe('Ownable', () => {
     })
 
     it('prevents non-owners from transferring', async function () {
-      await expect(
-        this.ownable.connect(this.other).transferOwnership(this.other),
-      )
-        .to.be.revertedWithCustomError(
-          this.ownable,
-          'OwnableUnauthorizedAccount',
-        )
+      await expect(this.ownable.connect(this.other).transferOwnership(this.other))
+        .to.be.revertedWithCustomError(this.ownable, 'OwnableUnauthorizedAccount')
         .withArgs(this.other)
     })
 
     it('guards ownership against stuck state', async function () {
-      await expect(
-        this.ownable.connect(this.owner).transferOwnership(ethers.ZeroAddress),
-      )
+      await expect(this.ownable.connect(this.owner).transferOwnership(ethers.ZeroAddress))
         .to.be.revertedWithCustomError(this.ownable, 'OwnableInvalidOwner')
         .withArgs(ethers.ZeroAddress)
     })
@@ -74,10 +62,7 @@ describe('Ownable', () => {
 
     it('prevents non-owners from renouncement', async function () {
       await expect(this.ownable.connect(this.other).renounceOwnership())
-        .to.be.revertedWithCustomError(
-          this.ownable,
-          'OwnableUnauthorizedAccount',
-        )
+        .to.be.revertedWithCustomError(this.ownable, 'OwnableUnauthorizedAccount')
         .withArgs(this.other)
     })
 

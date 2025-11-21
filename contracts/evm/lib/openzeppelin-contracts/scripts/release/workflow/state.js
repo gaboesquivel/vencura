@@ -2,9 +2,7 @@ const { readPreState } = require('@changesets/pre')
 const { default: readChangesets } = require('@changesets/read')
 const { join } = require('path')
 const { fetch } = require('undici')
-const { version, name: packageName } = require(
-  join(__dirname, '../../../contracts/package.json'),
-)
+const { version, name: packageName } = require(join(__dirname, '../../../contracts/package.json'))
 
 module.exports = async ({ github, context, core }) => {
   const state = await getState({ github, context, core })
@@ -33,24 +31,11 @@ function shouldRunPromote({ isReleaseBranch, isWorkflowDispatch, botRun }) {
   return isReleaseBranch && isWorkflowDispatch && !botRun
 }
 
-function shouldRunChangesets({
-  isReleaseBranch,
-  isPush,
-  isWorkflowDispatch,
-  botRun,
-}) {
-  return (
-    (isReleaseBranch && isPush) ||
-    (isReleaseBranch && isWorkflowDispatch && botRun)
-  )
+function shouldRunChangesets({ isReleaseBranch, isPush, isWorkflowDispatch, botRun }) {
+  return (isReleaseBranch && isPush) || (isReleaseBranch && isWorkflowDispatch && botRun)
 }
 
-function shouldRunPublish({
-  isReleaseBranch,
-  isPush,
-  hasPendingChangesets,
-  isPublishedOnNpm,
-}) {
+function shouldRunPublish({ isReleaseBranch, isPush, hasPendingChangesets, isPublishedOnNpm }) {
   return isReleaseBranch && isPush && !hasPendingChangesets && !isPublishedOnNpm
 }
 
@@ -107,8 +92,7 @@ async function getState({ github, context, core }) {
 
   // Log every state value in debug mode
   if (core.isDebug())
-    for (const [key, value] of Object.entries(state))
-      core.debug(`${key}: ${value}`)
+    for (const [key, value] of Object.entries(state)) core.debug(`${key}: ${value}`)
 
   return state
 }
@@ -121,7 +105,7 @@ async function readChangesetState(cwd = process.cwd()) {
   let changesets = await readChangesets(cwd)
 
   if (isInPreMode) {
-    changesets = changesets.filter((x) => !preState.changesets.includes(x.id))
+    changesets = changesets.filter(x => !preState.changesets.includes(x.id))
   }
 
   return {
@@ -131,8 +115,6 @@ async function readChangesetState(cwd = process.cwd()) {
 }
 
 async function isPublishedOnNpm(packageName, version) {
-  const res = await fetch(
-    `https://registry.npmjs.com/${packageName}/${version}`,
-  )
+  const res = await fetch(`https://registry.npmjs.com/${packageName}/${version}`)
   return res.ok
 }

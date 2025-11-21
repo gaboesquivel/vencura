@@ -5,7 +5,7 @@ const generators = {
   bytes32: () => ethers.hexlify(ethers.randomBytes(32)),
   uint256: () => ethers.toBigInt(ethers.randomBytes(32)),
   int256: () => ethers.toBigInt(ethers.randomBytes(32)) + ethers.MinInt256,
-  hexBytes: (length) => ethers.hexlify(ethers.randomBytes(length)),
+  hexBytes: length => ethers.hexlify(ethers.randomBytes(length)),
 }
 
 generators.address.zero = ethers.ZeroAddress

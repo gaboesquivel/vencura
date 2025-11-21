@@ -26,9 +26,7 @@ describe('ERC1155Supply', () => {
     })
 
     it('totalSupply', async function () {
-      expect(
-        await this.token.totalSupply(ethers.Typed.uint256(firstTokenId)),
-      ).to.equal(0n)
+      expect(await this.token.totalSupply(ethers.Typed.uint256(firstTokenId))).to.equal(0n)
       expect(await this.token.totalSupply()).to.equal(0n)
     })
   })
@@ -36,12 +34,7 @@ describe('ERC1155Supply', () => {
   describe('after mint', () => {
     describe('single', () => {
       beforeEach(async function () {
-        await this.token.$_mint(
-          this.holder,
-          firstTokenId,
-          firstTokenValue,
-          '0x',
-        )
+        await this.token.$_mint(this.holder, firstTokenId, firstTokenValue, '0x')
       })
 
       it('exist', async function () {
@@ -49,9 +42,9 @@ describe('ERC1155Supply', () => {
       })
 
       it('totalSupply', async function () {
-        expect(
-          await this.token.totalSupply(ethers.Typed.uint256(firstTokenId)),
-        ).to.equal(firstTokenValue)
+        expect(await this.token.totalSupply(ethers.Typed.uint256(firstTokenId))).to.equal(
+          firstTokenValue,
+        )
         expect(await this.token.totalSupply()).to.equal(firstTokenValue)
       })
     })
@@ -72,15 +65,13 @@ describe('ERC1155Supply', () => {
       })
 
       it('totalSupply', async function () {
-        expect(
-          await this.token.totalSupply(ethers.Typed.uint256(firstTokenId)),
-        ).to.equal(firstTokenValue)
-        expect(
-          await this.token.totalSupply(ethers.Typed.uint256(secondTokenId)),
-        ).to.equal(secondTokenValue)
-        expect(await this.token.totalSupply()).to.equal(
-          firstTokenValue + secondTokenValue,
+        expect(await this.token.totalSupply(ethers.Typed.uint256(firstTokenId))).to.equal(
+          firstTokenValue,
         )
+        expect(await this.token.totalSupply(ethers.Typed.uint256(secondTokenId))).to.equal(
+          secondTokenValue,
+        )
+        expect(await this.token.totalSupply()).to.equal(firstTokenValue + secondTokenValue)
       })
     })
   })
@@ -88,12 +79,7 @@ describe('ERC1155Supply', () => {
   describe('after burn', () => {
     describe('single', () => {
       beforeEach(async function () {
-        await this.token.$_mint(
-          this.holder,
-          firstTokenId,
-          firstTokenValue,
-          '0x',
-        )
+        await this.token.$_mint(this.holder, firstTokenId, firstTokenValue, '0x')
         await this.token.$_burn(this.holder, firstTokenId, firstTokenValue)
       })
 
@@ -102,9 +88,7 @@ describe('ERC1155Supply', () => {
       })
 
       it('totalSupply', async function () {
-        expect(
-          await this.token.totalSupply(ethers.Typed.uint256(firstTokenId)),
-        ).to.equal(0n)
+        expect(await this.token.totalSupply(ethers.Typed.uint256(firstTokenId))).to.equal(0n)
         expect(await this.token.totalSupply()).to.equal(0n)
       })
     })
@@ -130,12 +114,8 @@ describe('ERC1155Supply', () => {
       })
 
       it('totalSupply', async function () {
-        expect(
-          await this.token.totalSupply(ethers.Typed.uint256(firstTokenId)),
-        ).to.equal(0n)
-        expect(
-          await this.token.totalSupply(ethers.Typed.uint256(secondTokenId)),
-        ).to.equal(0n)
+        expect(await this.token.totalSupply(ethers.Typed.uint256(firstTokenId))).to.equal(0n)
+        expect(await this.token.totalSupply(ethers.Typed.uint256(secondTokenId))).to.equal(0n)
         expect(await this.token.totalSupply()).to.equal(0n)
       })
     })
@@ -149,9 +129,7 @@ describe('ERC1155Supply', () => {
         [firstTokenId],
         [firstTokenValue],
       )
-      expect(
-        await this.token.totalSupply(ethers.Typed.uint256(firstTokenId)),
-      ).to.equal(0n)
+      expect(await this.token.totalSupply(ethers.Typed.uint256(firstTokenId))).to.equal(0n)
       expect(await this.token.totalSupply()).to.equal(0n)
     })
   })

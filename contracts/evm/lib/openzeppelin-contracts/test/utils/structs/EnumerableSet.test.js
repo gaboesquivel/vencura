@@ -3,16 +3,14 @@ const { loadFixture } = require('@nomicfoundation/hardhat-network-helpers')
 
 const { mapValues } = require('../../helpers/iterate')
 const { generators } = require('../../helpers/random')
-const {
-  TYPES,
-} = require('../../../scripts/generate/templates/EnumerableSet.opts')
+const { TYPES } = require('../../../scripts/generate/templates/EnumerableSet.opts')
 
 const { shouldBehaveLikeSet } = require('./EnumerableSet.behavior')
 
 const getMethods = (mock, fnSigs) => {
   return mapValues(
     fnSigs,
-    (fnSig) =>
+    fnSig =>
       (...args) =>
         mock.getFunction(fnSig)(0, ...args),
   )

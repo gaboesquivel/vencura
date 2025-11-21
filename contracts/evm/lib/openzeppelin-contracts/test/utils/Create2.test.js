@@ -14,20 +14,15 @@ async function fixture() {
   // We use a vesting wallet, with 3 constructor arguments.
   const constructorByteCode = await ethers
     .getContractFactory('VestingWallet')
-    .then((factory) =>
-      ethers.concat([
-        factory.bytecode,
-        factory.interface.encodeDeploy([other.address, 0n, 0n]),
-      ]),
+    .then(factory =>
+      ethers.concat([factory.bytecode, factory.interface.encodeDeploy([other.address, 0n, 0n])]),
     )
 
   // Bytecode for deploying a contract that has no constructor log.
   // Here we use the Create2 helper factory.
   const constructorLessBytecode = await ethers
     .getContractFactory('$Create2')
-    .then((factory) =>
-      ethers.concat([factory.bytecode, factory.interface.encodeDeploy([])]),
-    )
+    .then(factory => ethers.concat([factory.bytecode, factory.interface.encodeDeploy([])]))
 
   const mockFactory = await ethers.getContractFactory('ConstructorMock')
 
@@ -86,9 +81,7 @@ describe('Create2', () => {
         ethers.keccak256(this.constructorLessBytecode),
       )
 
-      await expect(
-        this.factory.$deploy(0n, saltHex, this.constructorLessBytecode),
-      )
+      await expect(this.factory.$deploy(0n, saltHex, this.constructorLessBytecode))
         .to.emit(this.factory, 'return$deploy')
         .withArgs(offChainComputed)
 
@@ -108,10 +101,7 @@ describe('Create2', () => {
         .to.emit(this.factory, 'return$deploy')
         .withArgs(offChainComputed)
 
-      const instance = await ethers.getContractAt(
-        'VestingWallet',
-        offChainComputed,
-      )
+      const instance = await ethers.getContractAt('VestingWallet', offChainComputed)
 
       expect(await instance.owner()).to.equal(this.other)
     })
@@ -130,9 +120,7 @@ describe('Create2', () => {
       expect(await ethers.provider.getBalance(this.factory)).to.equal(value)
       expect(await ethers.provider.getBalance(offChainComputed)).to.equal(0n)
 
-      await expect(
-        this.factory.$deploy(value, saltHex, this.constructorByteCode),
-      )
+      await expect(this.factory.$deploy(value, saltHex, this.constructorByteCode))
         .to.emit(this.factory, 'return$deploy')
         .withArgs(offChainComputed)
 
@@ -141,9 +129,10 @@ describe('Create2', () => {
     })
 
     it('fails deploying a contract in an existent address', async function () {
-      await expect(
-        this.factory.$deploy(0n, saltHex, this.constructorByteCode),
-      ).to.emit(this.factory, 'return$deploy')
+      await expect(this.factory.$deploy(0n, saltHex, this.constructorByteCode)).to.emit(
+        this.factory,
+        'return$deploy',
+      )
 
       await expect(
         this.factory.$deploy(0n, saltHex, this.constructorByteCode),
@@ -151,9 +140,10 @@ describe('Create2', () => {
     })
 
     it('fails deploying a contract if the bytecode length is zero', async function () {
-      await expect(
-        this.factory.$deploy(0n, saltHex, '0x'),
-      ).to.be.revertedWithCustomError(this.factory, 'Create2EmptyBytecode')
+      await expect(this.factory.$deploy(0n, saltHex, '0x')).to.be.revertedWithCustomError(
+        this.factory,
+        'Create2EmptyBytecode',
+      )
     })
 
     it('fails deploying a contract if factory contract does not have sufficient balance', async function () {
@@ -170,9 +160,7 @@ describe('Create2', () => {
             saltHex,
             ethers.concat([
               this.mockFactory.bytecode,
-              this.mockFactory.interface.encodeDeploy([
-                RevertType.RevertWithoutMessage,
-              ]),
+              this.mockFactory.interface.encodeDeploy([RevertType.RevertWithoutMessage]),
             ]),
           ),
         ).to.be.revertedWithCustomError(this.factory, 'FailedDeployment')
@@ -185,9 +173,7 @@ describe('Create2', () => {
             saltHex,
             ethers.concat([
               this.mockFactory.bytecode,
-              this.mockFactory.interface.encodeDeploy([
-                RevertType.RevertWithMessage,
-              ]),
+              this.mockFactory.interface.encodeDeploy([RevertType.RevertWithMessage]),
             ]),
           ),
         ).to.be.revertedWith('ConstructorMock: reverting')
@@ -200,15 +186,10 @@ describe('Create2', () => {
             saltHex,
             ethers.concat([
               this.mockFactory.bytecode,
-              this.mockFactory.interface.encodeDeploy([
-                RevertType.RevertWithCustomError,
-              ]),
+              this.mockFactory.interface.encodeDeploy([RevertType.RevertWithCustomError]),
             ]),
           ),
-        ).to.be.revertedWithCustomError(
-          { interface: this.mockFactory.interface },
-          'CustomError',
-        )
+        ).to.be.revertedWithCustomError({ interface: this.mockFactory.interface }, 'CustomError')
       })
 
       it('bubbles up panic', async function () {

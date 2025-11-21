@@ -18,9 +18,7 @@ function shouldBehaveLikeRegularContext() {
     })
 
     it('returns the transaction sender when called from another contract', async function () {
-      await expect(
-        this.contextHelper.connect(this.sender).callSender(this.context),
-      )
+      await expect(this.contextHelper.connect(this.sender).callSender(this.context))
         .to.emit(this.context, 'Sender')
         .withArgs(this.contextHelper)
     })
@@ -30,10 +28,7 @@ function shouldBehaveLikeRegularContext() {
     const args = [42n, 'OpenZeppelin']
 
     it('returns the transaction data when called from an EOA', async function () {
-      const callData = this.context.interface.encodeFunctionData(
-        'msgData',
-        args,
-      )
+      const callData = this.context.interface.encodeFunctionData('msgData', args)
 
       await expect(this.context.msgData(...args))
         .to.emit(this.context, 'Data')
@@ -41,10 +36,7 @@ function shouldBehaveLikeRegularContext() {
     })
 
     it('returns the transaction sender when from another contract', async function () {
-      const callData = this.context.interface.encodeFunctionData(
-        'msgData',
-        args,
-      )
+      const callData = this.context.interface.encodeFunctionData('msgData', args)
 
       await expect(this.contextHelper.callData(this.context, ...args))
         .to.emit(this.context, 'Data')

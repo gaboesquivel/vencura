@@ -2,11 +2,7 @@ const { ethers } = require('hardhat')
 const { expect } = require('chai')
 
 const { impersonate } = require('../../helpers/account')
-const {
-  getAddressInSlot,
-  ImplementationSlot,
-  AdminSlot,
-} = require('../../helpers/storage')
+const { getAddressInSlot, ImplementationSlot, AdminSlot } = require('../../helpers/storage')
 
 // createProxy, initialOwner, accounts
 module.exports = function shouldBehaveLikeTransparentUpgradeableProxy() {
@@ -14,17 +10,12 @@ module.exports = function shouldBehaveLikeTransparentUpgradeableProxy() {
     const implementationV0 = await ethers.deployContract('DummyImplementation')
     const implementationV1 = await ethers.deployContract('DummyImplementation')
 
-    const createProxyWithImpersonatedProxyAdmin = async (
-      logic,
-      initData,
-      opts = undefined,
-    ) => {
-      const [proxy, tx] = await this.createProxy(logic, initData, opts).then(
-        (instance) =>
-          Promise.all([
-            ethers.getContractAt('ITransparentUpgradeableProxy', instance),
-            instance.deploymentTransaction(),
-          ]),
+    const createProxyWithImpersonatedProxyAdmin = async (logic, initData, opts = undefined) => {
+      const [proxy, tx] = await this.createProxy(logic, initData, opts).then(instance =>
+        Promise.all([
+          ethers.getContractAt('ITransparentUpgradeableProxy', instance),
+          instance.deploymentTransaction(),
+        ]),
       )
 
       const proxyAdmin = await ethers.getContractAt(
@@ -52,18 +43,13 @@ module.exports = function shouldBehaveLikeTransparentUpgradeableProxy() {
   beforeEach(async function () {
     Object.assign(
       this,
-      await this.createProxyWithImpersonatedProxyAdmin(
-        this.implementationV0,
-        '0x',
-      ),
+      await this.createProxyWithImpersonatedProxyAdmin(this.implementationV0, '0x'),
     )
   })
 
   describe('implementation', () => {
     it('returns the current implementation address', async function () {
-      expect(await getAddressInSlot(this.proxy, ImplementationSlot)).to.equal(
-        this.implementationV0,
-      )
+      expect(await getAddressInSlot(this.proxy, ImplementationSlot)).to.equal(this.implementationV0)
     })
 
     it('delegates to the implementation', async function () {
@@ -79,9 +65,7 @@ module.exports = function shouldBehaveLikeTransparentUpgradeableProxy() {
     })
 
     it('sets the proxy admin in storage with the correct initial owner', async function () {
-      expect(await getAddressInSlot(this.proxy, AdminSlot)).to.equal(
-        this.proxyAdmin,
-      )
+      expect(await getAddressInSlot(this.proxy, AdminSlot)).to.equal(this.proxyAdmin)
 
       expect(await this.proxyAdmin.owner()).to.equal(this.owner)
     })
@@ -89,18 +73,13 @@ module.exports = function shouldBehaveLikeTransparentUpgradeableProxy() {
     it('can overwrite the admin by the implementation', async function () {
       await this.instance.unsafeOverrideAdmin(this.other)
 
-      const ERC1967AdminSlotValue = await getAddressInSlot(
-        this.proxy,
-        AdminSlot,
-      )
+      const ERC1967AdminSlotValue = await getAddressInSlot(this.proxy, AdminSlot)
       expect(ERC1967AdminSlotValue).to.equal(this.other)
       expect(ERC1967AdminSlotValue).to.not.equal(this.proxyAdmin)
 
       // Still allows previous admin to execute admin operations
       await expect(
-        this.proxy
-          .connect(this.proxyAdminAsSigner)
-          .upgradeToAndCall(this.implementationV1, '0x'),
+        this.proxy.connect(this.proxyAdminAsSigner).upgradeToAndCall(this.implementationV1, '0x'),
       )
         .to.emit(this.proxy, 'Upgraded')
         .withArgs(this.implementationV1)
@@ -115,10 +94,7 @@ module.exports = function shouldBehaveLikeTransparentUpgradeableProxy() {
 
       describe('when the call does not fail', () => {
         beforeEach(function () {
-          this.initializeData = this.behavior.interface.encodeFunctionData(
-            'initializeWithX',
-            [42n],
-          )
+          this.initializeData = this.behavior.interface.encodeFunctionData('initializeWithX', [42n])
         })
 
         describe('when the sender is the admin', () => {
@@ -133,15 +109,11 @@ module.exports = function shouldBehaveLikeTransparentUpgradeableProxy() {
           })
 
           it('upgrades to the requested implementation', async function () {
-            expect(
-              await getAddressInSlot(this.proxy, ImplementationSlot),
-            ).to.equal(this.behavior)
+            expect(await getAddressInSlot(this.proxy, ImplementationSlot)).to.equal(this.behavior)
           })
 
           it('emits an event', async function () {
-            await expect(this.tx)
-              .to.emit(this.proxy, 'Upgraded')
-              .withArgs(this.behavior)
+            await expect(this.tx).to.emit(this.proxy, 'Upgraded').withArgs(this.behavior)
           })
 
           it('calls the initializer function', async function () {
@@ -156,18 +128,14 @@ module.exports = function shouldBehaveLikeTransparentUpgradeableProxy() {
             // storage layout should look as follows:
             //  - 0: Initializable storage ++ initializerRan ++ onlyInitializingRan
             //  - 1: x
-            expect(await ethers.provider.getStorage(this.proxy, 1n)).to.equal(
-              42n,
-            )
+            expect(await ethers.provider.getStorage(this.proxy, 1n)).to.equal(42n)
           })
         })
 
         describe('when the sender is not the admin', () => {
           it('reverts', async function () {
             await expect(
-              this.proxy
-                .connect(this.other)
-                .upgradeToAndCall(this.behavior, this.initializeData),
+              this.proxy.connect(this.other).upgradeToAndCall(this.behavior, this.initializeData),
             ).to.be.reverted
           })
         })
@@ -175,8 +143,7 @@ module.exports = function shouldBehaveLikeTransparentUpgradeableProxy() {
 
       describe('when the call does fail', () => {
         beforeEach(function () {
-          this.initializeData =
-            this.behavior.interface.encodeFunctionData('fail')
+          this.initializeData = this.behavior.interface.encodeFunctionData('fail')
         })
 
         it('reverts', async function () {
@@ -196,12 +163,11 @@ module.exports = function shouldBehaveLikeTransparentUpgradeableProxy() {
         describe('when upgrading to V1', () => {
           beforeEach(async function () {
             this.behaviorV1 = await ethers.deployContract('MigratableMockV1')
-            const v1MigrationData =
-              this.behaviorV1.interface.encodeFunctionData('initialize', [42n])
+            const v1MigrationData = this.behaviorV1.interface.encodeFunctionData('initialize', [
+              42n,
+            ])
 
-            this.balancePreviousV1 = await ethers.provider.getBalance(
-              this.proxy,
-            )
+            this.balancePreviousV1 = await ethers.provider.getBalance(this.proxy)
             this.tx = await this.proxy
               .connect(this.proxyAdminAsSigner)
               .upgradeToAndCall(this.behaviorV1, v1MigrationData, {
@@ -210,13 +176,9 @@ module.exports = function shouldBehaveLikeTransparentUpgradeableProxy() {
           })
 
           it('upgrades to the requested version and emits an event', async function () {
-            expect(
-              await getAddressInSlot(this.proxy, ImplementationSlot),
-            ).to.equal(this.behaviorV1)
+            expect(await getAddressInSlot(this.proxy, ImplementationSlot)).to.equal(this.behaviorV1)
 
-            await expect(this.tx)
-              .to.emit(this.proxy, 'Upgraded')
-              .withArgs(this.behaviorV1)
+            await expect(this.tx).to.emit(this.proxy, 'Upgraded').withArgs(this.behaviorV1)
           })
 
           it("calls the 'initialize' function and sends given value to the proxy", async function () {
@@ -229,15 +191,12 @@ module.exports = function shouldBehaveLikeTransparentUpgradeableProxy() {
           describe('when upgrading to V2', () => {
             beforeEach(async function () {
               this.behaviorV2 = await ethers.deployContract('MigratableMockV2')
-              const v2MigrationData =
-                this.behaviorV2.interface.encodeFunctionData('migrate', [
-                  10n,
-                  42n,
-                ])
+              const v2MigrationData = this.behaviorV2.interface.encodeFunctionData('migrate', [
+                10n,
+                42n,
+              ])
 
-              this.balancePreviousV2 = await ethers.provider.getBalance(
-                this.proxy,
-              )
+              this.balancePreviousV2 = await ethers.provider.getBalance(this.proxy)
               this.tx = await this.proxy
                 .connect(this.proxyAdminAsSigner)
                 .upgradeToAndCall(this.behaviorV2, v2MigrationData, {
@@ -246,13 +205,11 @@ module.exports = function shouldBehaveLikeTransparentUpgradeableProxy() {
             })
 
             it('upgrades to the requested version and emits an event', async function () {
-              expect(
-                await getAddressInSlot(this.proxy, ImplementationSlot),
-              ).to.equal(this.behaviorV2)
+              expect(await getAddressInSlot(this.proxy, ImplementationSlot)).to.equal(
+                this.behaviorV2,
+              )
 
-              await expect(this.tx)
-                .to.emit(this.proxy, 'Upgraded')
-                .withArgs(this.behaviorV2)
+              await expect(this.tx).to.emit(this.proxy, 'Upgraded').withArgs(this.behaviorV2)
             })
 
             it("calls the 'migrate' function and sends given value to the proxy", async function () {
@@ -265,14 +222,10 @@ module.exports = function shouldBehaveLikeTransparentUpgradeableProxy() {
 
             describe('when upgrading to V3', () => {
               beforeEach(async function () {
-                this.behaviorV3 =
-                  await ethers.deployContract('MigratableMockV3')
-                const v3MigrationData =
-                  this.behaviorV3.interface.encodeFunctionData('migrate()')
+                this.behaviorV3 = await ethers.deployContract('MigratableMockV3')
+                const v3MigrationData = this.behaviorV3.interface.encodeFunctionData('migrate()')
 
-                this.balancePreviousV3 = await ethers.provider.getBalance(
-                  this.proxy,
-                )
+                this.balancePreviousV3 = await ethers.provider.getBalance(this.proxy)
                 this.tx = await this.proxy
                   .connect(this.proxyAdminAsSigner)
                   .upgradeToAndCall(this.behaviorV3, v3MigrationData, {
@@ -281,22 +234,16 @@ module.exports = function shouldBehaveLikeTransparentUpgradeableProxy() {
               })
 
               it('upgrades to the requested version and emits an event', async function () {
-                expect(
-                  await getAddressInSlot(this.proxy, ImplementationSlot),
-                ).to.equal(this.behaviorV3)
+                expect(await getAddressInSlot(this.proxy, ImplementationSlot)).to.equal(
+                  this.behaviorV3,
+                )
 
-                await expect(this.tx)
-                  .to.emit(this.proxy, 'Upgraded')
-                  .withArgs(this.behaviorV3)
+                await expect(this.tx).to.emit(this.proxy, 'Upgraded').withArgs(this.behaviorV3)
               })
 
               it("calls the 'migrate' function and sends given value to the proxy", async function () {
-                expect(await this.behaviorV3.attach(this.proxy).x()).to.equal(
-                  42n,
-                )
-                expect(await this.behaviorV3.attach(this.proxy).y()).to.equal(
-                  10n,
-                )
+                expect(await this.behaviorV3.attach(this.proxy).x()).to.equal(42n)
+                expect(await this.behaviorV3.attach(this.proxy).y()).to.equal(10n)
                 expect(await ethers.provider.getBalance(this.proxy)).to.equal(
                   this.balancePreviousV3 + value,
                 )
@@ -309,15 +256,9 @@ module.exports = function shouldBehaveLikeTransparentUpgradeableProxy() {
       describe('when the sender is not the admin', () => {
         it('reverts', async function () {
           const behaviorV1 = await ethers.deployContract('MigratableMockV1')
-          const v1MigrationData = behaviorV1.interface.encodeFunctionData(
-            'initialize',
-            [42n],
-          )
-          await expect(
-            this.proxy
-              .connect(this.other)
-              .upgradeToAndCall(behaviorV1, v1MigrationData),
-          ).to.be.reverted
+          const v1MigrationData = behaviorV1.interface.encodeFunctionData('initialize', [42n])
+          await expect(this.proxy.connect(this.other).upgradeToAndCall(behaviorV1, v1MigrationData))
+            .to.be.reverted
         })
       })
     })
@@ -325,26 +266,17 @@ module.exports = function shouldBehaveLikeTransparentUpgradeableProxy() {
 
   describe('transparent proxy', () => {
     beforeEach('creating proxy', async function () {
-      this.clashingImplV0 = await ethers.deployContract(
-        'ClashingImplementation',
-      )
-      this.clashingImplV1 = await ethers.deployContract(
-        'ClashingImplementation',
-      )
+      this.clashingImplV0 = await ethers.deployContract('ClashingImplementation')
+      this.clashingImplV1 = await ethers.deployContract('ClashingImplementation')
 
       Object.assign(
         this,
-        await this.createProxyWithImpersonatedProxyAdmin(
-          this.clashingImplV0,
-          '0x',
-        ),
+        await this.createProxyWithImpersonatedProxyAdmin(this.clashingImplV0, '0x'),
       )
     })
 
     it('proxy admin cannot call delegated functions', async function () {
-      const factory = await ethers.getContractFactory(
-        'TransparentUpgradeableProxy',
-      )
+      const factory = await ethers.getContractFactory('TransparentUpgradeableProxy')
 
       await expect(
         this.instance.connect(this.proxyAdminAsSigner).delegatedFunction(),
@@ -354,20 +286,14 @@ module.exports = function shouldBehaveLikeTransparentUpgradeableProxy() {
     describe('when function names clash', () => {
       it('executes the proxy function if the sender is the admin', async function () {
         await expect(
-          this.proxy
-            .connect(this.proxyAdminAsSigner)
-            .upgradeToAndCall(this.clashingImplV1, '0x'),
+          this.proxy.connect(this.proxyAdminAsSigner).upgradeToAndCall(this.clashingImplV1, '0x'),
         )
           .to.emit(this.proxy, 'Upgraded')
           .withArgs(this.clashingImplV1)
       })
 
       it('delegates the call to implementation when sender is not the admin', async function () {
-        await expect(
-          this.proxy
-            .connect(this.other)
-            .upgradeToAndCall(this.clashingImplV1, '0x'),
-        )
+        await expect(this.proxy.connect(this.other).upgradeToAndCall(this.clashingImplV1, '0x'))
           .to.emit(this.instance, 'ClashingImplementationCall')
           .to.not.emit(this.proxy, 'Upgraded')
       })

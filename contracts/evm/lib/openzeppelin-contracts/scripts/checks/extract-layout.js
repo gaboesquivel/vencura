@@ -1,8 +1,6 @@
 const fs = require('fs')
 const { findAll, astDereferencer, srcDecoder } = require('solidity-ast/utils')
-const {
-  extractStorageLayout,
-} = require('@openzeppelin/upgrades-core/dist/storage/extract')
+const { extractStorageLayout } = require('@openzeppelin/upgrades-core/dist/storage/extract')
 
 const { _ } = require('yargs').argv
 
@@ -17,14 +15,11 @@ function extractLayouts(path) {
   const deref = astDereferencer(output)
 
   for (const src in output.contracts) {
-    if (skipPath.some((prefix) => src.startsWith(prefix))) {
+    if (skipPath.some(prefix => src.startsWith(prefix))) {
       continue
     }
 
-    for (const contractDef of findAll(
-      'ContractDefinition',
-      output.sources[src].ast,
-    )) {
+    for (const contractDef of findAll('ContractDefinition', output.sources[src].ast)) {
       if (skipKind.includes(contractDef.contractKind)) {
         continue
       }

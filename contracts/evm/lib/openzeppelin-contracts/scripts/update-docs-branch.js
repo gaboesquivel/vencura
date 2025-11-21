@@ -1,9 +1,9 @@
 const proc = require('child_process')
-const read = (cmd) => proc.execSync(cmd, { encoding: 'utf8' }).trim()
-const run = (cmd) => {
+const read = cmd => proc.execSync(cmd, { encoding: 'utf8' }).trim()
+const run = cmd => {
   proc.execSync(cmd, { stdio: 'inherit' })
 }
-const tryRead = (cmd) => {
+const tryRead = cmd => {
   try {
     return read(cmd)
   } catch {
@@ -11,8 +11,7 @@ const tryRead = (cmd) => {
   }
 }
 
-const releaseBranchRegex =
-  /^release-v(?<version>(?<major>\d+)\.(?<minor>\d+)(?:\.(?<patch>\d+))?)$/
+const releaseBranchRegex = /^release-v(?<version>(?<major>\d+)\.(?<minor>\d+)(?:\.(?<patch>\d+))?)$/
 
 const currentBranch = read('git rev-parse --abbrev-ref HEAD')
 const match = currentBranch.match(releaseBranchRegex)
@@ -48,11 +47,8 @@ if (!matchingDocsBranches) {
     )
     process.exit(1)
   }
-  const publishedVersion = JSON.parse(
-    read(`git show ${publishedRef}:package.json`),
-  ).version
-  const publishedMinor = publishedVersion.match(/\d+\.(?<minor>\d+)\.\d+/)
-    .groups.minor
+  const publishedVersion = JSON.parse(read(`git show ${publishedRef}:package.json`)).version
+  const publishedMinor = publishedVersion.match(/\d+\.(?<minor>\d+)\.\d+/).groups.minor
   if (current.minor < publishedMinor) {
     console.error('Refusing to update docs: newer version is published')
     process.exit(0)

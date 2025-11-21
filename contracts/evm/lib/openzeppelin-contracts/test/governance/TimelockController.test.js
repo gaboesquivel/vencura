@@ -7,12 +7,9 @@ const { GovernorHelper } = require('../helpers/governance')
 const { OperationState } = require('../helpers/enums')
 const time = require('../helpers/time')
 
-const {
-  shouldSupportInterfaces,
-} = require('../utils/introspection/SupportsInterface.behavior')
+const { shouldSupportInterfaces } = require('../utils/introspection/SupportsInterface.behavior')
 
-const salt =
-  '0x025e7b0be353a74631ad648c667493c0e1cd31caa4cc2d3520fdc171ea0cc726' // a random value
+const salt = '0x025e7b0be353a74631ad648c667493c0e1cd31caa4cc2d3520fdc171ea0cc726' // a random value
 
 const MINDELAY = time.duration.days(1)
 const DEFAULT_ADMIN_ROLE = ethers.ZeroHash
@@ -20,7 +17,7 @@ const PROPOSER_ROLE = ethers.id('PROPOSER_ROLE')
 const EXECUTOR_ROLE = ethers.id('EXECUTOR_ROLE')
 const CANCELLER_ROLE = ethers.id('CANCELLER_ROLE')
 
-const getAddress = (obj) => obj.address ?? obj.target ?? obj
+const getAddress = obj => obj.address ?? obj.target ?? obj
 
 function genOperation(target, value, data, predecessor, salt) {
   const id = ethers.keccak256(
@@ -43,8 +40,7 @@ function genOperationBatch(targets, values, payloads, predecessor, salt) {
 }
 
 async function fixture() {
-  const [admin, proposer, canceller, executor, other] =
-    await ethers.getSigners()
+  const [admin, proposer, canceller, executor, other] = await ethers.getSigners()
 
   const mock = await ethers.deployContract('TimelockController', [
     MINDELAY,
@@ -88,7 +84,7 @@ describe('TimelockController', () => {
 
     expect(
       await Promise.all(
-        [PROPOSER_ROLE, CANCELLER_ROLE, EXECUTOR_ROLE].map((role) =>
+        [PROPOSER_ROLE, CANCELLER_ROLE, EXECUTOR_ROLE].map(role =>
           this.mock.hasRole(role, this.proposer),
         ),
       ),
@@ -96,7 +92,7 @@ describe('TimelockController', () => {
 
     expect(
       await Promise.all(
-        [PROPOSER_ROLE, CANCELLER_ROLE, EXECUTOR_ROLE].map((role) =>
+        [PROPOSER_ROLE, CANCELLER_ROLE, EXECUTOR_ROLE].map(role =>
           this.mock.hasRole(role, this.canceller),
         ),
       ),
@@ -104,7 +100,7 @@ describe('TimelockController', () => {
 
     expect(
       await Promise.all(
-        [PROPOSER_ROLE, CANCELLER_ROLE, EXECUTOR_ROLE].map((role) =>
+        [PROPOSER_ROLE, CANCELLER_ROLE, EXECUTOR_ROLE].map(role =>
           this.mock.hasRole(role, this.executor),
         ),
       ),
@@ -229,10 +225,7 @@ describe('TimelockController', () => {
                 MINDELAY,
               ),
           )
-            .to.be.revertedWithCustomError(
-              this.mock,
-              'TimelockUnexpectedOperationState',
-            )
+            .to.be.revertedWithCustomError(this.mock, 'TimelockUnexpectedOperationState')
             .withArgs(
               this.operation.id,
               GovernorHelper.proposalStatesToBitMap(OperationState.Unset),
@@ -252,10 +245,7 @@ describe('TimelockController', () => {
                 MINDELAY,
               ),
           )
-            .to.be.revertedWithCustomError(
-              this.mock,
-              'AccessControlUnauthorizedAccount',
-            )
+            .to.be.revertedWithCustomError(this.mock, 'AccessControlUnauthorizedAccount')
             .withArgs(this.other, PROPOSER_ROLE)
         })
 
@@ -272,10 +262,7 @@ describe('TimelockController', () => {
                 MINDELAY - 1n,
               ),
           )
-            .to.be.revertedWithCustomError(
-              this.mock,
-              'TimelockInsufficientDelay',
-            )
+            .to.be.revertedWithCustomError(this.mock, 'TimelockInsufficientDelay')
             .withArgs(MINDELAY - 1n, MINDELAY)
         })
 
@@ -318,10 +305,7 @@ describe('TimelockController', () => {
                 this.operation.salt,
               ),
           )
-            .to.be.revertedWithCustomError(
-              this.mock,
-              'TimelockUnexpectedOperationState',
-            )
+            .to.be.revertedWithCustomError(this.mock, 'TimelockUnexpectedOperationState')
             .withArgs(
               this.operation.id,
               GovernorHelper.proposalStatesToBitMap(OperationState.Ready),
@@ -354,10 +338,7 @@ describe('TimelockController', () => {
                   this.operation.salt,
                 ),
             )
-              .to.be.revertedWithCustomError(
-                this.mock,
-                'TimelockUnexpectedOperationState',
-              )
+              .to.be.revertedWithCustomError(this.mock, 'TimelockUnexpectedOperationState')
               .withArgs(
                 this.operation.id,
                 GovernorHelper.proposalStatesToBitMap(OperationState.Ready),
@@ -368,7 +349,7 @@ describe('TimelockController', () => {
             // -1 is too tight, test sometime fails
             await this.mock
               .getTimestamp(this.operation.id)
-              .then((clock) => time.increaseTo.timestamp(clock - 5n))
+              .then(clock => time.increaseTo.timestamp(clock - 5n))
 
             await expect(
               this.mock
@@ -381,10 +362,7 @@ describe('TimelockController', () => {
                   this.operation.salt,
                 ),
             )
-              .to.be.revertedWithCustomError(
-                this.mock,
-                'TimelockUnexpectedOperationState',
-              )
+              .to.be.revertedWithCustomError(this.mock, 'TimelockUnexpectedOperationState')
               .withArgs(
                 this.operation.id,
                 GovernorHelper.proposalStatesToBitMap(OperationState.Ready),
@@ -393,9 +371,7 @@ describe('TimelockController', () => {
 
           describe('on time', () => {
             beforeEach(async function () {
-              await this.mock
-                .getTimestamp(this.operation.id)
-                .then(time.increaseTo.timestamp)
+              await this.mock.getTimestamp(this.operation.id).then(time.increaseTo.timestamp)
             })
 
             it('executor can reveal', async function () {
@@ -432,17 +408,13 @@ describe('TimelockController', () => {
                     this.operation.salt,
                   ),
               )
-                .to.be.revertedWithCustomError(
-                  this.mock,
-                  'AccessControlUnauthorizedAccount',
-                )
+                .to.be.revertedWithCustomError(this.mock, 'AccessControlUnauthorizedAccount')
                 .withArgs(this.other, EXECUTOR_ROLE)
             })
 
             it('prevents reentrancy execution', async function () {
               // Create operation
-              const reentrant =
-                await ethers.deployContract('$TimelockReentrant')
+              const reentrant = await ethers.deployContract('$TimelockReentrant')
               const reentrantOperation = genOperation(
                 reentrant,
                 0n,
@@ -464,14 +436,10 @@ describe('TimelockController', () => {
                 )
 
               // Advance on time to make the operation executable
-              await this.mock
-                .getTimestamp(reentrantOperation.id)
-                .then(time.increaseTo.timestamp)
+              await this.mock.getTimestamp(reentrantOperation.id).then(time.increaseTo.timestamp)
 
               // Grant executor role to the reentrant contract
-              await this.mock
-                .connect(this.admin)
-                .grantRole(EXECUTOR_ROLE, reentrant)
+              await this.mock.connect(this.admin).grantRole(EXECUTOR_ROLE, reentrant)
 
               // Prepare reenter
               const data = this.mock.interface.encodeFunctionData('execute', [
@@ -495,10 +463,7 @@ describe('TimelockController', () => {
                     reentrantOperation.salt,
                   ),
               )
-                .to.be.revertedWithCustomError(
-                  this.mock,
-                  'TimelockUnexpectedOperationState',
-                )
+                .to.be.revertedWithCustomError(this.mock, 'TimelockUnexpectedOperationState')
                 .withArgs(
                   reentrantOperation.id,
                   GovernorHelper.proposalStatesToBitMap(OperationState.Ready),
@@ -602,10 +567,7 @@ describe('TimelockController', () => {
                 MINDELAY,
               ),
           )
-            .to.be.revertedWithCustomError(
-              this.mock,
-              'TimelockUnexpectedOperationState',
-            )
+            .to.be.revertedWithCustomError(this.mock, 'TimelockUnexpectedOperationState')
             .withArgs(
               this.operation.id,
               GovernorHelper.proposalStatesToBitMap(OperationState.Unset),
@@ -625,15 +587,8 @@ describe('TimelockController', () => {
                 MINDELAY,
               ),
           )
-            .to.be.revertedWithCustomError(
-              this.mock,
-              'TimelockInvalidOperationLength',
-            )
-            .withArgs(
-              this.operation.targets.length,
-              this.operation.payloads.length,
-              0n,
-            )
+            .to.be.revertedWithCustomError(this.mock, 'TimelockInvalidOperationLength')
+            .withArgs(this.operation.targets.length, this.operation.payloads.length, 0n)
         })
 
         it('length of batch parameter must match #1', async function () {
@@ -649,15 +604,8 @@ describe('TimelockController', () => {
                 MINDELAY,
               ),
           )
-            .to.be.revertedWithCustomError(
-              this.mock,
-              'TimelockInvalidOperationLength',
-            )
-            .withArgs(
-              this.operation.targets.length,
-              0n,
-              this.operation.payloads.length,
-            )
+            .to.be.revertedWithCustomError(this.mock, 'TimelockInvalidOperationLength')
+            .withArgs(this.operation.targets.length, 0n, this.operation.payloads.length)
         })
 
         it('prevent non-proposer from committing', async function () {
@@ -673,10 +621,7 @@ describe('TimelockController', () => {
                 MINDELAY,
               ),
           )
-            .to.be.revertedWithCustomError(
-              this.mock,
-              'AccessControlUnauthorizedAccount',
-            )
+            .to.be.revertedWithCustomError(this.mock, 'AccessControlUnauthorizedAccount')
             .withArgs(this.other, PROPOSER_ROLE)
         })
 
@@ -693,10 +638,7 @@ describe('TimelockController', () => {
                 MINDELAY - 1n,
               ),
           )
-            .to.be.revertedWithCustomError(
-              this.mock,
-              'TimelockInsufficientDelay',
-            )
+            .to.be.revertedWithCustomError(this.mock, 'TimelockInsufficientDelay')
             .withArgs(MINDELAY - 1n, MINDELAY)
         })
       })
@@ -724,10 +666,7 @@ describe('TimelockController', () => {
                 this.operation.salt,
               ),
           )
-            .to.be.revertedWithCustomError(
-              this.mock,
-              'TimelockUnexpectedOperationState',
-            )
+            .to.be.revertedWithCustomError(this.mock, 'TimelockUnexpectedOperationState')
             .withArgs(
               this.operation.id,
               GovernorHelper.proposalStatesToBitMap(OperationState.Ready),
@@ -760,10 +699,7 @@ describe('TimelockController', () => {
                   this.operation.salt,
                 ),
             )
-              .to.be.revertedWithCustomError(
-                this.mock,
-                'TimelockUnexpectedOperationState',
-              )
+              .to.be.revertedWithCustomError(this.mock, 'TimelockUnexpectedOperationState')
               .withArgs(
                 this.operation.id,
                 GovernorHelper.proposalStatesToBitMap(OperationState.Ready),
@@ -774,7 +710,7 @@ describe('TimelockController', () => {
             // -1 is to tight, test sometime fails
             await this.mock
               .getTimestamp(this.operation.id)
-              .then((clock) => time.increaseTo.timestamp(clock - 5n))
+              .then(clock => time.increaseTo.timestamp(clock - 5n))
 
             await expect(
               this.mock
@@ -787,10 +723,7 @@ describe('TimelockController', () => {
                   this.operation.salt,
                 ),
             )
-              .to.be.revertedWithCustomError(
-                this.mock,
-                'TimelockUnexpectedOperationState',
-              )
+              .to.be.revertedWithCustomError(this.mock, 'TimelockUnexpectedOperationState')
               .withArgs(
                 this.operation.id,
                 GovernorHelper.proposalStatesToBitMap(OperationState.Ready),
@@ -799,9 +732,7 @@ describe('TimelockController', () => {
 
           describe('on time', () => {
             beforeEach(async function () {
-              await this.mock
-                .getTimestamp(this.operation.id)
-                .then(time.increaseTo.timestamp)
+              await this.mock.getTimestamp(this.operation.id).then(time.increaseTo.timestamp)
             })
 
             it('executor can reveal', async function () {
@@ -839,10 +770,7 @@ describe('TimelockController', () => {
                     this.operation.salt,
                   ),
               )
-                .to.be.revertedWithCustomError(
-                  this.mock,
-                  'AccessControlUnauthorizedAccount',
-                )
+                .to.be.revertedWithCustomError(this.mock, 'AccessControlUnauthorizedAccount')
                 .withArgs(this.other, EXECUTOR_ROLE)
             })
 
@@ -858,15 +786,8 @@ describe('TimelockController', () => {
                     this.operation.salt,
                   ),
               )
-                .to.be.revertedWithCustomError(
-                  this.mock,
-                  'TimelockInvalidOperationLength',
-                )
-                .withArgs(
-                  0,
-                  this.operation.payloads.length,
-                  this.operation.values.length,
-                )
+                .to.be.revertedWithCustomError(this.mock, 'TimelockInvalidOperationLength')
+                .withArgs(0, this.operation.payloads.length, this.operation.values.length)
             })
 
             it('length mismatch #2', async function () {
@@ -881,15 +802,8 @@ describe('TimelockController', () => {
                     this.operation.salt,
                   ),
               )
-                .to.be.revertedWithCustomError(
-                  this.mock,
-                  'TimelockInvalidOperationLength',
-                )
-                .withArgs(
-                  this.operation.targets.length,
-                  this.operation.payloads.length,
-                  0n,
-                )
+                .to.be.revertedWithCustomError(this.mock, 'TimelockInvalidOperationLength')
+                .withArgs(this.operation.targets.length, this.operation.payloads.length, 0n)
             })
 
             it('length mismatch #3', async function () {
@@ -904,21 +818,13 @@ describe('TimelockController', () => {
                     this.operation.salt,
                   ),
               )
-                .to.be.revertedWithCustomError(
-                  this.mock,
-                  'TimelockInvalidOperationLength',
-                )
-                .withArgs(
-                  this.operation.targets.length,
-                  0n,
-                  this.operation.values.length,
-                )
+                .to.be.revertedWithCustomError(this.mock, 'TimelockInvalidOperationLength')
+                .withArgs(this.operation.targets.length, 0n, this.operation.values.length)
             })
 
             it('prevents reentrancy execution', async function () {
               // Create operation
-              const reentrant =
-                await ethers.deployContract('$TimelockReentrant')
+              const reentrant = await ethers.deployContract('$TimelockReentrant')
               const reentrantBatchOperation = genOperationBatch(
                 [reentrant],
                 [0n],
@@ -945,21 +851,16 @@ describe('TimelockController', () => {
                 .then(time.increaseTo.timestamp)
 
               // Grant executor role to the reentrant contract
-              await this.mock
-                .connect(this.admin)
-                .grantRole(EXECUTOR_ROLE, reentrant)
+              await this.mock.connect(this.admin).grantRole(EXECUTOR_ROLE, reentrant)
 
               // Prepare reenter
-              const data = this.mock.interface.encodeFunctionData(
-                'executeBatch',
-                [
-                  reentrantBatchOperation.targets.map(getAddress),
-                  reentrantBatchOperation.values,
-                  reentrantBatchOperation.payloads,
-                  reentrantBatchOperation.predecessor,
-                  reentrantBatchOperation.salt,
-                ],
-              )
+              const data = this.mock.interface.encodeFunctionData('executeBatch', [
+                reentrantBatchOperation.targets.map(getAddress),
+                reentrantBatchOperation.values,
+                reentrantBatchOperation.payloads,
+                reentrantBatchOperation.predecessor,
+                reentrantBatchOperation.salt,
+              ])
               await reentrant.enableRentrancy(this.mock, data)
 
               // Expect to fail
@@ -974,10 +875,7 @@ describe('TimelockController', () => {
                     reentrantBatchOperation.salt,
                   ),
               )
-                .to.be.revertedWithCustomError(
-                  this.mock,
-                  'TimelockUnexpectedOperationState',
-                )
+                .to.be.revertedWithCustomError(this.mock, 'TimelockUnexpectedOperationState')
                 .withArgs(
                   reentrantBatchOperation.id,
                   GovernorHelper.proposalStatesToBitMap(OperationState.Ready),
@@ -1014,22 +912,12 @@ describe('TimelockController', () => {
 
         it('partial execution', async function () {
           const operation = genOperationBatch(
-            [
-              this.callreceivermock,
-              this.callreceivermock,
-              this.callreceivermock,
-            ],
+            [this.callreceivermock, this.callreceivermock, this.callreceivermock],
             [0n, 0n, 0n],
             [
-              this.callreceivermock.interface.encodeFunctionData(
-                'mockFunction',
-              ),
-              this.callreceivermock.interface.encodeFunctionData(
-                'mockFunctionRevertsNoReason',
-              ),
-              this.callreceivermock.interface.encodeFunctionData(
-                'mockFunction',
-              ),
+              this.callreceivermock.interface.encodeFunctionData('mockFunction'),
+              this.callreceivermock.interface.encodeFunctionData('mockFunctionRevertsNoReason'),
+              this.callreceivermock.interface.encodeFunctionData('mockFunction'),
             ],
             ethers.ZeroHash,
             '0x8ac04aa0d6d66b8812fb41d39638d37af0a9ab11da507afd65c509f8ed079d3e',
@@ -1046,9 +934,7 @@ describe('TimelockController', () => {
               MINDELAY,
             )
 
-          await this.mock
-            .getTimestamp(operation.id)
-            .then(time.increaseTo.timestamp)
+          await this.mock.getTimestamp(operation.id).then(time.increaseTo.timestamp)
 
           await expect(
             this.mock
@@ -1087,34 +973,23 @@ describe('TimelockController', () => {
       })
 
       it('canceller can cancel', async function () {
-        await expect(
-          this.mock.connect(this.canceller).cancel(this.operation.id),
-        )
+        await expect(this.mock.connect(this.canceller).cancel(this.operation.id))
           .to.emit(this.mock, 'Cancelled')
           .withArgs(this.operation.id)
       })
 
       it('cannot cancel invalid operation', async function () {
         await expect(this.mock.connect(this.canceller).cancel(ethers.ZeroHash))
-          .to.be.revertedWithCustomError(
-            this.mock,
-            'TimelockUnexpectedOperationState',
-          )
+          .to.be.revertedWithCustomError(this.mock, 'TimelockUnexpectedOperationState')
           .withArgs(
             ethers.ZeroHash,
-            GovernorHelper.proposalStatesToBitMap([
-              OperationState.Waiting,
-              OperationState.Ready,
-            ]),
+            GovernorHelper.proposalStatesToBitMap([OperationState.Waiting, OperationState.Ready]),
           )
       })
 
       it('prevent non-canceller from canceling', async function () {
         await expect(this.mock.connect(this.other).cancel(this.operation.id))
-          .to.be.revertedWithCustomError(
-            this.mock,
-            'AccessControlUnauthorizedAccount',
-          )
+          .to.be.revertedWithCustomError(this.mock, 'AccessControlUnauthorizedAccount')
           .withArgs(this.other, CANCELLER_ROLE)
       })
     })
@@ -1205,9 +1080,7 @@ describe('TimelockController', () => {
           MINDELAY,
         )
 
-      await this.mock
-        .getTimestamp(this.operation2.id)
-        .then(time.increaseTo.timestamp)
+      await this.mock.getTimestamp(this.operation2.id).then(time.increaseTo.timestamp)
     })
 
     it('cannot execute before dependency', async function () {
@@ -1222,10 +1095,7 @@ describe('TimelockController', () => {
             this.operation2.salt,
           ),
       )
-        .to.be.revertedWithCustomError(
-          this.mock,
-          'TimelockUnexecutedPredecessor',
-        )
+        .to.be.revertedWithCustomError(this.mock, 'TimelockUnexecutedPredecessor')
         .withArgs(this.operation1.id)
     })
 
@@ -1293,9 +1163,7 @@ describe('TimelockController', () => {
       const operation = genOperation(
         this.callreceivermock,
         0n,
-        this.callreceivermock.interface.encodeFunctionData(
-          'mockFunctionRevertsNoReason',
-        ),
+        this.callreceivermock.interface.encodeFunctionData('mockFunctionRevertsNoReason'),
         ethers.ZeroHash,
         '0xb1b1b276fdf1a28d1e00537ea73b04d56639128b08063c1a2f70a52e38cba693',
       )
@@ -1330,9 +1198,7 @@ describe('TimelockController', () => {
       const operation = genOperation(
         this.callreceivermock,
         0n,
-        this.callreceivermock.interface.encodeFunctionData(
-          'mockFunctionThrows',
-        ),
+        this.callreceivermock.interface.encodeFunctionData('mockFunctionThrows'),
         ethers.ZeroHash,
         '0xe5ca79f295fc8327ee8a765fe19afb58f4a0cbc5053642bfdd7e73bc68e0fc67',
       )
@@ -1368,9 +1234,7 @@ describe('TimelockController', () => {
       const operation = genOperation(
         this.callreceivermock,
         0n,
-        this.callreceivermock.interface.encodeFunctionData(
-          'mockFunctionOutOfGas',
-        ),
+        this.callreceivermock.interface.encodeFunctionData('mockFunctionOutOfGas'),
         ethers.ZeroHash,
         '0xf3274ce7c394c5b629d5215723563a744b817e1730cca5587c567099a14578fd',
       )
@@ -1427,9 +1291,7 @@ describe('TimelockController', () => {
       await this.mock.getTimestamp(operation.id).then(time.increaseTo.timestamp)
 
       expect(await ethers.provider.getBalance(this.mock)).to.equal(0n)
-      expect(await ethers.provider.getBalance(this.callreceivermock)).to.equal(
-        0n,
-      )
+      expect(await ethers.provider.getBalance(this.callreceivermock)).to.equal(0n)
 
       await this.mock
         .connect(this.executor)
@@ -1445,18 +1307,14 @@ describe('TimelockController', () => {
         )
 
       expect(await ethers.provider.getBalance(this.mock)).to.equal(0n)
-      expect(await ethers.provider.getBalance(this.callreceivermock)).to.equal(
-        1n,
-      )
+      expect(await ethers.provider.getBalance(this.callreceivermock)).to.equal(1n)
     })
 
     it('call nonpayable with eth', async function () {
       const operation = genOperation(
         this.callreceivermock,
         1,
-        this.callreceivermock.interface.encodeFunctionData(
-          'mockFunctionNonPayable',
-        ),
+        this.callreceivermock.interface.encodeFunctionData('mockFunctionNonPayable'),
         ethers.ZeroHash,
         '0xb78edbd920c7867f187e5aa6294ae5a656cfbf0dea1ccdca3751b740d0f2bdf8',
       )
@@ -1475,9 +1333,7 @@ describe('TimelockController', () => {
       await this.mock.getTimestamp(operation.id).then(time.increaseTo.timestamp)
 
       expect(await ethers.provider.getBalance(this.mock)).to.equal(0n)
-      expect(await ethers.provider.getBalance(this.callreceivermock)).to.equal(
-        0n,
-      )
+      expect(await ethers.provider.getBalance(this.callreceivermock)).to.equal(0n)
 
       await expect(
         this.mock
@@ -1492,18 +1348,14 @@ describe('TimelockController', () => {
       ).to.be.revertedWithCustomError(this.mock, 'FailedCall')
 
       expect(await ethers.provider.getBalance(this.mock)).to.equal(0n)
-      expect(await ethers.provider.getBalance(this.callreceivermock)).to.equal(
-        0n,
-      )
+      expect(await ethers.provider.getBalance(this.callreceivermock)).to.equal(0n)
     })
 
     it('call reverting with eth', async function () {
       const operation = genOperation(
         this.callreceivermock,
         1,
-        this.callreceivermock.interface.encodeFunctionData(
-          'mockFunctionRevertsNoReason',
-        ),
+        this.callreceivermock.interface.encodeFunctionData('mockFunctionRevertsNoReason'),
         ethers.ZeroHash,
         '0xdedb4563ef0095db01d81d3f2decf57cf83e4a72aa792af14c43a792b56f4de6',
       )
@@ -1522,9 +1374,7 @@ describe('TimelockController', () => {
       await this.mock.getTimestamp(operation.id).then(time.increaseTo.timestamp)
 
       expect(await ethers.provider.getBalance(this.mock)).to.equal(0n)
-      expect(await ethers.provider.getBalance(this.callreceivermock)).to.equal(
-        0n,
-      )
+      expect(await ethers.provider.getBalance(this.callreceivermock)).to.equal(0n)
 
       await expect(
         this.mock
@@ -1539,9 +1389,7 @@ describe('TimelockController', () => {
       ).to.be.revertedWithCustomError(this.mock, 'FailedCall')
 
       expect(await ethers.provider.getBalance(this.mock)).to.equal(0n)
-      expect(await ethers.provider.getBalance(this.callreceivermock)).to.equal(
-        0n,
-      )
+      expect(await ethers.provider.getBalance(this.callreceivermock)).to.equal(0n)
     })
   })
 
@@ -1550,17 +1398,12 @@ describe('TimelockController', () => {
       const tokenId = 1n
 
       beforeEach(async function () {
-        this.token = await ethers.deployContract('$ERC721', [
-          'Non Fungible Token',
-          'NFT',
-        ])
+        this.token = await ethers.deployContract('$ERC721', ['Non Fungible Token', 'NFT'])
         await this.token.$_mint(this.other, tokenId)
       })
 
       it('can receive an ERC721 safeTransfer', async function () {
-        await this.token
-          .connect(this.other)
-          .safeTransferFrom(this.other, this.mock, tokenId)
+        await this.token.connect(this.other).safeTransferFrom(this.other, this.mock, tokenId)
       })
     })
 
@@ -1572,9 +1415,7 @@ describe('TimelockController', () => {
       }
 
       beforeEach(async function () {
-        this.token = await ethers.deployContract('$ERC1155', [
-          'https://token-cdn-domain/{id}.json',
-        ])
+        this.token = await ethers.deployContract('$ERC1155', ['https://token-cdn-domain/{id}.json'])
         await this.token.$_mintBatch(
           this.other,
           Object.keys(tokenIds),

@@ -1,10 +1,7 @@
 const { ethers } = require('hardhat')
 const { loadFixture } = require('@nomicfoundation/hardhat-network-helpers')
 
-const {
-  shouldBehaveLikeERC721,
-  shouldBehaveLikeERC721Metadata,
-} = require('./ERC721.behavior')
+const { shouldBehaveLikeERC721, shouldBehaveLikeERC721Metadata } = require('./ERC721.behavior')
 
 const name = 'Non Fungible Token'
 const symbol = 'NFT'

@@ -15,4 +15,3 @@
   },
   "include": ["**/*.ts", "../../config/typescript/reset.d.ts"]
 }
-

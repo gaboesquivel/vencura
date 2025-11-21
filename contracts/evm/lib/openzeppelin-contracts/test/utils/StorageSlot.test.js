@@ -79,23 +79,17 @@ describe('StorageSlot', () => {
         })
 
         it('from right slot', async function () {
-          expect(await this.mock.getFunction(`get${name}Slot`)(slot)).to.equal(
-            value,
-          )
+          expect(await this.mock.getFunction(`get${name}Slot`)(slot)).to.equal(value)
         })
 
         it('from other slot', async function () {
-          expect(
-            await this.mock.getFunction(`get${name}Slot`)(otherSlot),
-          ).to.equal(zero)
+          expect(await this.mock.getFunction(`get${name}Slot`)(otherSlot)).to.equal(zero)
         })
       })
     })
   }
 
-  for (const { name, type, value, zero } of TYPES.filter(
-    (type) => !type.isValueType,
-  )) {
+  for (const { name, type, value, zero } of TYPES.filter(type => !type.isValueType)) {
     describe(`${type} storage pointer`, () => {
       it('set', async function () {
         await this.mock.getFunction(`set${name}Storage`)(slot, value)
@@ -107,21 +101,13 @@ describe('StorageSlot', () => {
         })
 
         it('from right slot', async function () {
-          expect(await this.mock.getFunction(`${type}Map`)(slot)).to.equal(
-            value,
-          )
-          expect(
-            await this.mock.getFunction(`get${name}Storage`)(slot),
-          ).to.equal(value)
+          expect(await this.mock.getFunction(`${type}Map`)(slot)).to.equal(value)
+          expect(await this.mock.getFunction(`get${name}Storage`)(slot)).to.equal(value)
         })
 
         it('from other slot', async function () {
-          expect(await this.mock.getFunction(`${type}Map`)(otherSlot)).to.equal(
-            zero,
-          )
-          expect(
-            await this.mock.getFunction(`get${name}Storage`)(otherSlot),
-          ).to.equal(zero)
+          expect(await this.mock.getFunction(`${type}Map`)(otherSlot)).to.equal(zero)
+          expect(await this.mock.getFunction(`get${name}Storage`)(otherSlot)).to.equal(zero)
         })
       })
     })

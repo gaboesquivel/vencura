@@ -4,8 +4,7 @@ const { OPTS } = require('./MerkleProof.opts')
 const DEFAULT_HASH = 'Hashes.commutativeKeccak256'
 
 const formatArgsSingleLine = (...args) => args.filter(Boolean).join(', ')
-const formatArgsMultiline = (...args) =>
-  '\n' + format(args.filter(Boolean).join(',\0').split('\0'))
+const formatArgsMultiline = (...args) => '\n' + format(args.filter(Boolean).join(',\0').split('\0'))
 
 // TEMPLATE
 const header = `\
@@ -70,9 +69,7 @@ function verify${suffix}(${(hash ? formatArgsMultiline : formatArgsSingleLine)(
  *
  * This version handles proofs in ${location} with ${hash ? 'a custom' : 'the default'} hashing function.
  */
-function processProof${suffix}(${(hash
-  ? formatArgsMultiline
-  : formatArgsSingleLine)(
+function processProof${suffix}(${(hash ? formatArgsMultiline : formatArgsSingleLine)(
   `bytes32[] ${location} proof`,
   'bytes32 leaf',
   hash && `function(bytes32, bytes32) view returns (bytes32) ${hash}`,
@@ -182,8 +179,8 @@ module.exports = format(
   format(
     [].concat(
       errors,
-      OPTS.flatMap((opts) => templateProof(opts)),
-      OPTS.flatMap((opts) => templateMultiProof(opts)),
+      OPTS.flatMap(opts => templateProof(opts)),
+      OPTS.flatMap(opts => templateMultiProof(opts)),
     ),
   ).trimEnd(),
   '}',

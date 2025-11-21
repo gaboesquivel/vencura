@@ -1,9 +1,6 @@
 const { ethers } = require('hardhat')
 const { expect } = require('chai')
-const {
-  loadFixture,
-  mine,
-} = require('@nomicfoundation/hardhat-network-helpers')
+const { loadFixture, mine } = require('@nomicfoundation/hardhat-network-helpers')
 
 const { sum } = require('../../helpers/math')
 const { zip } = require('../../helpers/iterate')
@@ -57,9 +54,7 @@ describe('VotesExtended', () => {
         })
 
         it('reverts if block number >= current block', async function () {
-          const lastTxTimepoint = await time.clockFromReceipt[mode](
-            this.txs.at(-1),
-          )
+          const lastTxTimepoint = await time.clockFromReceipt[mode](this.txs.at(-1))
           const clock = await this.votes.clock()
           await expect(this.votes.getPastTotalSupply(lastTxTimepoint))
             .to.be.revertedWithCustomError(this.votes, 'ERC5805FutureLookup')
@@ -69,56 +64,31 @@ describe('VotesExtended', () => {
         it('delegates', async function () {
           expect(await this.votes.getVotes(this.accounts[0])).to.equal(0n)
           expect(await this.votes.getVotes(this.accounts[1])).to.equal(0n)
-          expect(await this.votes.delegates(this.accounts[0])).to.equal(
-            ethers.ZeroAddress,
-          )
-          expect(await this.votes.delegates(this.accounts[1])).to.equal(
-            ethers.ZeroAddress,
-          )
+          expect(await this.votes.delegates(this.accounts[0])).to.equal(ethers.ZeroAddress)
+          expect(await this.votes.delegates(this.accounts[1])).to.equal(ethers.ZeroAddress)
 
-          await this.votes.delegate(
-            this.accounts[0],
-            ethers.Typed.address(this.accounts[0]),
-          )
+          await this.votes.delegate(this.accounts[0], ethers.Typed.address(this.accounts[0]))
 
           expect(await this.votes.getVotes(this.accounts[0])).to.equal(
             this.amounts[this.accounts[0].address],
           )
           expect(await this.votes.getVotes(this.accounts[1])).to.equal(0n)
-          expect(await this.votes.delegates(this.accounts[0])).to.equal(
-            this.accounts[0],
-          )
-          expect(await this.votes.delegates(this.accounts[1])).to.equal(
-            ethers.ZeroAddress,
-          )
+          expect(await this.votes.delegates(this.accounts[0])).to.equal(this.accounts[0])
+          expect(await this.votes.delegates(this.accounts[1])).to.equal(ethers.ZeroAddress)
 
-          await this.votes.delegate(
-            this.accounts[1],
-            ethers.Typed.address(this.accounts[0]),
-          )
+          await this.votes.delegate(this.accounts[1], ethers.Typed.address(this.accounts[0]))
 
           expect(await this.votes.getVotes(this.accounts[0])).to.equal(
-            this.amounts[this.accounts[0].address] +
-              this.amounts[this.accounts[1].address],
+            this.amounts[this.accounts[0].address] + this.amounts[this.accounts[1].address],
           )
           expect(await this.votes.getVotes(this.accounts[1])).to.equal(0n)
-          expect(await this.votes.delegates(this.accounts[0])).to.equal(
-            this.accounts[0],
-          )
-          expect(await this.votes.delegates(this.accounts[1])).to.equal(
-            this.accounts[0],
-          )
+          expect(await this.votes.delegates(this.accounts[0])).to.equal(this.accounts[0])
+          expect(await this.votes.delegates(this.accounts[1])).to.equal(this.accounts[0])
         })
 
         it('cross delegates', async function () {
-          await this.votes.delegate(
-            this.accounts[0],
-            ethers.Typed.address(this.accounts[1]),
-          )
-          await this.votes.delegate(
-            this.accounts[1],
-            ethers.Typed.address(this.accounts[0]),
-          )
+          await this.votes.delegate(this.accounts[0], ethers.Typed.address(this.accounts[1]))
+          await this.votes.delegate(this.accounts[1], ethers.Typed.address(this.accounts[0]))
 
           expect(await this.votes.getVotes(this.accounts[0])).to.equal(
             this.amounts[this.accounts[1].address],
@@ -148,15 +118,15 @@ describe('VotesExtended', () => {
         const timepoint = await time.clockFromReceipt[mode](tx)
         await mine(2)
 
-        expect(
-          await this.votes.getPastDelegate(this.accounts[0], timepoint - 1n),
-        ).to.equal(ethers.ZeroAddress)
-        expect(
-          await this.votes.getPastDelegate(this.accounts[0], timepoint),
-        ).to.equal(this.accounts[1].address)
-        expect(
-          await this.votes.getPastDelegate(this.accounts[0], timepoint + 1n),
-        ).to.equal(this.accounts[1].address)
+        expect(await this.votes.getPastDelegate(this.accounts[0], timepoint - 1n)).to.equal(
+          ethers.ZeroAddress,
+        )
+        expect(await this.votes.getPastDelegate(this.accounts[0], timepoint)).to.equal(
+          this.accounts[1].address,
+        )
+        expect(await this.votes.getPastDelegate(this.accounts[0], timepoint + 1n)).to.equal(
+          this.accounts[1].address,
+        )
       })
 
       it('reverts if current timepoint <= timepoint', async function () {
@@ -166,9 +136,7 @@ describe('VotesExtended', () => {
         )
         const timepoint = await time.clockFromReceipt[mode](tx)
 
-        await expect(
-          this.votes.getPastDelegate(this.accounts[0], timepoint + 1n),
-        )
+        await expect(this.votes.getPastDelegate(this.accounts[0], timepoint + 1n))
           .to.be.revertedWithCustomError(this.votes, 'ERC5805FutureLookup')
           .withArgs(timepoint + 1n, timepoint)
       })
@@ -185,22 +153,13 @@ describe('VotesExtended', () => {
         await mine(2)
 
         expect(
-          await this.votes.getPastBalanceOf(
-            this.accounts[0].address,
-            timepoint - 1n,
-          ),
+          await this.votes.getPastBalanceOf(this.accounts[0].address, timepoint - 1n),
         ).to.equal(0n)
+        expect(await this.votes.getPastBalanceOf(this.accounts[0].address, timepoint)).to.equal(
+          100n,
+        )
         expect(
-          await this.votes.getPastBalanceOf(
-            this.accounts[0].address,
-            timepoint,
-          ),
-        ).to.equal(100n)
-        expect(
-          await this.votes.getPastBalanceOf(
-            this.accounts[0].address,
-            timepoint + 1n,
-          ),
+          await this.votes.getPastBalanceOf(this.accounts[0].address, timepoint + 1n),
         ).to.equal(100n)
       })
 
@@ -208,9 +167,7 @@ describe('VotesExtended', () => {
         const tx = await this.votes.$_mint(this.accounts[0].address, 100n)
         const timepoint = await time.clockFromReceipt[mode](tx)
 
-        await expect(
-          this.votes.getPastBalanceOf(this.accounts[0], timepoint + 1n),
-        )
+        await expect(this.votes.getPastBalanceOf(this.accounts[0], timepoint + 1n))
           .to.be.revertedWithCustomError(this.votes, 'ERC5805FutureLookup')
           .withArgs(timepoint + 1n, timepoint)
       })

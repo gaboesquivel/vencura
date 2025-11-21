@@ -37,8 +37,7 @@ const {
 } = require('./AccessManager.predicate')
 
 async function fixture() {
-  const [admin, roleAdmin, roleGuardian, member, user, other] =
-    await ethers.getSigners()
+  const [admin, roleAdmin, roleGuardian, member, user, other] = await ethers.getSigners()
 
   // Build roles
   const roles = buildBaseRoles()
@@ -105,38 +104,28 @@ describe('AccessManager', () => {
 
   describe('during construction', () => {
     it('grants admin role to initialAdmin', async function () {
-      const manager = await ethers.deployContract('$AccessManager', [
-        this.other,
-      ])
+      const manager = await ethers.deployContract('$AccessManager', [this.other])
       expect(
-        await manager
-          .hasRole(this.roles.ADMIN.id, this.other)
-          .then(formatAccess),
+        await manager.hasRole(this.roles.ADMIN.id, this.other).then(formatAccess),
       ).to.be.deep.equal([true, '0'])
     })
 
     it('rejects zero address for initialAdmin', async function () {
-      await expect(
-        ethers.deployContract('$AccessManager', [ethers.ZeroAddress]),
-      )
-        .to.be.revertedWithCustomError(
-          this.manager,
-          'AccessManagerInvalidInitialAdmin',
-        )
+      await expect(ethers.deployContract('$AccessManager', [ethers.ZeroAddress]))
+        .to.be.revertedWithCustomError(this.manager, 'AccessManagerInvalidInitialAdmin')
         .withArgs(ethers.ZeroAddress)
     })
 
     it('initializes setup roles correctly', async function () {
-      for (const { id: roleId, admin, guardian, members } of Object.values(
-        this.roles,
-      )) {
+      for (const { id: roleId, admin, guardian, members } of Object.values(this.roles)) {
         expect(await this.manager.getRoleAdmin(roleId)).to.equal(admin.id)
         expect(await this.manager.getRoleGuardian(roleId)).to.equal(guardian.id)
 
         for (const user of this.roles.PUBLIC.members) {
-          expect(
-            await this.manager.hasRole(roleId, user).then(formatAccess),
-          ).to.be.deep.equal([members.includes(user), '0'])
+          expect(await this.manager.hasRole(roleId, user).then(formatAccess)).to.be.deep.equal([
+            members.includes(user),
+            '0',
+          ])
         }
       }
     })
@@ -228,12 +217,11 @@ describe('AccessManager', () => {
                             self.mineDelay = true
 
                             it('should return false and execution delay', async function () {
-                              const { immediate, delay } =
-                                await this.manager.canCall(
-                                  this.caller,
-                                  this.target,
-                                  this.calldata.substring(0, 10),
-                                )
+                              const { immediate, delay } = await this.manager.canCall(
+                                this.caller,
+                                this.target,
+                                this.calldata.substring(0, 10),
+                              )
                               expect(immediate).to.be.false
                               expect(delay).to.equal(this.executionDelay)
                             })
@@ -242,12 +230,11 @@ describe('AccessManager', () => {
                             self.mineDelay = true
 
                             it('should return false and execution delay', async function () {
-                              const { immediate, delay } =
-                                await this.manager.canCall(
-                                  this.caller,
-                                  this.target,
-                                  this.calldata.substring(0, 10),
-                                )
+                              const { immediate, delay } = await this.manager.canCall(
+                                this.caller,
+                                this.target,
+                                this.calldata.substring(0, 10),
+                              )
                               expect(immediate).to.be.false
                               expect(delay).to.equal(this.executionDelay)
                             })
@@ -256,12 +243,11 @@ describe('AccessManager', () => {
                             self.mineDelay = true
 
                             it('should return false and execution delay', async function () {
-                              const { immediate, delay } =
-                                await this.manager.canCall(
-                                  this.caller,
-                                  this.target,
-                                  this.calldata.substring(0, 10),
-                                )
+                              const { immediate, delay } = await this.manager.canCall(
+                                this.caller,
+                                this.target,
+                                this.calldata.substring(0, 10),
+                              )
                               expect(immediate).to.be.false
                               expect(delay).to.equal(this.executionDelay)
                             })
@@ -269,12 +255,11 @@ describe('AccessManager', () => {
                         },
                         notScheduled() {
                           it('should return false and execution delay', async function () {
-                            const { immediate, delay } =
-                              await this.manager.canCall(
-                                this.caller,
-                                this.target,
-                                this.calldata.substring(0, 10),
-                              )
+                            const { immediate, delay } = await this.manager.canCall(
+                              this.caller,
+                              this.target,
+                              this.calldata.substring(0, 10),
+                            )
                             expect(immediate).to.be.false
                             expect(delay).to.equal(this.executionDelay)
                           })
@@ -385,21 +370,17 @@ describe('AccessManager', () => {
 
       it('returns the target function role', async function () {
         const roleId = 21498n
-        await this.manager.$_setTargetFunctionRole(
-          this.target,
-          methodSelector,
+        await this.manager.$_setTargetFunctionRole(this.target, methodSelector, roleId)
+
+        expect(await this.manager.getTargetFunctionRole(this.target, methodSelector)).to.equal(
           roleId,
         )
-
-        expect(
-          await this.manager.getTargetFunctionRole(this.target, methodSelector),
-        ).to.equal(roleId)
       })
 
       it('returns the ADMIN role if not set', async function () {
-        expect(
-          await this.manager.getTargetFunctionRole(this.target, methodSelector),
-        ).to.equal(this.roles.ADMIN.id)
+        expect(await this.manager.getTargetFunctionRole(this.target, methodSelector)).to.equal(
+          this.roles.ADMIN.id,
+        )
       })
     })
 
@@ -418,18 +399,14 @@ describe('AccessManager', () => {
             self.mineDelay = true
 
             it('returns the old target admin delay', async function () {
-              expect(
-                await this.manager.getTargetAdminDelay(this.target),
-              ).to.equal(this.oldDelay)
+              expect(await this.manager.getTargetAdminDelay(this.target)).to.equal(this.oldDelay)
             })
           },
           after: function self() {
             self.mineDelay = true
 
             it('returns the new target admin delay', async function () {
-              expect(
-                await this.manager.getTargetAdminDelay(this.target),
-              ).to.equal(this.newDelay)
+              expect(await this.manager.getTargetAdminDelay(this.target)).to.equal(this.newDelay)
             })
           },
         })
@@ -452,9 +429,7 @@ describe('AccessManager', () => {
       })
 
       it('returns the ADMIN role if not set', async function () {
-        expect(await this.manager.getRoleAdmin(roleId)).to.equal(
-          this.roles.ADMIN.id,
-        )
+        expect(await this.manager.getRoleAdmin(roleId)).to.equal(this.roles.ADMIN.id)
       })
     })
 
@@ -470,9 +445,7 @@ describe('AccessManager', () => {
       })
 
       it('returns the ADMIN role if not set', async function () {
-        expect(await this.manager.getRoleGuardian(roleId)).to.equal(
-          this.roles.ADMIN.id,
-        )
+        expect(await this.manager.getRoleGuardian(roleId)).to.equal(this.roles.ADMIN.id)
       })
     })
 
@@ -493,18 +466,14 @@ describe('AccessManager', () => {
             self.mineDelay = true
 
             it('returns the old role grant delay', async function () {
-              expect(await this.manager.getRoleGrantDelay(roleId)).to.equal(
-                this.oldDelay,
-              )
+              expect(await this.manager.getRoleGrantDelay(roleId)).to.equal(this.oldDelay)
             })
           },
           after: function self() {
             self.mineDelay = true
 
             it('returns the new role grant delay', async function () {
-              expect(await this.manager.getRoleGrantDelay(roleId)).to.equal(
-                this.newDelay,
-              )
+              expect(await this.manager.getRoleGrantDelay(roleId)).to.equal(this.newDelay)
             })
           },
         })
@@ -529,10 +498,7 @@ describe('AccessManager', () => {
                 self.mineDelay = true
 
                 it('role is not in effect and execution delay is set', async function () {
-                  const access = await this.manager.getAccess(
-                    this.role.id,
-                    this.caller,
-                  )
+                  const access = await this.manager.getAccess(this.role.id, this.caller)
                   expect(access[0]).to.equal(this.delayEffect) // inEffectSince
                   expect(access[1]).to.equal(this.executionDelay) // currentDelay
                   expect(access[2]).to.equal(0n) // pendingDelay
@@ -546,10 +512,7 @@ describe('AccessManager', () => {
                 self.mineDelay = true
 
                 it('access has role in effect and execution delay is set', async function () {
-                  const access = await this.manager.getAccess(
-                    this.role.id,
-                    this.caller,
-                  )
+                  const access = await this.manager.getAccess(this.role.id, this.caller)
 
                   expect(access[0]).to.equal(this.delayEffect) // inEffectSince
                   expect(access[1]).to.equal(this.executionDelay) // currentDelay
@@ -566,10 +529,7 @@ describe('AccessManager', () => {
                 self.mineDelay = true
 
                 it('access has role not in effect without execution delay', async function () {
-                  const access = await this.manager.getAccess(
-                    this.role.id,
-                    this.caller,
-                  )
+                  const access = await this.manager.getAccess(this.role.id, this.caller)
                   expect(access[0]).to.equal(this.delayEffect) // inEffectSince
                   expect(access[1]).to.equal(0n) // currentDelay
                   expect(access[2]).to.equal(0n) // pendingDelay
@@ -583,10 +543,7 @@ describe('AccessManager', () => {
                 self.mineDelay = true
 
                 it('role is in effect without execution delay', async function () {
-                  const access = await this.manager.getAccess(
-                    this.role.id,
-                    this.caller,
-                  )
+                  const access = await this.manager.getAccess(this.role.id, this.caller)
                   expect(access[0]).to.equal(this.delayEffect) // inEffectSince
                   expect(access[1]).to.equal(0n) // currentDelay
                   expect(access[2]).to.equal(0n) // pendingDelay
@@ -601,10 +558,7 @@ describe('AccessManager', () => {
           roleGrantingIsNotDelayed: {
             callerHasAnExecutionDelay() {
               it('access has role in effect and execution delay is set', async function () {
-                const access = await this.manager.getAccess(
-                  this.role.id,
-                  this.caller,
-                )
+                const access = await this.manager.getAccess(this.role.id, this.caller)
                 expect(access[0]).to.equal(await time.clock.timestamp()) // inEffectSince
                 expect(access[1]).to.equal(this.executionDelay) // currentDelay
                 expect(access[2]).to.equal(0n) // pendingDelay
@@ -616,10 +570,7 @@ describe('AccessManager', () => {
             },
             callerHasNoExecutionDelay() {
               it('access has role in effect without execution delay', async function () {
-                const access = await this.manager.getAccess(
-                  this.role.id,
-                  this.caller,
-                )
+                const access = await this.manager.getAccess(this.role.id, this.caller)
                 expect(access[0]).to.equal(await time.clock.timestamp()) // inEffectSince
                 expect(access[1]).to.equal(0n) // currentDelay
                 expect(access[2]).to.equal(0n) // pendingDelay
@@ -633,10 +584,7 @@ describe('AccessManager', () => {
         },
         requiredRoleIsNotGranted() {
           it('has empty access', async function () {
-            const access = await this.manager.getAccess(
-              this.role.id,
-              this.caller,
-            )
+            const access = await this.manager.getAccess(this.role.id, this.caller)
             expect(access[0]).to.equal(0n) // inEffectSince
             expect(access[1]).to.equal(0n) // currentDelay
             expect(access[2]).to.equal(0n) // pendingDelay
@@ -672,8 +620,10 @@ describe('AccessManager', () => {
                   self.mineDelay = true
 
                   it('does not have role but execution delay', async function () {
-                    const { isMember, executionDelay } =
-                      await this.manager.hasRole(this.role.id, this.caller)
+                    const { isMember, executionDelay } = await this.manager.hasRole(
+                      this.role.id,
+                      this.caller,
+                    )
                     expect(isMember).to.be.false
                     expect(executionDelay).to.equal(this.executionDelay)
                   })
@@ -682,8 +632,10 @@ describe('AccessManager', () => {
                   self.mineDelay = true
 
                   it('has role and execution delay', async function () {
-                    const { isMember, executionDelay } =
-                      await this.manager.hasRole(this.role.id, this.caller)
+                    const { isMember, executionDelay } = await this.manager.hasRole(
+                      this.role.id,
+                      this.caller,
+                    )
                     expect(isMember).to.be.true
                     expect(executionDelay).to.equal(this.executionDelay)
                   })
@@ -694,8 +646,10 @@ describe('AccessManager', () => {
                   self.mineDelay = true
 
                   it('does not have role nor execution delay', async function () {
-                    const { isMember, executionDelay } =
-                      await this.manager.hasRole(this.role.id, this.caller)
+                    const { isMember, executionDelay } = await this.manager.hasRole(
+                      this.role.id,
+                      this.caller,
+                    )
                     expect(isMember).to.be.false
                     expect(executionDelay).to.equal('0')
                   })
@@ -704,8 +658,10 @@ describe('AccessManager', () => {
                   self.mineDelay = true
 
                   it('has role and no execution delay', async function () {
-                    const { isMember, executionDelay } =
-                      await this.manager.hasRole(this.role.id, this.caller)
+                    const { isMember, executionDelay } = await this.manager.hasRole(
+                      this.role.id,
+                      this.caller,
+                    )
                     expect(isMember).to.be.true
                     expect(executionDelay).to.equal('0')
                   })
@@ -715,16 +671,20 @@ describe('AccessManager', () => {
             roleGrantingIsNotDelayed: {
               callerHasAnExecutionDelay() {
                 it('has role and execution delay', async function () {
-                  const { isMember, executionDelay } =
-                    await this.manager.hasRole(this.role.id, this.caller)
+                  const { isMember, executionDelay } = await this.manager.hasRole(
+                    this.role.id,
+                    this.caller,
+                  )
                   expect(isMember).to.be.true
                   expect(executionDelay).to.equal(this.executionDelay)
                 })
               },
               callerHasNoExecutionDelay() {
                 it('has role and no execution delay', async function () {
-                  const { isMember, executionDelay } =
-                    await this.manager.hasRole(this.role.id, this.caller)
+                  const { isMember, executionDelay } = await this.manager.hasRole(
+                    this.role.id,
+                    this.caller,
+                  )
                   expect(isMember).to.be.true
                   expect(executionDelay).to.equal('0')
                 })
@@ -750,17 +710,10 @@ describe('AccessManager', () => {
         const fnRestricted = this.target.fnRestricted.getFragment().selector
         this.caller = this.user
         this.role = { id: 493590n }
-        await this.manager.$_setTargetFunctionRole(
-          this.target,
-          fnRestricted,
-          this.role.id,
-        )
+        await this.manager.$_setTargetFunctionRole(this.target, fnRestricted, this.role.id)
         await this.manager.$_grantRole(this.role.id, this.caller, 0, 1) // nonzero execution delay
 
-        this.calldata = this.target.interface.encodeFunctionData(
-          fnRestricted,
-          [],
-        )
+        this.calldata = this.target.interface.encodeFunctionData(fnRestricted, [])
         this.scheduleIn = time.duration.days(10) // For testAsSchedulableOperation
       })
 
@@ -788,17 +741,13 @@ describe('AccessManager', () => {
             self.mineDelay = true
 
             it('returns 0', async function () {
-              expect(await this.manager.getSchedule(this.operationId)).to.equal(
-                0n,
-              )
+              expect(await this.manager.getSchedule(this.operationId)).to.equal(0n)
             })
           },
         },
         notScheduled() {
           it('defaults to 0', async function () {
-            expect(await this.manager.getSchedule(this.operationId)).to.equal(
-              0n,
-            )
+            expect(await this.manager.getSchedule(this.operationId)).to.equal(0n)
           })
         },
       })
@@ -810,28 +759,18 @@ describe('AccessManager', () => {
           const fnRestricted = this.target.fnRestricted.getFragment().selector
           this.caller = this.user
           this.role = { id: 4209043n }
-          await this.manager.$_setTargetFunctionRole(
-            this.target,
-            fnRestricted,
-            this.role.id,
-          )
+          await this.manager.$_setTargetFunctionRole(this.target, fnRestricted, this.role.id)
           await this.manager.$_grantRole(this.role.id, this.caller, 0, 1) // nonzero execution delay
 
-          this.calldata = this.target.interface.encodeFunctionData(
-            fnRestricted,
-            [],
-          )
+          this.calldata = this.target.interface.encodeFunctionData(fnRestricted, [])
           this.delay = time.duration.days(10)
 
-          const { operationId, schedule } = await prepareOperation(
-            this.manager,
-            {
-              caller: this.caller,
-              target: this.target,
-              calldata: this.calldata,
-              delay: this.delay,
-            },
-          )
+          const { operationId, schedule } = await prepareOperation(this.manager, {
+            caller: this.caller,
+            target: this.target,
+            calldata: this.calldata,
+            delay: this.delay,
+          })
           await schedule()
           this.operationId = operationId
         })
@@ -843,9 +782,7 @@ describe('AccessManager', () => {
 
       describe('when is not scheduled', () => {
         it('returns default 0', async function () {
-          expect(await this.manager.getNonce(ethers.id('operation'))).to.equal(
-            0n,
-          )
+          expect(await this.manager.getNonce(ethers.id('operation'))).to.equal(0n)
         })
       })
     })
@@ -853,9 +790,7 @@ describe('AccessManager', () => {
     describe('#hashOperation', () => {
       it('returns an operationId', async function () {
         const args = [this.user, this.other, '0x123543']
-        expect(await this.manager.hashOperation(...args)).to.equal(
-          hashOperation(...args),
-        )
+        expect(await this.manager.hashOperation(...args)).to.equal(hashOperation(...args))
       })
     })
   })
@@ -870,37 +805,24 @@ describe('AccessManager', () => {
         describe('restrictions', () => {
           beforeEach('set method and args', function () {
             const args = [123443, 'TEST']
-            const method = this.manager.interface.getFunction(
-              'labelRole(uint64,string)',
-            )
-            this.calldata = this.manager.interface.encodeFunctionData(
-              method,
-              args,
-            )
+            const method = this.manager.interface.getFunction('labelRole(uint64,string)')
+            this.calldata = this.manager.interface.encodeFunctionData(method, args)
           })
 
           shouldBehaveLikeDelayedAdminOperation()
         })
 
         it('emits an event with the label', async function () {
-          await expect(
-            this.manager
-              .connect(this.admin)
-              .labelRole(this.roles.SOME.id, 'Some label'),
-          )
+          await expect(this.manager.connect(this.admin).labelRole(this.roles.SOME.id, 'Some label'))
             .to.emit(this.manager, 'RoleLabel')
             .withArgs(this.roles.SOME.id, 'Some label')
         })
 
         it('updates label on a second call', async function () {
-          await this.manager
-            .connect(this.admin)
-            .labelRole(this.roles.SOME.id, 'Some label')
+          await this.manager.connect(this.admin).labelRole(this.roles.SOME.id, 'Some label')
 
           await expect(
-            this.manager
-              .connect(this.admin)
-              .labelRole(this.roles.SOME.id, 'Updated label'),
+            this.manager.connect(this.admin).labelRole(this.roles.SOME.id, 'Updated label'),
           )
             .to.emit(this.manager, 'RoleLabel')
             .withArgs(this.roles.SOME.id, 'Updated label')
@@ -908,27 +830,17 @@ describe('AccessManager', () => {
 
         it('reverts labeling PUBLIC_ROLE', async function () {
           await expect(
-            this.manager
-              .connect(this.admin)
-              .labelRole(this.roles.PUBLIC.id, 'Some label'),
+            this.manager.connect(this.admin).labelRole(this.roles.PUBLIC.id, 'Some label'),
           )
-            .to.be.revertedWithCustomError(
-              this.manager,
-              'AccessManagerLockedRole',
-            )
+            .to.be.revertedWithCustomError(this.manager, 'AccessManagerLockedRole')
             .withArgs(this.roles.PUBLIC.id)
         })
 
         it('reverts labeling ADMIN_ROLE', async function () {
           await expect(
-            this.manager
-              .connect(this.admin)
-              .labelRole(this.roles.ADMIN.id, 'Some label'),
+            this.manager.connect(this.admin).labelRole(this.roles.ADMIN.id, 'Some label'),
           )
-            .to.be.revertedWithCustomError(
-              this.manager,
-              'AccessManagerLockedRole',
-            )
+            .to.be.revertedWithCustomError(this.manager, 'AccessManagerLockedRole')
             .withArgs(this.roles.ADMIN.id)
         })
       })
@@ -937,13 +849,8 @@ describe('AccessManager', () => {
         describe('restrictions', () => {
           beforeEach('set method and args', function () {
             const args = [93445, 84532]
-            const method = this.manager.interface.getFunction(
-              'setRoleAdmin(uint64,uint64)',
-            )
-            this.calldata = this.manager.interface.encodeFunctionData(
-              method,
-              args,
-            )
+            const method = this.manager.interface.getFunction('setRoleAdmin(uint64,uint64)')
+            this.calldata = this.manager.interface.encodeFunctionData(method, args)
           })
 
           shouldBehaveLikeDelayedAdminOperation()
@@ -955,16 +862,12 @@ describe('AccessManager', () => {
           )
 
           await expect(
-            this.manager
-              .connect(this.admin)
-              .setRoleAdmin(this.roles.SOME.id, this.roles.ADMIN.id),
+            this.manager.connect(this.admin).setRoleAdmin(this.roles.SOME.id, this.roles.ADMIN.id),
           )
             .to.emit(this.manager, 'RoleAdminChanged')
             .withArgs(this.roles.SOME.id, this.roles.ADMIN.id)
 
-          expect(await this.manager.getRoleAdmin(this.roles.SOME.id)).to.equal(
-            this.roles.ADMIN.id,
-          )
+          expect(await this.manager.getRoleAdmin(this.roles.SOME.id)).to.equal(this.roles.ADMIN.id)
         })
 
         it('reverts setting PUBLIC_ROLE admin', async function () {
@@ -973,23 +876,15 @@ describe('AccessManager', () => {
               .connect(this.admin)
               .setRoleAdmin(this.roles.PUBLIC.id, this.roles.ADMIN.id),
           )
-            .to.be.revertedWithCustomError(
-              this.manager,
-              'AccessManagerLockedRole',
-            )
+            .to.be.revertedWithCustomError(this.manager, 'AccessManagerLockedRole')
             .withArgs(this.roles.PUBLIC.id)
         })
 
         it('reverts setting ADMIN_ROLE admin', async function () {
           await expect(
-            this.manager
-              .connect(this.admin)
-              .setRoleAdmin(this.roles.ADMIN.id, this.roles.ADMIN.id),
+            this.manager.connect(this.admin).setRoleAdmin(this.roles.ADMIN.id, this.roles.ADMIN.id),
           )
-            .to.be.revertedWithCustomError(
-              this.manager,
-              'AccessManagerLockedRole',
-            )
+            .to.be.revertedWithCustomError(this.manager, 'AccessManagerLockedRole')
             .withArgs(this.roles.ADMIN.id)
         })
       })
@@ -998,22 +893,17 @@ describe('AccessManager', () => {
         describe('restrictions', () => {
           beforeEach('set method and args', function () {
             const args = [93445, 84532]
-            const method = this.manager.interface.getFunction(
-              'setRoleGuardian(uint64,uint64)',
-            )
-            this.calldata = this.manager.interface.encodeFunctionData(
-              method,
-              args,
-            )
+            const method = this.manager.interface.getFunction('setRoleGuardian(uint64,uint64)')
+            this.calldata = this.manager.interface.encodeFunctionData(method, args)
           })
 
           shouldBehaveLikeDelayedAdminOperation()
         })
 
         it("sets any role's guardian if called by an admin", async function () {
-          expect(
-            await this.manager.getRoleGuardian(this.roles.SOME.id),
-          ).to.equal(this.roles.SOME_GUARDIAN.id)
+          expect(await this.manager.getRoleGuardian(this.roles.SOME.id)).to.equal(
+            this.roles.SOME_GUARDIAN.id,
+          )
 
           await expect(
             this.manager
@@ -1023,9 +913,9 @@ describe('AccessManager', () => {
             .to.emit(this.manager, 'RoleGuardianChanged')
             .withArgs(this.roles.SOME.id, this.roles.ADMIN.id)
 
-          expect(
-            await this.manager.getRoleGuardian(this.roles.SOME.id),
-          ).to.equal(this.roles.ADMIN.id)
+          expect(await this.manager.getRoleGuardian(this.roles.SOME.id)).to.equal(
+            this.roles.ADMIN.id,
+          )
         })
 
         it('reverts setting PUBLIC_ROLE admin', async function () {
@@ -1034,10 +924,7 @@ describe('AccessManager', () => {
               .connect(this.admin)
               .setRoleGuardian(this.roles.PUBLIC.id, this.roles.ADMIN.id),
           )
-            .to.be.revertedWithCustomError(
-              this.manager,
-              'AccessManagerLockedRole',
-            )
+            .to.be.revertedWithCustomError(this.manager, 'AccessManagerLockedRole')
             .withArgs(this.roles.PUBLIC.id)
         })
 
@@ -1047,10 +934,7 @@ describe('AccessManager', () => {
               .connect(this.admin)
               .setRoleGuardian(this.roles.ADMIN.id, this.roles.ADMIN.id),
           )
-            .to.be.revertedWithCustomError(
-              this.manager,
-              'AccessManagerLockedRole',
-            )
+            .to.be.revertedWithCustomError(this.manager, 'AccessManagerLockedRole')
             .withArgs(this.roles.ADMIN.id)
         })
       })
@@ -1059,28 +943,16 @@ describe('AccessManager', () => {
         describe('restrictions', () => {
           beforeEach('set method and args', function () {
             const args = [984910, time.duration.days(2)]
-            const method = this.manager.interface.getFunction(
-              'setGrantDelay(uint64,uint32)',
-            )
-            this.calldata = this.manager.interface.encodeFunctionData(
-              method,
-              args,
-            )
+            const method = this.manager.interface.getFunction('setGrantDelay(uint64,uint32)')
+            this.calldata = this.manager.interface.encodeFunctionData(method, args)
           })
 
           shouldBehaveLikeDelayedAdminOperation()
         })
 
         it('reverts setting grant delay for the PUBLIC_ROLE', async function () {
-          await expect(
-            this.manager
-              .connect(this.admin)
-              .setGrantDelay(this.roles.PUBLIC.id, 69n),
-          )
-            .to.be.revertedWithCustomError(
-              this.manager,
-              'AccessManagerLockedRole',
-            )
+          await expect(this.manager.connect(this.admin).setGrantDelay(this.roles.PUBLIC.id, 69n))
+            .to.be.revertedWithCustomError(this.manager, 'AccessManagerLockedRole')
             .withArgs(this.roles.PUBLIC.id)
         })
 
@@ -1092,28 +964,21 @@ describe('AccessManager', () => {
             this.role = this.roles.SOME
             await this.manager.$_setGrantDelay(this.role.id, oldDelay)
             await time.increaseBy.timestamp(MINSETBACK)
-            expect(await this.manager.getRoleGrantDelay(this.role.id)).to.equal(
-              oldDelay,
-            )
+            expect(await this.manager.getRoleGrantDelay(this.role.id)).to.equal(oldDelay)
           })
 
           it('increases the delay after minsetback', async function () {
             const txResponse = await this.manager
               .connect(this.admin)
               .setGrantDelay(this.role.id, newDelay)
-            const setGrantDelayAt =
-              await time.clockFromReceipt.timestamp(txResponse)
+            const setGrantDelayAt = await time.clockFromReceipt.timestamp(txResponse)
             await expect(txResponse)
               .to.emit(this.manager, 'RoleGrantDelayChanged')
               .withArgs(this.role.id, newDelay, setGrantDelayAt + MINSETBACK)
 
-            expect(await this.manager.getRoleGrantDelay(this.role.id)).to.equal(
-              oldDelay,
-            )
+            expect(await this.manager.getRoleGrantDelay(this.role.id)).to.equal(oldDelay)
             await time.increaseBy.timestamp(MINSETBACK)
-            expect(await this.manager.getRoleGrantDelay(this.role.id)).to.equal(
-              newDelay,
-            )
+            expect(await this.manager.getRoleGrantDelay(this.role.id)).to.equal(newDelay)
           })
         })
 
@@ -1124,9 +989,7 @@ describe('AccessManager', () => {
             this.role = this.roles.SOME
             await this.manager.$_setGrantDelay(this.role.id, oldDelay)
             await time.increaseBy.timestamp(MINSETBACK)
-            expect(await this.manager.getRoleGrantDelay(this.role.id)).to.equal(
-              oldDelay,
-            )
+            expect(await this.manager.getRoleGrantDelay(this.role.id)).to.equal(oldDelay)
           })
 
           describe('when the delay difference is shorter than minimum setback', () => {
@@ -1136,31 +999,23 @@ describe('AccessManager', () => {
               const txResponse = await this.manager
                 .connect(this.admin)
                 .setGrantDelay(this.role.id, newDelay)
-              const setGrantDelayAt =
-                await time.clockFromReceipt.timestamp(txResponse)
+              const setGrantDelayAt = await time.clockFromReceipt.timestamp(txResponse)
               await expect(txResponse)
                 .to.emit(this.manager, 'RoleGrantDelayChanged')
                 .withArgs(this.role.id, newDelay, setGrantDelayAt + MINSETBACK)
 
-              expect(
-                await this.manager.getRoleGrantDelay(this.role.id),
-              ).to.equal(oldDelay)
+              expect(await this.manager.getRoleGrantDelay(this.role.id)).to.equal(oldDelay)
               await time.increaseBy.timestamp(MINSETBACK)
-              expect(
-                await this.manager.getRoleGrantDelay(this.role.id),
-              ).to.equal(newDelay)
+              expect(await this.manager.getRoleGrantDelay(this.role.id)).to.equal(newDelay)
             })
           })
 
           describe('when the delay difference is longer than minimum setback', () => {
             const newDelay = 1n
 
-            beforeEach(
-              'assert delay difference is higher than minsetback',
-              () => {
-                expect(oldDelay - newDelay).to.gt(MINSETBACK)
-              },
-            )
+            beforeEach('assert delay difference is higher than minsetback', () => {
+              expect(oldDelay - newDelay).to.gt(MINSETBACK)
+            })
 
             it('increases the delay after delay difference', async function () {
               const setback = oldDelay - newDelay
@@ -1168,20 +1023,15 @@ describe('AccessManager', () => {
               const txResponse = await this.manager
                 .connect(this.admin)
                 .setGrantDelay(this.role.id, newDelay)
-              const setGrantDelayAt =
-                await time.clockFromReceipt.timestamp(txResponse)
+              const setGrantDelayAt = await time.clockFromReceipt.timestamp(txResponse)
 
               await expect(txResponse)
                 .to.emit(this.manager, 'RoleGrantDelayChanged')
                 .withArgs(this.role.id, newDelay, setGrantDelayAt + setback)
 
-              expect(
-                await this.manager.getRoleGrantDelay(this.role.id),
-              ).to.equal(oldDelay)
+              expect(await this.manager.getRoleGrantDelay(this.role.id)).to.equal(oldDelay)
               await time.increaseBy.timestamp(setback)
-              expect(
-                await this.manager.getRoleGrantDelay(this.role.id),
-              ).to.equal(newDelay)
+              expect(await this.manager.getRoleGrantDelay(this.role.id)).to.equal(newDelay)
             })
           })
         })
@@ -1191,13 +1041,8 @@ describe('AccessManager', () => {
         describe('restrictions', () => {
           beforeEach('set method and args', function () {
             const args = [this.other.address, time.duration.days(3)]
-            const method = this.manager.interface.getFunction(
-              'setTargetAdminDelay(address,uint32)',
-            )
-            this.calldata = this.manager.interface.encodeFunctionData(
-              method,
-              args,
-            )
+            const method = this.manager.interface.getFunction('setTargetAdminDelay(address,uint32)')
+            this.calldata = this.manager.interface.encodeFunctionData(method, args)
           })
 
           shouldBehaveLikeDelayedAdminOperation()
@@ -1210,32 +1055,21 @@ describe('AccessManager', () => {
           beforeEach('sets old delay', async function () {
             await this.manager.$_setTargetAdminDelay(this.other, oldDelay)
             await time.increaseBy.timestamp(MINSETBACK)
-            expect(await this.manager.getTargetAdminDelay(this.other)).to.equal(
-              oldDelay,
-            )
+            expect(await this.manager.getTargetAdminDelay(this.other)).to.equal(oldDelay)
           })
 
           it('increases the delay after minsetback', async function () {
             const txResponse = await this.manager
               .connect(this.admin)
               .setTargetAdminDelay(this.other, newDelay)
-            const setTargetAdminDelayAt =
-              await time.clockFromReceipt.timestamp(txResponse)
+            const setTargetAdminDelayAt = await time.clockFromReceipt.timestamp(txResponse)
             await expect(txResponse)
               .to.emit(this.manager, 'TargetAdminDelayUpdated')
-              .withArgs(
-                this.other,
-                newDelay,
-                setTargetAdminDelayAt + MINSETBACK,
-              )
+              .withArgs(this.other, newDelay, setTargetAdminDelayAt + MINSETBACK)
 
-            expect(await this.manager.getTargetAdminDelay(this.other)).to.equal(
-              oldDelay,
-            )
+            expect(await this.manager.getTargetAdminDelay(this.other)).to.equal(oldDelay)
             await time.increaseBy.timestamp(MINSETBACK)
-            expect(await this.manager.getTargetAdminDelay(this.other)).to.equal(
-              newDelay,
-            )
+            expect(await this.manager.getTargetAdminDelay(this.other)).to.equal(newDelay)
           })
         })
 
@@ -1245,9 +1079,7 @@ describe('AccessManager', () => {
           beforeEach('sets old delay', async function () {
             await this.manager.$_setTargetAdminDelay(this.other, oldDelay)
             await time.increaseBy.timestamp(MINSETBACK)
-            expect(await this.manager.getTargetAdminDelay(this.other)).to.equal(
-              oldDelay,
-            )
+            expect(await this.manager.getTargetAdminDelay(this.other)).to.equal(oldDelay)
           })
 
           describe('when the delay difference is shorter than minimum setback', () => {
@@ -1257,35 +1089,23 @@ describe('AccessManager', () => {
               const txResponse = await this.manager
                 .connect(this.admin)
                 .setTargetAdminDelay(this.other, newDelay)
-              const setTargetAdminDelayAt =
-                await time.clockFromReceipt.timestamp(txResponse)
+              const setTargetAdminDelayAt = await time.clockFromReceipt.timestamp(txResponse)
               await expect(txResponse)
                 .to.emit(this.manager, 'TargetAdminDelayUpdated')
-                .withArgs(
-                  this.other,
-                  newDelay,
-                  setTargetAdminDelayAt + MINSETBACK,
-                )
+                .withArgs(this.other, newDelay, setTargetAdminDelayAt + MINSETBACK)
 
-              expect(
-                await this.manager.getTargetAdminDelay(this.other),
-              ).to.equal(oldDelay)
+              expect(await this.manager.getTargetAdminDelay(this.other)).to.equal(oldDelay)
               await time.increaseBy.timestamp(MINSETBACK)
-              expect(
-                await this.manager.getTargetAdminDelay(this.other),
-              ).to.equal(newDelay)
+              expect(await this.manager.getTargetAdminDelay(this.other)).to.equal(newDelay)
             })
           })
 
           describe('when the delay difference is longer than minimum setback', () => {
             const newDelay = 1n
 
-            beforeEach(
-              'assert delay difference is higher than minsetback',
-              () => {
-                expect(oldDelay - newDelay).to.gt(MINSETBACK)
-              },
-            )
+            beforeEach('assert delay difference is higher than minsetback', () => {
+              expect(oldDelay - newDelay).to.gt(MINSETBACK)
+            })
 
             it('increases the delay after delay difference', async function () {
               const setback = oldDelay - newDelay
@@ -1293,20 +1113,15 @@ describe('AccessManager', () => {
               const txResponse = await this.manager
                 .connect(this.admin)
                 .setTargetAdminDelay(this.other, newDelay)
-              const setTargetAdminDelayAt =
-                await time.clockFromReceipt.timestamp(txResponse)
+              const setTargetAdminDelayAt = await time.clockFromReceipt.timestamp(txResponse)
 
               await expect(txResponse)
                 .to.emit(this.manager, 'TargetAdminDelayUpdated')
                 .withArgs(this.other, newDelay, setTargetAdminDelayAt + setback)
 
-              expect(
-                await this.manager.getTargetAdminDelay(this.other),
-              ).to.equal(oldDelay)
+              expect(await this.manager.getTargetAdminDelay(this.other)).to.equal(oldDelay)
               await time.increaseBy.timestamp(setback)
-              expect(
-                await this.manager.getTargetAdminDelay(this.other),
-              ).to.equal(newDelay)
+              expect(await this.manager.getTargetAdminDelay(this.other)).to.equal(newDelay)
             })
           })
         })
@@ -1316,13 +1131,10 @@ describe('AccessManager', () => {
     describe('not subject to a delay', () => {
       describe('#updateAuthority', () => {
         beforeEach('create a target and a new authority', async function () {
-          this.newAuthority = await ethers.deployContract('$AccessManager', [
-            this.admin,
+          this.newAuthority = await ethers.deployContract('$AccessManager', [this.admin])
+          this.newManagedTarget = await ethers.deployContract('$AccessManagedTarget', [
+            this.manager,
           ])
-          this.newManagedTarget = await ethers.deployContract(
-            '$AccessManagedTarget',
-            [this.manager],
-          )
         })
 
         describe('restrictions', () => {
@@ -1347,9 +1159,7 @@ describe('AccessManager', () => {
             .to.emit(this.newManagedTarget, 'AuthorityUpdated') // Managed contract is responsible of notifying the change through an event
             .withArgs(this.newAuthority)
 
-          expect(await this.newManagedTarget.authority()).to.equal(
-            this.newAuthority,
-          )
+          expect(await this.newManagedTarget.authority()).to.equal(this.newAuthority)
         })
       })
 
@@ -1357,31 +1167,20 @@ describe('AccessManager', () => {
         describe('restrictions', () => {
           beforeEach('set method and args', function () {
             const args = [this.other.address, true]
-            const method = this.manager.interface.getFunction(
-              'setTargetClosed(address,bool)',
-            )
-            this.calldata = this.manager.interface.encodeFunctionData(
-              method,
-              args,
-            )
+            const method = this.manager.interface.getFunction('setTargetClosed(address,bool)')
+            this.calldata = this.manager.interface.encodeFunctionData(method, args)
           })
 
           shouldBehaveLikeNotDelayedAdminOperation()
         })
 
         it('closes and opens a target', async function () {
-          await expect(
-            this.manager.connect(this.admin).setTargetClosed(this.target, true),
-          )
+          await expect(this.manager.connect(this.admin).setTargetClosed(this.target, true))
             .to.emit(this.manager, 'TargetClosed')
             .withArgs(this.target, true)
           expect(await this.manager.isTargetClosed(this.target)).to.be.true
 
-          await expect(
-            this.manager
-              .connect(this.admin)
-              .setTargetClosed(this.target, false),
-          )
+          await expect(this.manager.connect(this.admin).setTargetClosed(this.target, false))
             .to.emit(this.manager, 'TargetClosed')
             .withArgs(this.target, false)
           expect(await this.manager.isTargetClosed(this.target)).to.be.false
@@ -1389,20 +1188,12 @@ describe('AccessManager', () => {
 
         describe('when the target is the manager', async () => {
           it('closes and opens the manager', async function () {
-            await expect(
-              this.manager
-                .connect(this.admin)
-                .setTargetClosed(this.manager, true),
-            )
+            await expect(this.manager.connect(this.admin).setTargetClosed(this.manager, true))
               .to.emit(this.manager, 'TargetClosed')
               .withArgs(this.manager, true)
             expect(await this.manager.isTargetClosed(this.manager)).to.be.true
 
-            await expect(
-              this.manager
-                .connect(this.admin)
-                .setTargetClosed(this.manager, false),
-            )
+            await expect(this.manager.connect(this.admin).setTargetClosed(this.manager, false))
               .to.emit(this.manager, 'TargetClosed')
               .withArgs(this.manager, false)
             expect(await this.manager.isTargetClosed(this.manager)).to.be.false
@@ -1417,10 +1208,7 @@ describe('AccessManager', () => {
             const method = this.manager.interface.getFunction(
               'setTargetFunctionRole(address,bytes4[],uint64)',
             )
-            this.calldata = this.manager.interface.encodeFunctionData(
-              method,
-              args,
-            )
+            this.calldata = this.manager.interface.encodeFunctionData(method, args)
           })
 
           shouldBehaveLikeNotDelayedAdminOperation()
@@ -1434,9 +1222,9 @@ describe('AccessManager', () => {
 
         it('sets function roles', async function () {
           for (const sig of sigs) {
-            expect(
-              await this.manager.getTargetFunctionRole(this.target, sig),
-            ).to.equal(this.roles.ADMIN.id)
+            expect(await this.manager.getTargetFunctionRole(this.target, sig)).to.equal(
+              this.roles.ADMIN.id,
+            )
           }
 
           const allowRole = await this.manager
@@ -1447,27 +1235,21 @@ describe('AccessManager', () => {
             await expect(allowRole)
               .to.emit(this.manager, 'TargetFunctionRoleUpdated')
               .withArgs(this.target, sig, this.roles.SOME.id)
-            expect(
-              await this.manager.getTargetFunctionRole(this.target, sig),
-            ).to.equal(this.roles.SOME.id)
+            expect(await this.manager.getTargetFunctionRole(this.target, sig)).to.equal(
+              this.roles.SOME.id,
+            )
           }
 
           await expect(
             this.manager
               .connect(this.admin)
-              .setTargetFunctionRole(
-                this.target,
-                [sigs[1]],
-                this.roles.SOME_ADMIN.id,
-              ),
+              .setTargetFunctionRole(this.target, [sigs[1]], this.roles.SOME_ADMIN.id),
           )
             .to.emit(this.manager, 'TargetFunctionRoleUpdated')
             .withArgs(this.target, sigs[1], this.roles.SOME_ADMIN.id)
 
           for (const sig of sigs) {
-            expect(
-              await this.manager.getTargetFunctionRole(this.target, sig),
-            ).to.equal(
+            expect(await this.manager.getTargetFunctionRole(this.target, sig)).to.equal(
               sig == sigs[1] ? this.roles.SOME_ADMIN.id : this.roles.SOME.id,
             )
           }
@@ -1491,13 +1273,8 @@ describe('AccessManager', () => {
           describe('restrictions', () => {
             beforeEach('set method and args', function () {
               const args = [ANOTHER_ROLE, this.other.address, 0]
-              const method = this.manager.interface.getFunction(
-                'grantRole(uint64,address,uint32)',
-              )
-              this.calldata = this.manager.interface.encodeFunctionData(
-                method,
-                args,
-              )
+              const method = this.manager.interface.getFunction('grantRole(uint64,address,uint32)')
+              this.calldata = this.manager.interface.encodeFunctionData(method, args)
             })
 
             shouldBehaveLikeRoleAdminOperation(ANOTHER_ADMIN)
@@ -1505,14 +1282,9 @@ describe('AccessManager', () => {
 
           it('reverts when granting PUBLIC_ROLE', async function () {
             await expect(
-              this.manager
-                .connect(this.admin)
-                .grantRole(this.roles.PUBLIC.id, this.user, 0),
+              this.manager.connect(this.admin).grantRole(this.roles.PUBLIC.id, this.user, 0),
             )
-              .to.be.revertedWithCustomError(
-                this.manager,
-                'AccessManagerLockedRole',
-              )
+              .to.be.revertedWithCustomError(this.manager, 'AccessManagerLockedRole')
               .withArgs(this.roles.PUBLIC.id)
           })
 
@@ -1521,18 +1293,13 @@ describe('AccessManager', () => {
               beforeEach('set grant delay and grant role', async function () {
                 // Delay granting
                 this.grantDelay = time.duration.weeks(2)
-                await this.manager.$_setGrantDelay(
-                  ANOTHER_ROLE,
-                  this.grantDelay,
-                )
+                await this.manager.$_setGrantDelay(ANOTHER_ROLE, this.grantDelay)
                 await time.increaseBy.timestamp(MINSETBACK)
 
                 // Grant role
                 this.executionDelay = time.duration.days(3)
                 expect(
-                  await this.manager
-                    .hasRole(ANOTHER_ROLE, this.user)
-                    .then(formatAccess),
+                  await this.manager.hasRole(ANOTHER_ROLE, this.user).then(formatAccess),
                 ).to.be.deep.equal([false, '0'])
 
                 this.txResponse = await this.manager
@@ -1546,9 +1313,7 @@ describe('AccessManager', () => {
                   self.mineDelay = true
 
                   it('does not grant role to the user yet', async function () {
-                    const timestamp = await time.clockFromReceipt.timestamp(
-                      this.txResponse,
-                    )
+                    const timestamp = await time.clockFromReceipt.timestamp(this.txResponse)
                     await expect(this.txResponse)
                       .to.emit(this.manager, 'RoleGranted')
                       .withArgs(
@@ -1560,10 +1325,7 @@ describe('AccessManager', () => {
                       )
 
                     // Access is correctly stored
-                    const access = await this.manager.getAccess(
-                      ANOTHER_ROLE,
-                      this.user,
-                    )
+                    const access = await this.manager.getAccess(ANOTHER_ROLE, this.user)
                     expect(access[0]).to.equal(timestamp + this.grantDelay) // inEffectSince
                     expect(access[1]).to.equal(this.executionDelay) // currentDelay
                     expect(access[2]).to.equal(0n) // pendingDelay
@@ -1573,9 +1335,7 @@ describe('AccessManager', () => {
                     const currentTimestamp = await time.clock.timestamp()
                     expect(currentTimestamp).to.be.lt(access[0])
                     expect(
-                      await this.manager
-                        .hasRole(ANOTHER_ROLE, this.user)
-                        .then(formatAccess),
+                      await this.manager.hasRole(ANOTHER_ROLE, this.user).then(formatAccess),
                     ).to.be.deep.equal([false, this.executionDelay.toString()])
                   })
                 },
@@ -1583,9 +1343,7 @@ describe('AccessManager', () => {
                   self.mineDelay = true
 
                   it('grants role to the user', async function () {
-                    const timestamp = await time.clockFromReceipt.timestamp(
-                      this.txResponse,
-                    )
+                    const timestamp = await time.clockFromReceipt.timestamp(this.txResponse)
                     await expect(this.txResponse)
                       .to.emit(this.manager, 'RoleGranted')
                       .withArgs(
@@ -1597,10 +1355,7 @@ describe('AccessManager', () => {
                       )
 
                     // Access is correctly stored
-                    const access = await this.manager.getAccess(
-                      ANOTHER_ROLE,
-                      this.user,
-                    )
+                    const access = await this.manager.getAccess(ANOTHER_ROLE, this.user)
                     expect(access[0]).to.equal(timestamp + this.grantDelay) // inEffectSince
                     expect(access[1]).to.equal(this.executionDelay) // currentDelay
                     expect(access[2]).to.equal(0n) // pendingDelay
@@ -1610,9 +1365,7 @@ describe('AccessManager', () => {
                     const currentTimestamp = await time.clock.timestamp()
                     expect(currentTimestamp).to.equal(access[0])
                     expect(
-                      await this.manager
-                        .hasRole(ANOTHER_ROLE, this.user)
-                        .then(formatAccess),
+                      await this.manager.hasRole(ANOTHER_ROLE, this.user).then(formatAccess),
                     ).to.be.deep.equal([true, this.executionDelay.toString()])
                   })
                 },
@@ -1623,40 +1376,25 @@ describe('AccessManager', () => {
               beforeEach('set granting delay', async function () {
                 // Delay granting
                 this.grantDelay = 0
-                await this.manager.$_setGrantDelay(
-                  ANOTHER_ROLE,
-                  this.grantDelay,
-                )
+                await this.manager.$_setGrantDelay(ANOTHER_ROLE, this.grantDelay)
                 await time.increaseBy.timestamp(MINSETBACK)
               })
 
               it('immediately grants the role to the user', async function () {
                 const executionDelay = time.duration.days(6)
                 expect(
-                  await this.manager
-                    .hasRole(ANOTHER_ROLE, this.user)
-                    .then(formatAccess),
+                  await this.manager.hasRole(ANOTHER_ROLE, this.user).then(formatAccess),
                 ).to.be.deep.equal([false, '0'])
                 const txResponse = await this.manager
                   .connect(this.admin)
                   .grantRole(ANOTHER_ROLE, this.user, executionDelay)
-                const grantedAt =
-                  await time.clockFromReceipt.timestamp(txResponse)
+                const grantedAt = await time.clockFromReceipt.timestamp(txResponse)
                 await expect(txResponse)
                   .to.emit(this.manager, 'RoleGranted')
-                  .withArgs(
-                    ANOTHER_ROLE,
-                    this.user,
-                    executionDelay,
-                    grantedAt,
-                    true,
-                  )
+                  .withArgs(ANOTHER_ROLE, this.user, executionDelay, grantedAt, true)
 
                 // Access is correctly stored
-                const access = await this.manager.getAccess(
-                  ANOTHER_ROLE,
-                  this.user,
-                )
+                const access = await this.manager.getAccess(ANOTHER_ROLE, this.user)
                 expect(access[0]).to.equal(grantedAt) // inEffectSince
                 expect(access[1]).to.equal(executionDelay) // currentDelay
                 expect(access[2]).to.equal(0n) // pendingDelay
@@ -1666,9 +1404,7 @@ describe('AccessManager', () => {
                 const currentTimestamp = await time.clock.timestamp()
                 expect(currentTimestamp).to.equal(access[0])
                 expect(
-                  await this.manager
-                    .hasRole(ANOTHER_ROLE, this.user)
-                    .then(formatAccess),
+                  await this.manager.hasRole(ANOTHER_ROLE, this.user).then(formatAccess),
                 ).to.be.deep.equal([true, executionDelay.toString()])
               })
             })
@@ -1683,10 +1419,7 @@ describe('AccessManager', () => {
                 0,
                 this.previousExecutionDelay,
               )
-              this.oldAccess = await this.manager.getAccess(
-                ANOTHER_ROLE,
-                this.user,
-              )
+              this.oldAccess = await this.manager.getAccess(ANOTHER_ROLE, this.user)
             })
 
             describe('with grant delay', () => {
@@ -1698,53 +1431,29 @@ describe('AccessManager', () => {
               })
 
               describe('when increasing the execution delay', () => {
-                beforeEach(
-                  'set increased new execution delay',
-                  async function () {
-                    expect(
-                      await this.manager
-                        .hasRole(ANOTHER_ROLE, this.user)
-                        .then(formatAccess),
-                    ).to.be.deep.equal([
-                      true,
-                      this.previousExecutionDelay.toString(),
-                    ])
+                beforeEach('set increased new execution delay', async function () {
+                  expect(
+                    await this.manager.hasRole(ANOTHER_ROLE, this.user).then(formatAccess),
+                  ).to.be.deep.equal([true, this.previousExecutionDelay.toString()])
 
-                    this.newExecutionDelay =
-                      this.previousExecutionDelay + time.duration.days(4)
-                  },
-                )
+                  this.newExecutionDelay = this.previousExecutionDelay + time.duration.days(4)
+                })
 
                 it('emits event and immediately changes the execution delay', async function () {
                   expect(
-                    await this.manager
-                      .hasRole(ANOTHER_ROLE, this.user)
-                      .then(formatAccess),
-                  ).to.be.deep.equal([
-                    true,
-                    this.previousExecutionDelay.toString(),
-                  ])
+                    await this.manager.hasRole(ANOTHER_ROLE, this.user).then(formatAccess),
+                  ).to.be.deep.equal([true, this.previousExecutionDelay.toString()])
                   const txResponse = await this.manager
                     .connect(this.admin)
                     .grantRole(ANOTHER_ROLE, this.user, this.newExecutionDelay)
-                  const timestamp =
-                    await time.clockFromReceipt.timestamp(txResponse)
+                  const timestamp = await time.clockFromReceipt.timestamp(txResponse)
 
                   await expect(txResponse)
                     .to.emit(this.manager, 'RoleGranted')
-                    .withArgs(
-                      ANOTHER_ROLE,
-                      this.user,
-                      this.newExecutionDelay,
-                      timestamp,
-                      false,
-                    )
+                    .withArgs(ANOTHER_ROLE, this.user, this.newExecutionDelay, timestamp, false)
 
                   // Access is correctly stored
-                  const access = await this.manager.getAccess(
-                    ANOTHER_ROLE,
-                    this.user,
-                  )
+                  const access = await this.manager.getAccess(ANOTHER_ROLE, this.user)
                   expect(access[0]).to.equal(this.oldAccess[0]) // inEffectSince
                   expect(access[1]).to.equal(this.newExecutionDelay) // currentDelay
                   expect(access[2]).to.equal(0n) // pendingDelay
@@ -1752,9 +1461,7 @@ describe('AccessManager', () => {
 
                   // Already in effect
                   expect(
-                    await this.manager
-                      .hasRole(ANOTHER_ROLE, this.user)
-                      .then(formatAccess),
+                    await this.manager.hasRole(ANOTHER_ROLE, this.user).then(formatAccess),
                   ).to.be.deep.equal([true, this.newExecutionDelay.toString()])
                 })
               })
@@ -1762,25 +1469,16 @@ describe('AccessManager', () => {
               describe('when decreasing the execution delay', () => {
                 beforeEach('decrease execution delay', async function () {
                   expect(
-                    await this.manager
-                      .hasRole(ANOTHER_ROLE, this.user)
-                      .then(formatAccess),
-                  ).to.be.deep.equal([
-                    true,
-                    this.previousExecutionDelay.toString(),
-                  ])
+                    await this.manager.hasRole(ANOTHER_ROLE, this.user).then(formatAccess),
+                  ).to.be.deep.equal([true, this.previousExecutionDelay.toString()])
 
-                  this.newExecutionDelay =
-                    this.previousExecutionDelay - time.duration.days(4)
+                  this.newExecutionDelay = this.previousExecutionDelay - time.duration.days(4)
                   this.txResponse = await this.manager
                     .connect(this.admin)
                     .grantRole(ANOTHER_ROLE, this.user, this.newExecutionDelay)
-                  this.grantTimestamp = await time.clockFromReceipt.timestamp(
-                    this.txResponse,
-                  )
+                  this.grantTimestamp = await time.clockFromReceipt.timestamp(this.txResponse)
 
-                  this.delay =
-                    this.previousExecutionDelay - this.newExecutionDelay // For testAsDelay
+                  this.delay = this.previousExecutionDelay - this.newExecutionDelay // For testAsDelay
                 })
 
                 it('emits event', async function () {
@@ -1801,26 +1499,16 @@ describe('AccessManager', () => {
 
                     it('does not change the execution delay yet', async function () {
                       // Access is correctly stored
-                      const access = await this.manager.getAccess(
-                        ANOTHER_ROLE,
-                        this.user,
-                      )
+                      const access = await this.manager.getAccess(ANOTHER_ROLE, this.user)
                       expect(access[0]).to.equal(this.oldAccess[0]) // inEffectSince
                       expect(access[1]).to.equal(this.previousExecutionDelay) // currentDelay
                       expect(access[2]).to.equal(this.newExecutionDelay) // pendingDelay
-                      expect(access[3]).to.equal(
-                        this.grantTimestamp + this.delay,
-                      ) // pendingDelayEffect
+                      expect(access[3]).to.equal(this.grantTimestamp + this.delay) // pendingDelayEffect
 
                       // Not in effect yet
                       expect(
-                        await this.manager
-                          .hasRole(ANOTHER_ROLE, this.user)
-                          .then(formatAccess),
-                      ).to.be.deep.equal([
-                        true,
-                        this.previousExecutionDelay.toString(),
-                      ])
+                        await this.manager.hasRole(ANOTHER_ROLE, this.user).then(formatAccess),
+                      ).to.be.deep.equal([true, this.previousExecutionDelay.toString()])
                     })
                   },
                   after: function self() {
@@ -1828,10 +1516,7 @@ describe('AccessManager', () => {
 
                     it('changes the execution delay', async function () {
                       // Access is correctly stored
-                      const access = await this.manager.getAccess(
-                        ANOTHER_ROLE,
-                        this.user,
-                      )
+                      const access = await this.manager.getAccess(ANOTHER_ROLE, this.user)
 
                       expect(access[0]).to.equal(this.oldAccess[0]) // inEffectSince
                       expect(access[1]).to.equal(this.newExecutionDelay) // currentDelay
@@ -1840,13 +1525,8 @@ describe('AccessManager', () => {
 
                       // Already in effect
                       expect(
-                        await this.manager
-                          .hasRole(ANOTHER_ROLE, this.user)
-                          .then(formatAccess),
-                      ).to.be.deep.equal([
-                        true,
-                        this.newExecutionDelay.toString(),
-                      ])
+                        await this.manager.hasRole(ANOTHER_ROLE, this.user).then(formatAccess),
+                      ).to.be.deep.equal([true, this.newExecutionDelay.toString()])
                     })
                   },
                 })
@@ -1862,53 +1542,29 @@ describe('AccessManager', () => {
               })
 
               describe('when increasing the execution delay', () => {
-                beforeEach(
-                  'set increased new execution delay',
-                  async function () {
-                    expect(
-                      await this.manager
-                        .hasRole(ANOTHER_ROLE, this.user)
-                        .then(formatAccess),
-                    ).to.be.deep.equal([
-                      true,
-                      this.previousExecutionDelay.toString(),
-                    ])
+                beforeEach('set increased new execution delay', async function () {
+                  expect(
+                    await this.manager.hasRole(ANOTHER_ROLE, this.user).then(formatAccess),
+                  ).to.be.deep.equal([true, this.previousExecutionDelay.toString()])
 
-                    this.newExecutionDelay =
-                      this.previousExecutionDelay + time.duration.days(4)
-                  },
-                )
+                  this.newExecutionDelay = this.previousExecutionDelay + time.duration.days(4)
+                })
 
                 it('emits event and immediately changes the execution delay', async function () {
                   expect(
-                    await this.manager
-                      .hasRole(ANOTHER_ROLE, this.user)
-                      .then(formatAccess),
-                  ).to.be.deep.equal([
-                    true,
-                    this.previousExecutionDelay.toString(),
-                  ])
+                    await this.manager.hasRole(ANOTHER_ROLE, this.user).then(formatAccess),
+                  ).to.be.deep.equal([true, this.previousExecutionDelay.toString()])
                   const txResponse = await this.manager
                     .connect(this.admin)
                     .grantRole(ANOTHER_ROLE, this.user, this.newExecutionDelay)
-                  const timestamp =
-                    await time.clockFromReceipt.timestamp(txResponse)
+                  const timestamp = await time.clockFromReceipt.timestamp(txResponse)
 
                   await expect(txResponse)
                     .to.emit(this.manager, 'RoleGranted')
-                    .withArgs(
-                      ANOTHER_ROLE,
-                      this.user,
-                      this.newExecutionDelay,
-                      timestamp,
-                      false,
-                    )
+                    .withArgs(ANOTHER_ROLE, this.user, this.newExecutionDelay, timestamp, false)
 
                   // Access is correctly stored
-                  const access = await this.manager.getAccess(
-                    ANOTHER_ROLE,
-                    this.user,
-                  )
+                  const access = await this.manager.getAccess(ANOTHER_ROLE, this.user)
                   expect(access[0]).to.equal(this.oldAccess[0]) // inEffectSince
                   expect(access[1]).to.equal(this.newExecutionDelay) // currentDelay
                   expect(access[2]).to.equal(0n) // pendingDelay
@@ -1916,9 +1572,7 @@ describe('AccessManager', () => {
 
                   // Already in effect
                   expect(
-                    await this.manager
-                      .hasRole(ANOTHER_ROLE, this.user)
-                      .then(formatAccess),
+                    await this.manager.hasRole(ANOTHER_ROLE, this.user).then(formatAccess),
                   ).to.be.deep.equal([true, this.newExecutionDelay.toString()])
                 })
               })
@@ -1926,25 +1580,16 @@ describe('AccessManager', () => {
               describe('when decreasing the execution delay', () => {
                 beforeEach('decrease execution delay', async function () {
                   expect(
-                    await this.manager
-                      .hasRole(ANOTHER_ROLE, this.user)
-                      .then(formatAccess),
-                  ).to.be.deep.equal([
-                    true,
-                    this.previousExecutionDelay.toString(),
-                  ])
+                    await this.manager.hasRole(ANOTHER_ROLE, this.user).then(formatAccess),
+                  ).to.be.deep.equal([true, this.previousExecutionDelay.toString()])
 
-                  this.newExecutionDelay =
-                    this.previousExecutionDelay - time.duration.days(4)
+                  this.newExecutionDelay = this.previousExecutionDelay - time.duration.days(4)
                   this.txResponse = await this.manager
                     .connect(this.admin)
                     .grantRole(ANOTHER_ROLE, this.user, this.newExecutionDelay)
-                  this.grantTimestamp = await time.clockFromReceipt.timestamp(
-                    this.txResponse,
-                  )
+                  this.grantTimestamp = await time.clockFromReceipt.timestamp(this.txResponse)
 
-                  this.delay =
-                    this.previousExecutionDelay - this.newExecutionDelay // For testAsDelay
+                  this.delay = this.previousExecutionDelay - this.newExecutionDelay // For testAsDelay
                 })
 
                 it('emits event', async function () {
@@ -1965,26 +1610,16 @@ describe('AccessManager', () => {
 
                     it('does not change the execution delay yet', async function () {
                       // Access is correctly stored
-                      const access = await this.manager.getAccess(
-                        ANOTHER_ROLE,
-                        this.user,
-                      )
+                      const access = await this.manager.getAccess(ANOTHER_ROLE, this.user)
                       expect(access[0]).to.equal(this.oldAccess[0]) // inEffectSince
                       expect(access[1]).to.equal(this.previousExecutionDelay) // currentDelay
                       expect(access[2]).to.equal(this.newExecutionDelay) // pendingDelay
-                      expect(access[3]).to.equal(
-                        this.grantTimestamp + this.delay,
-                      ) // pendingDelayEffect
+                      expect(access[3]).to.equal(this.grantTimestamp + this.delay) // pendingDelayEffect
 
                       // Not in effect yet
                       expect(
-                        await this.manager
-                          .hasRole(ANOTHER_ROLE, this.user)
-                          .then(formatAccess),
-                      ).to.be.deep.equal([
-                        true,
-                        this.previousExecutionDelay.toString(),
-                      ])
+                        await this.manager.hasRole(ANOTHER_ROLE, this.user).then(formatAccess),
+                      ).to.be.deep.equal([true, this.previousExecutionDelay.toString()])
                     })
                   },
                   after: function self() {
@@ -1992,10 +1627,7 @@ describe('AccessManager', () => {
 
                     it('changes the execution delay', async function () {
                       // Access is correctly stored
-                      const access = await this.manager.getAccess(
-                        ANOTHER_ROLE,
-                        this.user,
-                      )
+                      const access = await this.manager.getAccess(ANOTHER_ROLE, this.user)
 
                       expect(access[0]).to.equal(this.oldAccess[0]) // inEffectSince
                       expect(access[1]).to.equal(this.newExecutionDelay) // currentDelay
@@ -2004,13 +1636,8 @@ describe('AccessManager', () => {
 
                       // Already in effect
                       expect(
-                        await this.manager
-                          .hasRole(ANOTHER_ROLE, this.user)
-                          .then(formatAccess),
-                      ).to.be.deep.equal([
-                        true,
-                        this.newExecutionDelay.toString(),
-                      ])
+                        await this.manager.hasRole(ANOTHER_ROLE, this.user).then(formatAccess),
+                      ).to.be.deep.equal([true, this.newExecutionDelay.toString()])
                     })
                   },
                 })
@@ -2023,13 +1650,8 @@ describe('AccessManager', () => {
           describe('restrictions', () => {
             beforeEach('set method and args', async function () {
               const args = [ANOTHER_ROLE, this.other.address]
-              const method = this.manager.interface.getFunction(
-                'revokeRole(uint64,address)',
-              )
-              this.calldata = this.manager.interface.encodeFunctionData(
-                method,
-                args,
-              )
+              const method = this.manager.interface.getFunction('revokeRole(uint64,address)')
+              this.calldata = this.manager.interface.encodeFunctionData(method, args)
 
               // Need to be set before revoking
               await this.manager.$_grantRole(...args, 0, 0)
@@ -2041,12 +1663,7 @@ describe('AccessManager', () => {
           describe('when role has been granted', () => {
             beforeEach('grant role with grant delay', async function () {
               this.grantDelay = time.duration.weeks(1)
-              await this.manager.$_grantRole(
-                ANOTHER_ROLE,
-                this.user,
-                this.grantDelay,
-                0,
-              )
+              await this.manager.$_grantRole(ANOTHER_ROLE, this.user, this.grantDelay, 0)
 
               this.delay = this.grantDelay // For testAsDelay
             })
@@ -2057,29 +1674,18 @@ describe('AccessManager', () => {
 
                 it('revokes a granted role that will take effect in the future', async function () {
                   expect(
-                    await this.manager
-                      .hasRole(ANOTHER_ROLE, this.user)
-                      .then(formatAccess),
+                    await this.manager.hasRole(ANOTHER_ROLE, this.user).then(formatAccess),
                   ).to.be.deep.equal([false, '0'])
 
-                  await expect(
-                    this.manager
-                      .connect(this.admin)
-                      .revokeRole(ANOTHER_ROLE, this.user),
-                  )
+                  await expect(this.manager.connect(this.admin).revokeRole(ANOTHER_ROLE, this.user))
                     .to.emit(this.manager, 'RoleRevoked')
                     .withArgs(ANOTHER_ROLE, this.user)
 
                   expect(
-                    await this.manager
-                      .hasRole(ANOTHER_ROLE, this.user)
-                      .then(formatAccess),
+                    await this.manager.hasRole(ANOTHER_ROLE, this.user).then(formatAccess),
                   ).to.be.deep.equal([false, '0'])
 
-                  const access = await this.manager.getAccess(
-                    ANOTHER_ROLE,
-                    this.user,
-                  )
+                  const access = await this.manager.getAccess(ANOTHER_ROLE, this.user)
                   expect(access[0]).to.equal(0n) // inRoleSince
                   expect(access[1]).to.equal(0n) // currentDelay
                   expect(access[2]).to.equal(0n) // pendingDelay
@@ -2091,29 +1697,18 @@ describe('AccessManager', () => {
 
                 it('revokes a granted role that already took effect', async function () {
                   expect(
-                    await this.manager
-                      .hasRole(ANOTHER_ROLE, this.user)
-                      .then(formatAccess),
+                    await this.manager.hasRole(ANOTHER_ROLE, this.user).then(formatAccess),
                   ).to.be.deep.equal([true, '0'])
 
-                  await expect(
-                    this.manager
-                      .connect(this.admin)
-                      .revokeRole(ANOTHER_ROLE, this.user),
-                  )
+                  await expect(this.manager.connect(this.admin).revokeRole(ANOTHER_ROLE, this.user))
                     .to.emit(this.manager, 'RoleRevoked')
                     .withArgs(ANOTHER_ROLE, this.user)
 
                   expect(
-                    await this.manager
-                      .hasRole(ANOTHER_ROLE, this.user)
-                      .then(formatAccess),
+                    await this.manager.hasRole(ANOTHER_ROLE, this.user).then(formatAccess),
                   ).to.be.deep.equal([false, '0'])
 
-                  const access = await this.manager.getAccess(
-                    ANOTHER_ROLE,
-                    this.user,
-                  )
+                  const access = await this.manager.getAccess(ANOTHER_ROLE, this.user)
                   expect(access[0]).to.equal(0n) // inRoleSince
                   expect(access[1]).to.equal(0n) // currentDelay
                   expect(access[2]).to.equal(0n) // pendingDelay
@@ -2126,33 +1721,22 @@ describe('AccessManager', () => {
           describe('when role has not been granted', () => {
             it('has no effect', async function () {
               expect(
-                await this.manager
-                  .hasRole(this.roles.SOME.id, this.user)
-                  .then(formatAccess),
+                await this.manager.hasRole(this.roles.SOME.id, this.user).then(formatAccess),
               ).to.be.deep.equal([false, '0'])
               await expect(
-                this.manager
-                  .connect(this.roleAdmin)
-                  .revokeRole(this.roles.SOME.id, this.user),
+                this.manager.connect(this.roleAdmin).revokeRole(this.roles.SOME.id, this.user),
               ).to.not.emit(this.manager, 'RoleRevoked')
               expect(
-                await this.manager
-                  .hasRole(this.roles.SOME.id, this.user)
-                  .then(formatAccess),
+                await this.manager.hasRole(this.roles.SOME.id, this.user).then(formatAccess),
               ).to.be.deep.equal([false, '0'])
             })
           })
 
           it('reverts revoking PUBLIC_ROLE', async function () {
             await expect(
-              this.manager
-                .connect(this.admin)
-                .revokeRole(this.roles.PUBLIC.id, this.user),
+              this.manager.connect(this.admin).revokeRole(this.roles.PUBLIC.id, this.user),
             )
-              .to.be.revertedWithCustomError(
-                this.manager,
-                'AccessManagerLockedRole',
-              )
+              .to.be.revertedWithCustomError(this.manager, 'AccessManagerLockedRole')
               .withArgs(this.roles.PUBLIC.id)
           })
         })
@@ -2168,46 +1752,28 @@ describe('AccessManager', () => {
 
           it('renounces a role', async function () {
             expect(
-              await this.manager
-                .hasRole(this.role.id, this.caller)
-                .then(formatAccess),
+              await this.manager.hasRole(this.role.id, this.caller).then(formatAccess),
             ).to.be.deep.equal([true, '0'])
-            await expect(
-              this.manager
-                .connect(this.caller)
-                .renounceRole(this.role.id, this.caller),
-            )
+            await expect(this.manager.connect(this.caller).renounceRole(this.role.id, this.caller))
               .to.emit(this.manager, 'RoleRevoked')
               .withArgs(this.role.id, this.caller)
             expect(
-              await this.manager
-                .hasRole(this.role.id, this.caller)
-                .then(formatAccess),
+              await this.manager.hasRole(this.role.id, this.caller).then(formatAccess),
             ).to.be.deep.equal([false, '0'])
           })
 
           it('reverts if renouncing the PUBLIC_ROLE', async function () {
             await expect(
-              this.manager
-                .connect(this.caller)
-                .renounceRole(this.roles.PUBLIC.id, this.caller),
+              this.manager.connect(this.caller).renounceRole(this.roles.PUBLIC.id, this.caller),
             )
-              .to.be.revertedWithCustomError(
-                this.manager,
-                'AccessManagerLockedRole',
-              )
+              .to.be.revertedWithCustomError(this.manager, 'AccessManagerLockedRole')
               .withArgs(this.roles.PUBLIC.id)
           })
 
           it('reverts if renouncing with bad caller confirmation', async function () {
             await expect(
-              this.manager
-                .connect(this.caller)
-                .renounceRole(this.role.id, this.other),
-            ).to.be.revertedWithCustomError(
-              this.manager,
-              'AccessManagerBadConfirmation',
-            )
+              this.manager.connect(this.caller).renounceRole(this.role.id, this.other),
+            ).to.be.revertedWithCustomError(this.manager, 'AccessManagerBadConfirmation')
           })
         })
       })
@@ -2322,11 +1888,7 @@ describe('AccessManager', () => {
       this.role = { id: 498305n }
       this.caller = this.user
 
-      await this.manager.$_setTargetFunctionRole(
-        this.target,
-        this.method.selector,
-        this.role.id,
-      )
+      await this.manager.$_setTargetFunctionRole(this.target, this.method.selector, this.role.id)
       await this.manager.$_grantRole(this.role.id, this.caller, 0, 1) // nonzero execution delay
 
       this.calldata = this.target.interface.encodeFunctionData(this.method, [])
@@ -2344,15 +1906,8 @@ describe('AccessManager', () => {
               delay: this.delay,
             })
             await expect(schedule())
-              .to.be.revertedWithCustomError(
-                this.manager,
-                'AccessManagerUnauthorizedCall',
-              )
-              .withArgs(
-                this.caller,
-                this.target,
-                this.calldata.substring(0, 10),
-              )
+              .to.be.revertedWithCustomError(this.manager, 'AccessManagerUnauthorizedCall')
+              .withArgs(this.caller, this.target, this.calldata.substring(0, 10))
           })
         },
         open: {
@@ -2369,15 +1924,8 @@ describe('AccessManager', () => {
                   delay: this.delay,
                 })
                 await expect(schedule())
-                  .to.be.revertedWithCustomError(
-                    this.manager,
-                    'AccessManagerUnauthorizedCall',
-                  )
-                  .withArgs(
-                    this.caller,
-                    this.target,
-                    this.calldata.substring(0, 10),
-                  )
+                  .to.be.revertedWithCustomError(this.manager, 'AccessManagerUnauthorizedCall')
+                  .withArgs(this.caller, this.target, this.calldata.substring(0, 10))
               })
             },
           },
@@ -2390,15 +1938,8 @@ describe('AccessManager', () => {
                     .connect(this.caller)
                     .schedule(this.target, this.calldata, MAX_UINT48),
                 )
-                  .to.be.revertedWithCustomError(
-                    this.manager,
-                    'AccessManagerUnauthorizedCall',
-                  )
-                  .withArgs(
-                    this.caller,
-                    this.target,
-                    this.calldata.substring(0, 10),
-                  )
+                  .to.be.revertedWithCustomError(this.manager, 'AccessManagerUnauthorizedCall')
+                  .withArgs(this.caller, this.target, this.calldata.substring(0, 10))
               })
             },
             specificRoleIsRequired: {
@@ -2417,11 +1958,7 @@ describe('AccessManager', () => {
                             this.manager,
                             'AccessManagerUnauthorizedCall',
                           )
-                          .withArgs(
-                            this.caller,
-                            this.target,
-                            this.calldata.substring(0, 10),
-                          )
+                          .withArgs(this.caller, this.target, this.calldata.substring(0, 10))
                       })
                     },
                     afterGrantDelay() {
@@ -2446,11 +1983,7 @@ describe('AccessManager', () => {
                             this.manager,
                             'AccessManagerUnauthorizedCall',
                           )
-                          .withArgs(
-                            this.caller,
-                            this.target,
-                            this.calldata.substring(0, 10),
-                          )
+                          .withArgs(this.caller, this.target, this.calldata.substring(0, 10))
                       })
                     },
                     afterGrantDelay() {
@@ -2465,11 +1998,7 @@ describe('AccessManager', () => {
                             this.manager,
                             'AccessManagerUnauthorizedCall',
                           )
-                          .withArgs(
-                            this.caller,
-                            this.target,
-                            this.calldata.substring(0, 10),
-                          )
+                          .withArgs(this.caller, this.target, this.calldata.substring(0, 10))
                       })
                     },
                   },
@@ -2477,15 +2006,12 @@ describe('AccessManager', () => {
                 roleGrantingIsNotDelayed: {
                   callerHasAnExecutionDelay() {
                     it('succeeds', async function () {
-                      const { schedule } = await prepareOperation(
-                        this.manager,
-                        {
-                          caller: this.caller,
-                          target: this.target,
-                          calldata: this.calldata,
-                          delay: this.delay,
-                        },
-                      )
+                      const { schedule } = await prepareOperation(this.manager, {
+                        caller: this.caller,
+                        target: this.target,
+                        calldata: this.calldata,
+                        delay: this.delay,
+                      })
 
                       await schedule()
                     })
@@ -2502,11 +2028,7 @@ describe('AccessManager', () => {
                           this.manager,
                           'AccessManagerUnauthorizedCall',
                         )
-                        .withArgs(
-                          this.caller,
-                          this.target,
-                          this.calldata.substring(0, 10),
-                        )
+                        .withArgs(this.caller, this.target, this.calldata.substring(0, 10))
                     })
                   },
                 },
@@ -2520,15 +2042,8 @@ describe('AccessManager', () => {
                     delay: this.delay,
                   })
                   await expect(schedule())
-                    .to.be.revertedWithCustomError(
-                      this.manager,
-                      'AccessManagerUnauthorizedCall',
-                    )
-                    .withArgs(
-                      this.caller,
-                      this.target,
-                      this.calldata.substring(0, 10),
-                    )
+                    .to.be.revertedWithCustomError(this.manager, 'AccessManagerUnauthorizedCall')
+                    .withArgs(this.caller, this.target, this.calldata.substring(0, 10))
                 })
               },
             },
@@ -2538,21 +2053,16 @@ describe('AccessManager', () => {
     })
 
     it('schedules an operation at the specified execution date if it is larger than caller execution delay', async function () {
-      const { operationId, scheduledAt, schedule } = await prepareOperation(
-        this.manager,
-        {
-          caller: this.caller,
-          target: this.target,
-          calldata: this.calldata,
-          delay: this.delay,
-        },
-      )
+      const { operationId, scheduledAt, schedule } = await prepareOperation(this.manager, {
+        caller: this.caller,
+        target: this.target,
+        calldata: this.calldata,
+        delay: this.delay,
+      })
 
       const txResponse = await schedule()
 
-      expect(await this.manager.getSchedule(operationId)).to.equal(
-        scheduledAt + this.delay,
-      )
+      expect(await this.manager.getSchedule(operationId)).to.equal(scheduledAt + this.delay)
       await expect(txResponse)
         .to.emit(this.manager, 'OperationScheduled')
         .withArgs(
@@ -2567,27 +2077,16 @@ describe('AccessManager', () => {
 
     it('schedules an operation at the minimum execution date if no specified execution date (when == 0)', async function () {
       const executionDelay = await time.duration.hours(72)
-      await this.manager.$_grantRole(
-        this.role.id,
-        this.caller,
-        0,
-        executionDelay,
-      )
+      await this.manager.$_grantRole(this.role.id, this.caller, 0, executionDelay)
 
       const txResponse = await this.manager
         .connect(this.caller)
         .schedule(this.target, this.calldata, 0)
       const scheduledAt = await time.clockFromReceipt.timestamp(txResponse)
 
-      const operationId = await this.manager.hashOperation(
-        this.caller,
-        this.target,
-        this.calldata,
-      )
+      const operationId = await this.manager.hashOperation(this.caller, this.target, this.calldata)
 
-      expect(await this.manager.getSchedule(operationId)).to.equal(
-        scheduledAt + executionDelay,
-      )
+      expect(await this.manager.getSchedule(operationId)).to.equal(scheduledAt + executionDelay)
       await expect(txResponse)
         .to.emit(this.manager, 'OperationScheduled')
         .withArgs(
@@ -2602,11 +2101,7 @@ describe('AccessManager', () => {
 
     it('increases the nonce of an operation scheduled more than once', async function () {
       // Setup and check initial nonce
-      const expectedOperationId = hashOperation(
-        this.caller,
-        this.target,
-        this.calldata,
-      )
+      const expectedOperationId = hashOperation(this.caller, this.target, this.calldata)
       expect(await this.manager.getNonce(expectedOperationId)).to.equal('0')
 
       // Schedule
@@ -2660,12 +2155,7 @@ describe('AccessManager', () => {
 
     it('reverts if the specified execution date is before the current timestamp + caller execution delay', async function () {
       const executionDelay = time.duration.weeks(1) + this.delay
-      await this.manager.$_grantRole(
-        this.role.id,
-        this.caller,
-        0,
-        executionDelay,
-      )
+      await this.manager.$_grantRole(this.role.id, this.caller, 0, executionDelay)
 
       const { schedule } = await prepareOperation(this.manager, {
         caller: this.caller,
@@ -2675,10 +2165,7 @@ describe('AccessManager', () => {
       })
 
       await expect(schedule())
-        .to.be.revertedWithCustomError(
-          this.manager,
-          'AccessManagerUnauthorizedCall',
-        )
+        .to.be.revertedWithCustomError(this.manager, 'AccessManagerUnauthorizedCall')
         .withArgs(this.caller, this.target, this.calldata.substring(0, 10))
     })
 
@@ -2700,10 +2187,7 @@ describe('AccessManager', () => {
       })
 
       await expect(op2.schedule())
-        .to.be.revertedWithCustomError(
-          this.manager,
-          'AccessManagerAlreadyScheduled',
-        )
+        .to.be.revertedWithCustomError(this.manager, 'AccessManagerAlreadyScheduled')
         .withArgs(op1.operationId)
     })
 
@@ -2740,10 +2224,7 @@ describe('AccessManager', () => {
       })
 
       await expect(schedule())
-        .to.be.revertedWithCustomError(
-          this.manager,
-          'AccessManagerUnauthorizedCall',
-        )
+        .to.be.revertedWithCustomError(this.manager, 'AccessManagerUnauthorizedCall')
         .withArgs(this.caller, this.manager, calldata)
     })
   })
@@ -2754,11 +2235,7 @@ describe('AccessManager', () => {
       this.role = { id: 9825430n }
       this.caller = this.user
 
-      await this.manager.$_setTargetFunctionRole(
-        this.target,
-        this.method.selector,
-        this.role.id,
-      )
+      await this.manager.$_setTargetFunctionRole(this.target, this.method.selector, this.role.id)
       await this.manager.$_grantRole(this.role.id, this.caller, 0, 0)
 
       this.calldata = this.target.interface.encodeFunctionData(this.method, [])
@@ -2768,56 +2245,30 @@ describe('AccessManager', () => {
       testAsCanCall({
         closed() {
           it('reverts as AccessManagerUnauthorizedCall', async function () {
-            await expect(
-              this.manager
-                .connect(this.caller)
-                .execute(this.target, this.calldata),
-            )
-              .to.be.revertedWithCustomError(
-                this.manager,
-                'AccessManagerUnauthorizedCall',
-              )
-              .withArgs(
-                this.caller,
-                this.target,
-                this.calldata.substring(0, 10),
-              )
+            await expect(this.manager.connect(this.caller).execute(this.target, this.calldata))
+              .to.be.revertedWithCustomError(this.manager, 'AccessManagerUnauthorizedCall')
+              .withArgs(this.caller, this.target, this.calldata.substring(0, 10))
           })
         },
         open: {
           callerIsTheManager: {
             executing() {
               it('succeeds', async function () {
-                await this.manager
-                  .connect(this.caller)
-                  .execute(this.target, this.calldata)
+                await this.manager.connect(this.caller).execute(this.target, this.calldata)
               })
             },
             notExecuting() {
               it('reverts as AccessManagerUnauthorizedCall', async function () {
-                await expect(
-                  this.manager
-                    .connect(this.caller)
-                    .execute(this.target, this.calldata),
-                )
-                  .to.be.revertedWithCustomError(
-                    this.manager,
-                    'AccessManagerUnauthorizedCall',
-                  )
-                  .withArgs(
-                    this.caller,
-                    this.target,
-                    this.calldata.substring(0, 10),
-                  )
+                await expect(this.manager.connect(this.caller).execute(this.target, this.calldata))
+                  .to.be.revertedWithCustomError(this.manager, 'AccessManagerUnauthorizedCall')
+                  .withArgs(this.caller, this.target, this.calldata.substring(0, 10))
               })
             },
           },
           callerIsNotTheManager: {
             publicRoleIsRequired() {
               it('succeeds', async function () {
-                await this.manager
-                  .connect(this.caller)
-                  .execute(this.target, this.calldata)
+                await this.manager.connect(this.caller).execute(this.target, this.calldata)
               })
             },
             specificRoleIsRequired: {
@@ -2827,19 +2278,13 @@ describe('AccessManager', () => {
                     beforeGrantDelay() {
                       it('reverts as AccessManagerUnauthorizedCall', async function () {
                         await expect(
-                          this.manager
-                            .connect(this.caller)
-                            .execute(this.target, this.calldata),
+                          this.manager.connect(this.caller).execute(this.target, this.calldata),
                         )
                           .to.be.revertedWithCustomError(
                             this.manager,
                             'AccessManagerUnauthorizedCall',
                           )
-                          .withArgs(
-                            this.caller,
-                            this.target,
-                            this.calldata.substring(0, 10),
-                          )
+                          .withArgs(this.caller, this.target, this.calldata.substring(0, 10))
                       })
                     },
                     afterGrantDelay: function self() {
@@ -2856,28 +2301,20 @@ describe('AccessManager', () => {
                     beforeGrantDelay() {
                       it('reverts as AccessManagerUnauthorizedCall', async function () {
                         await expect(
-                          this.manager
-                            .connect(this.caller)
-                            .execute(this.target, this.calldata),
+                          this.manager.connect(this.caller).execute(this.target, this.calldata),
                         )
                           .to.be.revertedWithCustomError(
                             this.manager,
                             'AccessManagerUnauthorizedCall',
                           )
-                          .withArgs(
-                            this.caller,
-                            this.target,
-                            this.calldata.substring(0, 10),
-                          )
+                          .withArgs(this.caller, this.target, this.calldata.substring(0, 10))
                       })
                     },
                     afterGrantDelay: function self() {
                       self.mineDelay = true
 
                       it('succeeds', async function () {
-                        await this.manager
-                          .connect(this.caller)
-                          .execute(this.target, this.calldata)
+                        await this.manager.connect(this.caller).execute(this.target, this.calldata)
                       })
                     },
                   },
@@ -2892,9 +2329,7 @@ describe('AccessManager', () => {
                   },
                   callerHasNoExecutionDelay() {
                     it('succeeds', async function () {
-                      await this.manager
-                        .connect(this.caller)
-                        .execute(this.target, this.calldata)
+                      await this.manager.connect(this.caller).execute(this.target, this.calldata)
                     })
                   },
                 },
@@ -2902,19 +2337,10 @@ describe('AccessManager', () => {
               requiredRoleIsNotGranted() {
                 it('reverts as AccessManagerUnauthorizedCall', async function () {
                   await expect(
-                    this.manager
-                      .connect(this.caller)
-                      .execute(this.target, this.calldata),
+                    this.manager.connect(this.caller).execute(this.target, this.calldata),
                   )
-                    .to.be.revertedWithCustomError(
-                      this.manager,
-                      'AccessManagerUnauthorizedCall',
-                    )
-                    .withArgs(
-                      this.caller,
-                      this.target,
-                      this.calldata.substring(0, 10),
-                    )
+                    .to.be.revertedWithCustomError(this.manager, 'AccessManagerUnauthorizedCall')
+                    .withArgs(this.caller, this.target, this.calldata.substring(0, 10))
                 })
               },
             },
@@ -2935,9 +2361,7 @@ describe('AccessManager', () => {
       })
       await schedule()
       await time.increaseBy.timestamp(delay)
-      await expect(
-        this.manager.connect(this.caller).execute(this.target, this.calldata),
-      )
+      await expect(this.manager.connect(this.caller).execute(this.target, this.calldata))
         .to.emit(this.manager, 'OperationExecuted')
         .withArgs(operationId, 1n)
 
@@ -2962,9 +2386,7 @@ describe('AccessManager', () => {
       await this.manager.$_grantRole(this.role.id, this.caller, 0, 0)
 
       await time.increaseBy.timestamp(delay)
-      await expect(
-        this.manager.connect(this.caller).execute(this.target, this.calldata),
-      )
+      await expect(this.manager.connect(this.caller).execute(this.target, this.calldata))
         .to.emit(this.manager, 'OperationExecuted')
         .withArgs(operationId, 1n)
 
@@ -2976,9 +2398,7 @@ describe('AccessManager', () => {
         this.manager,
         EXECUTION_ID_STORAGE_SLOT,
       )
-      await this.manager
-        .connect(this.caller)
-        .execute(this.target, this.calldata)
+      await this.manager.connect(this.caller).execute(this.target, this.calldata)
       const executionIdAfter = await ethers.provider.getStorage(
         this.manager,
         EXECUTION_ID_STORAGE_SLOT,
@@ -2998,16 +2418,9 @@ describe('AccessManager', () => {
       })
       await schedule()
       await time.increaseBy.timestamp(delay)
-      await this.manager
-        .connect(this.caller)
-        .execute(this.target, this.calldata)
-      await expect(
-        this.manager.connect(this.caller).execute(this.target, this.calldata),
-      )
-        .to.be.revertedWithCustomError(
-          this.manager,
-          'AccessManagerNotScheduled',
-        )
+      await this.manager.connect(this.caller).execute(this.target, this.calldata)
+      await expect(this.manager.connect(this.caller).execute(this.target, this.calldata))
+        .to.be.revertedWithCustomError(this.manager, 'AccessManagerNotScheduled')
         .withArgs(operationId)
     })
   })
@@ -3020,11 +2433,7 @@ describe('AccessManager', () => {
       this.calldata = this.target.interface.encodeFunctionData(method, [])
       this.role = { id: 9834983n }
 
-      await this.manager.$_setTargetFunctionRole(
-        this.target,
-        method.selector,
-        this.role.id,
-      )
+      await this.manager.$_setTargetFunctionRole(this.target, method.selector, this.role.id)
       await this.manager.$_grantRole(this.role.id, this.caller, 0, 1) // nonzero execution delay
 
       this.scheduleIn = time.duration.hours(10) // For testAsSchedulableOperation
@@ -3040,14 +2449,9 @@ describe('AccessManager', () => {
 
       it('reverts as AccessManagerUnauthorizedConsume', async function () {
         await expect(
-          this.manager
-            .connect(this.caller)
-            .consumeScheduledOp(this.caller, this.calldata),
+          this.manager.connect(this.caller).consumeScheduledOp(this.caller, this.calldata),
         )
-          .to.be.revertedWithCustomError(
-            this.manager,
-            'AccessManagerUnauthorizedConsume',
-          )
+          .to.be.revertedWithCustomError(this.manager, 'AccessManagerUnauthorizedConsume')
           .withArgs(this.caller)
       })
     })
@@ -3065,14 +2469,9 @@ describe('AccessManager', () => {
           before() {
             it('reverts as AccessManagerNotReady', async function () {
               await expect(
-                this.manager
-                  .connect(this.caller)
-                  .consumeScheduledOp(this.caller, this.calldata),
+                this.manager.connect(this.caller).consumeScheduledOp(this.caller, this.calldata),
               )
-                .to.be.revertedWithCustomError(
-                  this.manager,
-                  'AccessManagerNotReady',
-                )
+                .to.be.revertedWithCustomError(this.manager, 'AccessManagerNotReady')
                 .withArgs(this.operationId)
             })
           },
@@ -3083,28 +2482,19 @@ describe('AccessManager', () => {
               )
 
               await expect(
-                this.manager
-                  .connect(this.caller)
-                  .consumeScheduledOp(this.caller, this.calldata),
+                this.manager.connect(this.caller).consumeScheduledOp(this.caller, this.calldata),
               )
                 .to.emit(this.manager, 'OperationExecuted')
                 .withArgs(this.operationId, 1n)
-              expect(await this.manager.getSchedule(this.operationId)).to.equal(
-                0n,
-              )
+              expect(await this.manager.getSchedule(this.operationId)).to.equal(0n)
             })
           },
           expired() {
             it('reverts as AccessManagerExpired', async function () {
               await expect(
-                this.manager
-                  .connect(this.caller)
-                  .consumeScheduledOp(this.caller, this.calldata),
+                this.manager.connect(this.caller).consumeScheduledOp(this.caller, this.calldata),
               )
-                .to.be.revertedWithCustomError(
-                  this.manager,
-                  'AccessManagerExpired',
-                )
+                .to.be.revertedWithCustomError(this.manager, 'AccessManagerExpired')
                 .withArgs(this.operationId)
             })
           },
@@ -3112,14 +2502,9 @@ describe('AccessManager', () => {
         notScheduled() {
           it('reverts as AccessManagerNotScheduled', async function () {
             await expect(
-              this.manager
-                .connect(this.caller)
-                .consumeScheduledOp(this.caller, this.calldata),
+              this.manager.connect(this.caller).consumeScheduledOp(this.caller, this.calldata),
             )
-              .to.be.revertedWithCustomError(
-                this.manager,
-                'AccessManagerNotScheduled',
-              )
+              .to.be.revertedWithCustomError(this.manager, 'AccessManagerNotScheduled')
               .withArgs(this.operationId)
           })
         },
@@ -3172,47 +2557,28 @@ describe('AccessManager', () => {
           describe('when caller is any other account', () => {
             it('reverts as AccessManagerUnauthorizedCancel', async function () {
               await expect(
-                this.manager
-                  .connect(this.other)
-                  .cancel(this.caller, this.target, this.calldata),
+                this.manager.connect(this.other).cancel(this.caller, this.target, this.calldata),
               )
-                .to.be.revertedWithCustomError(
-                  this.manager,
-                  'AccessManagerUnauthorizedCancel',
-                )
-                .withArgs(
-                  this.other,
-                  this.caller,
-                  this.target,
-                  this.method.selector,
-                )
+                .to.be.revertedWithCustomError(this.manager, 'AccessManagerUnauthorizedCancel')
+                .withArgs(this.other, this.caller, this.target, this.method.selector)
             })
           })
         },
         after() {
           it('succeeds', async function () {
-            await this.manager
-              .connect(this.caller)
-              .cancel(this.caller, this.target, this.calldata)
+            await this.manager.connect(this.caller).cancel(this.caller, this.target, this.calldata)
           })
         },
         expired() {
           it('succeeds', async function () {
-            await this.manager
-              .connect(this.caller)
-              .cancel(this.caller, this.target, this.calldata)
+            await this.manager.connect(this.caller).cancel(this.caller, this.target, this.calldata)
           })
         },
       },
       notScheduled() {
         it('reverts as AccessManagerNotScheduled', async function () {
-          await expect(
-            this.manager.cancel(this.caller, this.target, this.calldata),
-          )
-            .to.be.revertedWithCustomError(
-              this.manager,
-              'AccessManagerNotScheduled',
-            )
+          await expect(this.manager.cancel(this.caller, this.target, this.calldata))
+            .to.be.revertedWithCustomError(this.manager, 'AccessManagerNotScheduled')
             .withArgs(this.operationId)
         })
       },
@@ -3227,9 +2593,7 @@ describe('AccessManager', () => {
       })
       await schedule()
       await expect(
-        this.manager
-          .connect(this.caller)
-          .cancel(this.caller, this.target, this.calldata),
+        this.manager.connect(this.caller).cancel(this.caller, this.target, this.calldata),
       )
         .to.emit(this.manager, 'OperationCanceled')
         .withArgs(operationId, 1n)
@@ -3258,10 +2622,7 @@ describe('AccessManager', () => {
 
       it('directly call: reverts', async function () {
         await expect(this.ownable.connect(this.user).$_checkOwner())
-          .to.be.revertedWithCustomError(
-            this.ownable,
-            'OwnableUnauthorizedAccount',
-          )
+          .to.be.revertedWithCustomError(this.ownable, 'OwnableUnauthorizedAccount')
           .withArgs(this.user)
       })
 
@@ -3269,40 +2630,20 @@ describe('AccessManager', () => {
         await expect(
           this.manager
             .connect(this.user)
-            .execute(
-              this.ownable,
-              this.ownable.$_checkOwner.getFragment().selector,
-            ),
+            .execute(this.ownable, this.ownable.$_checkOwner.getFragment().selector),
         )
-          .to.be.revertedWithCustomError(
-            this.manager,
-            'AccessManagerUnauthorizedCall',
-          )
-          .withArgs(
-            this.user,
-            this.ownable,
-            this.ownable.$_checkOwner.getFragment().selector,
-          )
+          .to.be.revertedWithCustomError(this.manager, 'AccessManagerUnauthorizedCall')
+          .withArgs(this.user, this.ownable, this.ownable.$_checkOwner.getFragment().selector)
       })
 
       it('relayed call (without role): reverts', async function () {
         await expect(
           this.manager
             .connect(this.other)
-            .execute(
-              this.ownable,
-              this.ownable.$_checkOwner.getFragment().selector,
-            ),
+            .execute(this.ownable, this.ownable.$_checkOwner.getFragment().selector),
         )
-          .to.be.revertedWithCustomError(
-            this.manager,
-            'AccessManagerUnauthorizedCall',
-          )
-          .withArgs(
-            this.other,
-            this.ownable,
-            this.ownable.$_checkOwner.getFragment().selector,
-          )
+          .to.be.revertedWithCustomError(this.manager, 'AccessManagerUnauthorizedCall')
+          .withArgs(this.other, this.ownable, this.ownable.$_checkOwner.getFragment().selector)
       })
     })
 
@@ -3318,40 +2659,24 @@ describe('AccessManager', () => {
 
         it('directly call: reverts', async function () {
           await expect(this.ownable.connect(this.user).$_checkOwner())
-            .to.be.revertedWithCustomError(
-              this.ownable,
-              'OwnableUnauthorizedAccount',
-            )
+            .to.be.revertedWithCustomError(this.ownable, 'OwnableUnauthorizedAccount')
             .withArgs(this.user)
         })
 
         it('relayed call (with role): success', async function () {
           await this.manager
             .connect(this.user)
-            .execute(
-              this.ownable,
-              this.ownable.$_checkOwner.getFragment().selector,
-            )
+            .execute(this.ownable, this.ownable.$_checkOwner.getFragment().selector)
         })
 
         it('relayed call (without role): reverts', async function () {
           await expect(
             this.manager
               .connect(this.other)
-              .execute(
-                this.ownable,
-                this.ownable.$_checkOwner.getFragment().selector,
-              ),
+              .execute(this.ownable, this.ownable.$_checkOwner.getFragment().selector),
           )
-            .to.be.revertedWithCustomError(
-              this.manager,
-              'AccessManagerUnauthorizedCall',
-            )
-            .withArgs(
-              this.other,
-              this.ownable,
-              this.ownable.$_checkOwner.getFragment().selector,
-            )
+            .to.be.revertedWithCustomError(this.manager, 'AccessManagerUnauthorizedCall')
+            .withArgs(this.other, this.ownable, this.ownable.$_checkOwner.getFragment().selector)
         })
       })
 
@@ -3366,29 +2691,20 @@ describe('AccessManager', () => {
 
         it('directly call: reverts', async function () {
           await expect(this.ownable.connect(this.user).$_checkOwner())
-            .to.be.revertedWithCustomError(
-              this.ownable,
-              'OwnableUnauthorizedAccount',
-            )
+            .to.be.revertedWithCustomError(this.ownable, 'OwnableUnauthorizedAccount')
             .withArgs(this.user)
         })
 
         it('relayed call (with role): success', async function () {
           await this.manager
             .connect(this.user)
-            .execute(
-              this.ownable,
-              this.ownable.$_checkOwner.getFragment().selector,
-            )
+            .execute(this.ownable, this.ownable.$_checkOwner.getFragment().selector)
         })
 
         it('relayed call (without role): success', async function () {
           await this.manager
             .connect(this.other)
-            .execute(
-              this.ownable,
-              this.ownable.$_checkOwner.getFragment().selector,
-            )
+            .execute(this.ownable, this.ownable.$_checkOwner.getFragment().selector)
         })
       })
     })

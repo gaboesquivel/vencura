@@ -25,44 +25,28 @@ const value = ethers.parseEther('1')
 describe('GovernorPreventLateQuorum', () => {
   for (const { Token, mode } of TOKENS) {
     const fixture = async () => {
-      const [owner, proposer, voter1, voter2, voter3, voter4] =
-        await ethers.getSigners()
+      const [owner, proposer, voter1, voter2, voter3, voter4] = await ethers.getSigners()
       const receiver = await ethers.deployContract('CallReceiverMock')
 
-      const token = await ethers.deployContract(Token, [
-        tokenName,
-        tokenSymbol,
-        version,
+      const token = await ethers.deployContract(Token, [tokenName, tokenSymbol, version])
+      const mock = await ethers.deployContract('$GovernorPreventLateQuorumMock', [
+        name, // name
+        votingDelay, // initialVotingDelay
+        votingPeriod, // initialVotingPeriod
+        0n, // initialProposalThreshold
+        token, // tokenAddress
+        lateQuorumVoteExtension,
+        quorum,
       ])
-      const mock = await ethers.deployContract(
-        '$GovernorPreventLateQuorumMock',
-        [
-          name, // name
-          votingDelay, // initialVotingDelay
-          votingPeriod, // initialVotingPeriod
-          0n, // initialProposalThreshold
-          token, // tokenAddress
-          lateQuorumVoteExtension,
-          quorum,
-        ],
-      )
 
       await owner.sendTransaction({ to: mock, value })
       await token.$_mint(owner, tokenSupply)
 
       const helper = new GovernorHelper(mock, mode)
-      await helper
-        .connect(owner)
-        .delegate({ token, to: voter1, value: ethers.parseEther('10') })
-      await helper
-        .connect(owner)
-        .delegate({ token, to: voter2, value: ethers.parseEther('7') })
-      await helper
-        .connect(owner)
-        .delegate({ token, to: voter3, value: ethers.parseEther('5') })
-      await helper
-        .connect(owner)
-        .delegate({ token, to: voter4, value: ethers.parseEther('2') })
+      await helper.connect(owner).delegate({ token, to: voter1, value: ethers.parseEther('10') })
+      await helper.connect(owner).delegate({ token, to: voter2, value: ethers.parseEther('7') })
+      await helper.connect(owner).delegate({ token, to: voter3, value: ethers.parseEther('5') })
+      await helper.connect(owner).delegate({ token, to: voter4, value: ethers.parseEther('2') })
 
       return {
         owner,
@@ -100,9 +84,7 @@ describe('GovernorPreventLateQuorum', () => {
         expect(await this.mock.votingDelay()).to.equal(votingDelay)
         expect(await this.mock.votingPeriod()).to.equal(votingPeriod)
         expect(await this.mock.quorum(0)).to.equal(quorum)
-        expect(await this.mock.lateQuorumVoteExtension()).to.equal(
-          lateQuorumVoteExtension,
-        )
+        expect(await this.mock.lateQuorumVoteExtension()).to.equal(lateQuorumVoteExtension)
       })
 
       it('nominal workflow unaffected', async function () {
@@ -110,25 +92,16 @@ describe('GovernorPreventLateQuorum', () => {
         await this.helper.waitForSnapshot()
         await this.helper.connect(this.voter1).vote({ support: VoteType.For })
         await this.helper.connect(this.voter2).vote({ support: VoteType.For })
-        await this.helper
-          .connect(this.voter3)
-          .vote({ support: VoteType.Against })
-        await this.helper
-          .connect(this.voter4)
-          .vote({ support: VoteType.Abstain })
+        await this.helper.connect(this.voter3).vote({ support: VoteType.Against })
+        await this.helper.connect(this.voter4).vote({ support: VoteType.Abstain })
         await this.helper.waitForDeadline()
         await this.helper.execute()
 
-        expect(await this.mock.hasVoted(this.proposal.id, this.owner)).to.be
-          .false
-        expect(await this.mock.hasVoted(this.proposal.id, this.voter1)).to.be
-          .true
-        expect(await this.mock.hasVoted(this.proposal.id, this.voter2)).to.be
-          .true
-        expect(await this.mock.hasVoted(this.proposal.id, this.voter3)).to.be
-          .true
-        expect(await this.mock.hasVoted(this.proposal.id, this.voter4)).to.be
-          .true
+        expect(await this.mock.hasVoted(this.proposal.id, this.owner)).to.be.false
+        expect(await this.mock.hasVoted(this.proposal.id, this.voter1)).to.be.true
+        expect(await this.mock.hasVoted(this.proposal.id, this.voter2)).to.be.true
+        expect(await this.mock.hasVoted(this.proposal.id, this.voter3)).to.be.true
+        expect(await this.mock.hasVoted(this.proposal.id, this.voter4)).to.be.true
 
         expect(await this.mock.proposalVotes(this.proposal.id)).to.deep.equal([
           ethers.parseEther('5'), // againstVotes
@@ -136,18 +109,10 @@ describe('GovernorPreventLateQuorum', () => {
           ethers.parseEther('2'), // abstainVotes
         ])
 
-        const voteStart =
-          (await time.clockFromReceipt[mode](txPropose)) + votingDelay
-        const voteEnd =
-          (await time.clockFromReceipt[mode](txPropose)) +
-          votingDelay +
-          votingPeriod
-        expect(await this.mock.proposalSnapshot(this.proposal.id)).to.equal(
-          voteStart,
-        )
-        expect(await this.mock.proposalDeadline(this.proposal.id)).to.equal(
-          voteEnd,
-        )
+        const voteStart = (await time.clockFromReceipt[mode](txPropose)) + votingDelay
+        const voteEnd = (await time.clockFromReceipt[mode](txPropose)) + votingDelay + votingPeriod
+        expect(await this.mock.proposalSnapshot(this.proposal.id)).to.equal(voteStart)
+        expect(await this.mock.proposalDeadline(this.proposal.id)).to.equal(voteEnd)
 
         await expect(txPropose)
           .to.emit(this.mock, 'ProposalCreated')
@@ -168,52 +133,31 @@ describe('GovernorPreventLateQuorum', () => {
         const txPropose = await this.helper.connect(this.proposer).propose()
 
         // compute original schedule
-        const snapshotTimepoint =
-          (await time.clockFromReceipt[mode](txPropose)) + votingDelay
+        const snapshotTimepoint = (await time.clockFromReceipt[mode](txPropose)) + votingDelay
         const deadlineTimepoint =
-          (await time.clockFromReceipt[mode](txPropose)) +
-          votingDelay +
-          votingPeriod
-        expect(await this.mock.proposalSnapshot(this.proposal.id)).to.equal(
-          snapshotTimepoint,
-        )
-        expect(await this.mock.proposalDeadline(this.proposal.id)).to.equal(
-          deadlineTimepoint,
-        )
+          (await time.clockFromReceipt[mode](txPropose)) + votingDelay + votingPeriod
+        expect(await this.mock.proposalSnapshot(this.proposal.id)).to.equal(snapshotTimepoint)
+        expect(await this.mock.proposalDeadline(this.proposal.id)).to.equal(deadlineTimepoint)
         // wait for the last minute to vote
         await this.helper.waitForDeadline(-1n)
-        const txVote = await this.helper
-          .connect(this.voter2)
-          .vote({ support: VoteType.For })
+        const txVote = await this.helper.connect(this.voter2).vote({ support: VoteType.For })
 
         // cannot execute yet
-        expect(await this.mock.state(this.proposal.id)).to.equal(
-          ProposalState.Active,
-        )
+        expect(await this.mock.state(this.proposal.id)).to.equal(ProposalState.Active)
 
         // compute new extended schedule
         const extendedDeadline =
           (await time.clockFromReceipt[mode](txVote)) + lateQuorumVoteExtension
-        expect(await this.mock.proposalSnapshot(this.proposal.id)).to.equal(
-          snapshotTimepoint,
-        )
-        expect(await this.mock.proposalDeadline(this.proposal.id)).to.equal(
-          extendedDeadline,
-        )
+        expect(await this.mock.proposalSnapshot(this.proposal.id)).to.equal(snapshotTimepoint)
+        expect(await this.mock.proposalDeadline(this.proposal.id)).to.equal(extendedDeadline)
 
         // still possible to vote
-        await this.helper
-          .connect(this.voter1)
-          .vote({ support: VoteType.Against })
+        await this.helper.connect(this.voter1).vote({ support: VoteType.Against })
 
         await this.helper.waitForDeadline()
-        expect(await this.mock.state(this.proposal.id)).to.equal(
-          ProposalState.Active,
-        )
+        expect(await this.mock.state(this.proposal.id)).to.equal(ProposalState.Active)
         await this.helper.waitForDeadline(1n)
-        expect(await this.mock.state(this.proposal.id)).to.equal(
-          ProposalState.Defeated,
-        )
+        expect(await this.mock.state(this.proposal.id)).to.equal(ProposalState.Defeated)
 
         // check extension event
         await expect(txVote)
@@ -223,9 +167,7 @@ describe('GovernorPreventLateQuorum', () => {
 
       describe('onlyGovernance updates', () => {
         it('setLateQuorumVoteExtension is protected', async function () {
-          await expect(
-            this.mock.connect(this.owner).setLateQuorumVoteExtension(0n),
-          )
+          await expect(this.mock.connect(this.owner).setLateQuorumVoteExtension(0n))
             .to.be.revertedWithCustomError(this.mock, 'GovernorOnlyExecutor')
             .withArgs(this.owner)
         })
@@ -235,10 +177,7 @@ describe('GovernorPreventLateQuorum', () => {
             [
               {
                 target: this.mock.target,
-                data: this.mock.interface.encodeFunctionData(
-                  'setLateQuorumVoteExtension',
-                  [0n],
-                ),
+                data: this.mock.interface.encodeFunctionData('setLateQuorumVoteExtension', [0n]),
               },
             ],
             '<proposal description>',

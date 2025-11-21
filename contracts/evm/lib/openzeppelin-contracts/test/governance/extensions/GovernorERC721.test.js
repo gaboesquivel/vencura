@@ -29,11 +29,7 @@ describe('GovernorERC721', () => {
       const [owner, voter1, voter2, voter3, voter4] = await ethers.getSigners()
       const receiver = await ethers.deployContract('CallReceiverMock')
 
-      const token = await ethers.deployContract(Token, [
-        tokenName,
-        tokenSymbol,
-        version,
-      ])
+      const token = await ethers.deployContract(Token, [tokenName, tokenSymbol, version])
       const mock = await ethers.deployContract('$GovernorMock', [
         name, // name
         votingDelay, // initialVotingDelay
@@ -44,11 +40,7 @@ describe('GovernorERC721', () => {
       ])
 
       await owner.sendTransaction({ to: mock, value })
-      await Promise.all(
-        [NFT0, NFT1, NFT2, NFT3, NFT4].map((tokenId) =>
-          token.$_mint(owner, tokenId),
-        ),
-      )
+      await Promise.all([NFT0, NFT1, NFT2, NFT3, NFT4].map(tokenId => token.$_mint(owner, tokenId)))
 
       const helper = new GovernorHelper(mock, mode)
       await helper.connect(owner).delegate({ token, to: voter1, tokenId: NFT0 })
@@ -103,43 +95,30 @@ describe('GovernorERC721', () => {
         await this.helper.propose()
         await this.helper.waitForSnapshot()
 
-        await expect(
-          this.helper.connect(this.voter1).vote({ support: VoteType.For }),
-        )
+        await expect(this.helper.connect(this.voter1).vote({ support: VoteType.For }))
           .to.emit(this.mock, 'VoteCast')
           .withArgs(this.voter1, this.proposal.id, VoteType.For, 1n, '')
 
-        await expect(
-          this.helper.connect(this.voter2).vote({ support: VoteType.For }),
-        )
+        await expect(this.helper.connect(this.voter2).vote({ support: VoteType.For }))
           .to.emit(this.mock, 'VoteCast')
           .withArgs(this.voter2, this.proposal.id, VoteType.For, 2n, '')
 
-        await expect(
-          this.helper.connect(this.voter3).vote({ support: VoteType.Against }),
-        )
+        await expect(this.helper.connect(this.voter3).vote({ support: VoteType.Against }))
           .to.emit(this.mock, 'VoteCast')
           .withArgs(this.voter3, this.proposal.id, VoteType.Against, 1n, '')
 
-        await expect(
-          this.helper.connect(this.voter4).vote({ support: VoteType.Abstain }),
-        )
+        await expect(this.helper.connect(this.voter4).vote({ support: VoteType.Abstain }))
           .to.emit(this.mock, 'VoteCast')
           .withArgs(this.voter4, this.proposal.id, VoteType.Abstain, 1n, '')
 
         await this.helper.waitForDeadline()
         await this.helper.execute()
 
-        expect(await this.mock.hasVoted(this.proposal.id, this.owner)).to.be
-          .false
-        expect(await this.mock.hasVoted(this.proposal.id, this.voter1)).to.be
-          .true
-        expect(await this.mock.hasVoted(this.proposal.id, this.voter2)).to.be
-          .true
-        expect(await this.mock.hasVoted(this.proposal.id, this.voter3)).to.be
-          .true
-        expect(await this.mock.hasVoted(this.proposal.id, this.voter4)).to.be
-          .true
+        expect(await this.mock.hasVoted(this.proposal.id, this.owner)).to.be.false
+        expect(await this.mock.hasVoted(this.proposal.id, this.voter1)).to.be.true
+        expect(await this.mock.hasVoted(this.proposal.id, this.voter2)).to.be.true
+        expect(await this.mock.hasVoted(this.proposal.id, this.voter3)).to.be.true
+        expect(await this.mock.hasVoted(this.proposal.id, this.voter4)).to.be.true
 
         expect(await this.mock.proposalVotes(this.proposal.id)).to.deep.equal([
           1n, // againstVotes

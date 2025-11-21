@@ -240,7 +240,7 @@ module.exports = format(
   format(
     [].concat(
       defaultSet,
-      TYPES.map((details) => customSet(details)),
+      TYPES.map(details => customSet(details)),
     ),
   ).trimEnd(),
   '}',

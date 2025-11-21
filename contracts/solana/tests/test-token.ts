@@ -1,22 +1,16 @@
-import * as anchor from "@coral-xyz/anchor"
-import { Program } from "@coral-xyz/anchor"
-import { TestToken } from "../target/types/test_token"
-import { 
-  TOKEN_PROGRAM_ID, 
-  createMint, 
-  createAccount, 
-  getAccount,
-  getMint
-} from "@solana/spl-token"
-import { expect } from "chai"
-import { PublicKey, Keypair } from "@solana/web3.js"
+import * as anchor from '@coral-xyz/anchor'
+import { Program } from '@coral-xyz/anchor'
+import { TestToken } from '../target/types/test_token'
+import { TOKEN_PROGRAM_ID, createMint, createAccount, getAccount, getMint } from '@solana/spl-token'
+import { expect } from 'chai'
+import { PublicKey, Keypair } from '@solana/web3.js'
 
-describe("test-token", () => {
+describe('test-token', () => {
   const provider = anchor.AnchorProvider.env()
   anchor.setProvider(provider)
 
   const program = anchor.workspace.TestToken as Program<TestToken>
-  
+
   let mint: PublicKey
   let mintAuthority: PublicKey
   let mintAuthorityBump: number
@@ -31,10 +25,7 @@ describe("test-token", () => {
     user2 = Keypair.generate()
 
     // Airdrop SOL to users
-    await provider.connection.requestAirdrop(
-      user1.publicKey,
-      2 * anchor.web3.LAMPORTS_PER_SOL
-    )
+    await provider.connection.requestAirdrop(user1.publicKey, 2 * anchor.web3.LAMPORTS_PER_SOL)
     await provider.connection.requestAirdrop(
       user2.publicKey,
       2 * anchor.web3.LAMPORTS_PER_SOL
@@ -42,8 +33,8 @@ describe("test-token", () => {
 
     // Find mint authority PDA
     [mintAuthority, mintAuthorityBump] = PublicKey.findProgramAddressSync(
-      [Buffer.from("mint")],
-      program.programId
+      [Buffer.from('mint')],
+      program.programId,
     )
 
     // Create mint
@@ -52,7 +43,7 @@ describe("test-token", () => {
       user1, // payer
       mintAuthority, // mint authority
       mintAuthority, // freeze authority (can be null)
-      9 // decimals
+      9, // decimals
     )
 
     // Create token accounts
@@ -60,18 +51,18 @@ describe("test-token", () => {
       provider.connection,
       user1, // payer
       mint, // mint
-      user1.publicKey // owner
+      user1.publicKey, // owner
     )
 
     user2TokenAccount = await createAccount(
       provider.connection,
       user2, // payer
       mint, // mint
-      user2.publicKey // owner
+      user2.publicKey, // owner
     )
   })
 
-  it("Mints tokens to user1", async () => {
+  it('Mints tokens to user1', async () => {
     const amount = new anchor.BN(1000 * 10 ** 9) // 1000 tokens with 9 decimals
 
     await program.methods
@@ -88,7 +79,7 @@ describe("test-token", () => {
     expect(Number(account.amount)).to.equal(Number(amount))
   })
 
-  it("Anyone can mint tokens", async () => {
+  it('Anyone can mint tokens', async () => {
     const amount = new anchor.BN(500 * 10 ** 9)
 
     // User2 mints for user1
@@ -107,7 +98,7 @@ describe("test-token", () => {
     expect(Number(account.amount)).to.be.greaterThan(Number(amount))
   })
 
-  it("Burns tokens from user1", async () => {
+  it('Burns tokens from user1', async () => {
     const accountBefore = await getAccount(provider.connection, user1TokenAccount)
     const balanceBefore = Number(accountBefore.amount)
     const burnAmount = new anchor.BN(200 * 10 ** 9)
@@ -128,7 +119,7 @@ describe("test-token", () => {
     expect(balanceAfter).to.equal(balanceBefore - Number(burnAmount))
   })
 
-  it("Multiple users can mint independently", async () => {
+  it('Multiple users can mint independently', async () => {
     const amount1 = new anchor.BN(1000 * 10 ** 9)
     const amount2 = new anchor.BN(2000 * 10 ** 9)
 
@@ -158,12 +149,12 @@ describe("test-token", () => {
 
     const account1 = await getAccount(provider.connection, user1TokenAccount)
     const account2 = await getAccount(provider.connection, user2TokenAccount)
-    
+
     expect(Number(account1.amount)).to.be.greaterThanOrEqual(Number(amount1))
     expect(Number(account2.amount)).to.equal(Number(amount2))
   })
 
-  it("Mints zero amount", async () => {
+  it('Mints zero amount', async () => {
     const accountBefore = await getAccount(provider.connection, user1TokenAccount)
     const balanceBefore = Number(accountBefore.amount)
 
@@ -182,7 +173,7 @@ describe("test-token", () => {
     expect(Number(accountAfter.amount)).to.equal(balanceBefore)
   })
 
-  it("Burns zero amount", async () => {
+  it('Burns zero amount', async () => {
     const accountBefore = await getAccount(provider.connection, user1TokenAccount)
     const balanceBefore = Number(accountBefore.amount)
 
@@ -201,9 +192,8 @@ describe("test-token", () => {
     expect(Number(accountAfter.amount)).to.equal(balanceBefore)
   })
 
-  it("Verifies mint decimals", async () => {
+  it('Verifies mint decimals', async () => {
     const mintInfo = await getMint(provider.connection, mint)
     expect(mintInfo.decimals).to.equal(9)
   })
 })
-

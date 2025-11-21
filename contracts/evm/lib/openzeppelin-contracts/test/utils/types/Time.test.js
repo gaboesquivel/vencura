@@ -18,23 +18,21 @@ const asUint = (value, size) => {
   return value
 }
 
-const unpackDelay = (delay) => ({
+const unpackDelay = delay => ({
   valueBefore: (asUint(delay, 112) >> 32n) % (1n << 32n),
   valueAfter: (asUint(delay, 112) >> 0n) % (1n << 32n),
   effect: (asUint(delay, 112) >> 64n) % (1n << 48n),
 })
 
 const packDelay = ({ valueBefore, valueAfter = 0n, effect = 0n }) =>
-  (asUint(valueAfter, 32) << 0n) +
-  (asUint(valueBefore, 32) << 32n) +
-  (asUint(effect, 48) << 64n)
+  (asUint(valueAfter, 32) << 0n) + (asUint(valueBefore, 32) << 32n) + (asUint(effect, 48) << 64n)
 
-const effectSamplesForTimepoint = (timepoint) => [
+const effectSamplesForTimepoint = timepoint => [
   0n,
   timepoint,
   ...product([-1n, 1n], [1n, 2n, 17n, 42n])
     .map(([sign, shift]) => timepoint + sign * shift)
-    .filter((effect) => effect > 0n && effect <= MAX_UINT48),
+    .filter(effect => effect > 0n && effect <= MAX_UINT48),
   MAX_UINT48,
 ]
 
@@ -50,15 +48,11 @@ describe('Time', () => {
 
   describe('clocks', () => {
     it('timestamp', async function () {
-      expect(await this.mock.$timestamp()).to.equal(
-        await time.clock.timestamp(),
-      )
+      expect(await this.mock.$timestamp()).to.equal(await time.clock.timestamp())
     })
 
     it('block number', async function () {
-      expect(await this.mock.$blockNumber()).to.equal(
-        await time.clock.blocknumber(),
-      )
+      expect(await this.mock.$blockNumber()).to.equal(await time.clock.blocknumber())
     })
   })
 
@@ -70,18 +64,12 @@ describe('Time', () => {
       const delay = 1272825341158973505578n
 
       it('pack', async function () {
-        expect(await this.mock.$pack(valueBefore, valueAfter, effect)).to.equal(
-          delay,
-        )
+        expect(await this.mock.$pack(valueBefore, valueAfter, effect)).to.equal(delay)
         expect(packDelay({ valueBefore, valueAfter, effect })).to.equal(delay)
       })
 
       it('unpack', async function () {
-        expect(await this.mock.$unpack(delay)).to.deep.equal([
-          valueBefore,
-          valueAfter,
-          effect,
-        ])
+        expect(await this.mock.$unpack(delay)).to.deep.equal([valueBefore, valueAfter, effect])
 
         expect(unpackDelay(delay)).to.deep.equal({
           valueBefore,
@@ -93,13 +81,11 @@ describe('Time', () => {
 
     it('toDelay', async function () {
       for (const value of [...SOME_VALUES, MAX_UINT32]) {
-        expect(await this.mock.$toDelay(value).then(unpackDelay)).to.deep.equal(
-          {
-            valueBefore: 0n,
-            valueAfter: value,
-            effect: 0n,
-          },
-        )
+        expect(await this.mock.$toDelay(value).then(unpackDelay)).to.deep.equal({
+          valueBefore: 0n,
+          valueAfter: value,
+          effect: 0n,
+        })
       }
     })
 
@@ -112,9 +98,7 @@ describe('Time', () => {
         const isPast = effect <= timepoint
         const delay = packDelay({ valueBefore, valueAfter, effect })
 
-        expect(await this.mock.$get(delay)).to.equal(
-          isPast ? valueAfter : valueBefore,
-        )
+        expect(await this.mock.$get(delay)).to.equal(isPast ? valueAfter : valueBefore)
         expect(await this.mock.$getFull(delay)).to.deep.equal([
           isPast ? valueAfter : valueBefore,
           isPast ? 0n : valueAfter,
@@ -133,11 +117,7 @@ describe('Time', () => {
         for (const minSetback of [...SOME_VALUES, MAX_UINT32]) {
           const isPast = effect <= timepoint
           const expectedvalueBefore = isPast ? valueAfter : valueBefore
-          const expectedSetback = max(
-            minSetback,
-            expectedvalueBefore - newvalueAfter,
-            0n,
-          )
+          const expectedSetback = max(minSetback, expectedvalueBefore - newvalueAfter, 0n)
 
           expect(
             await this.mock.$withUpdate(

@@ -27,32 +27,27 @@ describe('ERC721Pausable', () => {
 
     it('reverts when trying to transferFrom', async function () {
       await expect(
-        this.token
-          .connect(this.owner)
-          .transferFrom(this.owner, this.receiver, tokenId),
+        this.token.connect(this.owner).transferFrom(this.owner, this.receiver, tokenId),
       ).to.be.revertedWithCustomError(this.token, 'EnforcedPause')
     })
 
     it('reverts when trying to safeTransferFrom', async function () {
       await expect(
-        this.token
-          .connect(this.owner)
-          .safeTransferFrom(this.owner, this.receiver, tokenId),
+        this.token.connect(this.owner).safeTransferFrom(this.owner, this.receiver, tokenId),
       ).to.be.revertedWithCustomError(this.token, 'EnforcedPause')
     })
 
     it('reverts when trying to safeTransferFrom with data', async function () {
       await expect(
-        this.token
-          .connect(this.owner)
-          .safeTransferFrom(this.owner, this.receiver, tokenId, data),
+        this.token.connect(this.owner).safeTransferFrom(this.owner, this.receiver, tokenId, data),
       ).to.be.revertedWithCustomError(this.token, 'EnforcedPause')
     })
 
     it('reverts when trying to mint', async function () {
-      await expect(
-        this.token.$_mint(this.receiver, otherTokenId),
-      ).to.be.revertedWithCustomError(this.token, 'EnforcedPause')
+      await expect(this.token.$_mint(this.receiver, otherTokenId)).to.be.revertedWithCustomError(
+        this.token,
+        'EnforcedPause',
+      )
     })
 
     it('reverts when trying to burn', async function () {
@@ -64,9 +59,7 @@ describe('ERC721Pausable', () => {
 
     describe('getApproved', () => {
       it('returns approved address', async function () {
-        expect(await this.token.getApproved(tokenId)).to.equal(
-          ethers.ZeroAddress,
-        )
+        expect(await this.token.getApproved(tokenId)).to.equal(ethers.ZeroAddress)
       })
     })
 
@@ -84,8 +77,7 @@ describe('ERC721Pausable', () => {
 
     describe('isApprovedForAll', () => {
       it('returns the approval of the operator', async function () {
-        expect(await this.token.isApprovedForAll(this.owner, this.operator)).to
-          .be.false
+        expect(await this.token.isApprovedForAll(this.owner, this.operator)).to.be.false
       })
     })
   })

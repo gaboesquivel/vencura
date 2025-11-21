@@ -8,19 +8,19 @@ const { TYPES } = require('../../scripts/generate/templates/Arrays.opts')
 
 // See https://en.cppreference.com/w/cpp/algorithm/lower_bound
 const lowerBound = (array, value) => {
-  const i = array.findIndex((element) => value <= element)
+  const i = array.findIndex(element => value <= element)
   return i == -1 ? array.length : i
 }
 
 // See https://en.cppreference.com/w/cpp/algorithm/upper_bound
 const upperBound = (array, value) => {
-  const i = array.findIndex((element) => value < element)
+  const i = array.findIndex(element => value < element)
   return i == -1 ? array.length : i
 }
 
-const bigintSign = (x) => (x > 0n ? 1 : x < 0n ? -1 : 0)
+const bigintSign = x => (x > 0n ? 1 : x < 0n ? -1 : 0)
 const comparator = (a, b) => bigintSign(ethers.toBigInt(a) - ethers.toBigInt(b))
-const hasDuplicates = (array) => array.some((v, i) => array.indexOf(v) != i)
+const hasDuplicates = array => array.some((v, i) => array.indexOf(v) != i)
 
 describe('Arrays', () => {
   const fixture = async () => {
@@ -104,28 +104,22 @@ describe('Arrays', () => {
                   upperBound(array, input) - 1,
                 )
               } else {
-                expect(await this.instance.findUpperBound(input)).to.equal(
-                  lowerBound(array, input),
-                )
+                expect(await this.instance.findUpperBound(input)).to.equal(lowerBound(array, input))
               }
             })
 
             it('lowerBound', async function () {
-              expect(await this.instance.lowerBound(input)).to.equal(
+              expect(await this.instance.lowerBound(input)).to.equal(lowerBound(array, input))
+              expect(await this.instance.lowerBoundMemory(array, input)).to.equal(
                 lowerBound(array, input),
               )
-              expect(
-                await this.instance.lowerBoundMemory(array, input),
-              ).to.equal(lowerBound(array, input))
             })
 
             it('upperBound', async function () {
-              expect(await this.instance.upperBound(input)).to.equal(
+              expect(await this.instance.upperBound(input)).to.equal(upperBound(array, input))
+              expect(await this.instance.upperBoundMemory(array, input)).to.equal(
                 upperBound(array, input),
               )
-              expect(
-                await this.instance.upperBoundMemory(array, input),
-              ).to.equal(upperBound(array, input))
             })
           })
         }
@@ -139,10 +133,7 @@ describe('Arrays', () => {
     describe(type, () => {
       const fixture = async () => {
         return {
-          instance: await ethers.deployContract(
-            `${capitalize(type)}ArraysMock`,
-            [elements],
-          ),
+          instance: await ethers.deployContract(`${capitalize(type)}ArraysMock`, [elements]),
         }
       }
 
@@ -160,12 +151,8 @@ describe('Arrays', () => {
             afterEach(async function () {
               const expected = Array.from(this.array).sort(comparator)
               const reversed = Array.from(expected).reverse()
-              expect(await this.instance.sort(this.array)).to.deep.equal(
-                expected,
-              )
-              expect(await this.instance.sortReverse(this.array)).to.deep.equal(
-                reversed,
-              )
+              expect(await this.instance.sort(this.array)).to.deep.equal(expected)
+              expect(await this.instance.sortReverse(this.array)).to.deep.equal(reversed)
             })
 
             it('sort array', async () => {
@@ -207,16 +194,14 @@ describe('Arrays', () => {
           }
 
           it('unsafeAccess outside bounds', async function () {
-            await expect(this.instance.unsafeAccess(elements.length)).to.not.be
-              .rejected
+            await expect(this.instance.unsafeAccess(elements.length)).to.not.be.rejected
           })
 
           it('unsafeSetLength changes the length or the array', async function () {
             const newLength = generators.uint256()
 
             expect(await this.instance.length()).to.equal(elements.length)
-            await expect(this.instance.unsafeSetLength(newLength)).to.not.be
-              .rejected
+            await expect(this.instance.unsafeSetLength(newLength)).to.not.be.rejected
             expect(await this.instance.length()).to.equal(newLength)
           })
         })
@@ -226,28 +211,21 @@ describe('Arrays', () => {
 
           for (const i in elements) {
             it(`unsafeMemoryAccess within bounds #${i}`, async function () {
-              expect(await this.mock[fragment](elements, i)).to.equal(
-                elements[i],
-              )
+              expect(await this.mock[fragment](elements, i)).to.equal(elements[i])
             })
           }
 
           it('unsafeMemoryAccess outside bounds', async function () {
-            await expect(this.mock[fragment](elements, elements.length)).to.not
-              .be.rejected
+            await expect(this.mock[fragment](elements, elements.length)).to.not.be.rejected
           })
 
           it('unsafeMemoryAccess loop around', async function () {
             for (let i = 251n; i < 256n; ++i) {
-              expect(
-                await this.mock[fragment](elements, 2n ** i - 1n),
-              ).to.equal(BigInt(elements.length))
-              expect(
-                await this.mock[fragment](elements, 2n ** i + 0n),
-              ).to.equal(elements[0])
-              expect(
-                await this.mock[fragment](elements, 2n ** i + 1n),
-              ).to.equal(elements[1])
+              expect(await this.mock[fragment](elements, 2n ** i - 1n)).to.equal(
+                BigInt(elements.length),
+              )
+              expect(await this.mock[fragment](elements, 2n ** i + 0n)).to.equal(elements[0])
+              expect(await this.mock[fragment](elements, 2n ** i + 1n)).to.equal(elements[1])
             }
           })
         })

@@ -10,11 +10,7 @@ async function fixture() {
   const implementation = await ethers.deployContract('DummyImplementation')
 
   const createProxy = (logic, initData, opts = undefined) =>
-    ethers.deployContract(
-      'TransparentUpgradeableProxy',
-      [logic, owner, initData],
-      opts,
-    )
+    ethers.deployContract('TransparentUpgradeableProxy', [logic, owner, initData], opts)
 
   return {
     nonContractAddress: owner,

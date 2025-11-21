@@ -19,9 +19,7 @@ describe('SlotDerivation', () => {
     const namespace = 'example.main'
 
     it('erc-7201', async function () {
-      expect(await this.mock.$erc7201Slot(namespace)).to.equal(
-        erc7201Slot(namespace),
-      )
+      expect(await this.mock.$erc7201Slot(namespace)).to.equal(erc7201Slot(namespace))
     })
   })
 
@@ -36,9 +34,7 @@ describe('SlotDerivation', () => {
 
     it('array', async function () {
       const base = generators.bytes32()
-      expect(await this.mock.$deriveArray(base)).to.equal(
-        ethers.keccak256(base),
-      )
+      expect(await this.mock.$deriveArray(base)).to.equal(ethers.keccak256(base))
     })
 
     describe('mapping', () => {
@@ -55,15 +51,10 @@ describe('SlotDerivation', () => {
           const base = generators.bytes32()
           const expected = isValueType
             ? ethers.keccak256(
-                ethers.AbiCoder.defaultAbiCoder().encode(
-                  [type, 'bytes32'],
-                  [key, base],
-                ),
+                ethers.AbiCoder.defaultAbiCoder().encode([type, 'bytes32'], [key, base]),
               )
             : ethers.solidityPackedKeccak256([type, 'bytes32'], [key, base])
-          expect(
-            await this.mock[`$deriveMapping(bytes32,${type})`](base, key),
-          ).to.equal(expected)
+          expect(await this.mock[`$deriveMapping(bytes32,${type})`](base, key)).to.equal(expected)
         })
       }
     })

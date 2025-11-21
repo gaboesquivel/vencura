@@ -13,9 +13,7 @@ const data = '0x12345678'
 async function fixture() {
   const [owner] = await ethers.getSigners()
 
-  const token = await ethers.deployContract('$ERC1155', [
-    'https://token-cdn-domain/{id}.json',
-  ])
+  const token = await ethers.deployContract('$ERC1155', ['https://token-cdn-domain/{id}.json'])
   const mock = await ethers.deployContract('$ERC1155Holder')
 
   await token.$_mintBatch(owner, ids, values, '0x')

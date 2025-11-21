@@ -14,27 +14,24 @@ const {
 const marker = Symbol('unreachable')
 const markedCache = new WeakMap()
 
-task(
-  TASK_COMPILE_SOLIDITY_GET_COMPILATION_JOB_FOR_FILE,
-  async (params, _, runSuper) => {
-    const job = await runSuper(params)
-    // If the file is in the unreachable directory, we make a copy of the config and mark it, which will cause it to get
-    // compiled separately (along with the other marked files).
-    if (
-      params.file.sourceName.startsWith('contracts/mocks/') &&
-      /\bunreachable\b/.test(params.file.sourceName)
-    ) {
-      const originalConfig = job.solidityConfig
-      let markedConfig = markedCache.get(originalConfig)
-      if (markedConfig === undefined) {
-        markedConfig = { ...originalConfig, [marker]: true }
-        markedCache.set(originalConfig, markedConfig)
-      }
-      job.solidityConfig = markedConfig
+task(TASK_COMPILE_SOLIDITY_GET_COMPILATION_JOB_FOR_FILE, async (params, _, runSuper) => {
+  const job = await runSuper(params)
+  // If the file is in the unreachable directory, we make a copy of the config and mark it, which will cause it to get
+  // compiled separately (along with the other marked files).
+  if (
+    params.file.sourceName.startsWith('contracts/mocks/') &&
+    /\bunreachable\b/.test(params.file.sourceName)
+  ) {
+    const originalConfig = job.solidityConfig
+    let markedConfig = markedCache.get(originalConfig)
+    if (markedConfig === undefined) {
+      markedConfig = { ...originalConfig, [marker]: true }
+      markedCache.set(originalConfig, markedConfig)
     }
-    return job
-  },
-)
+    job.solidityConfig = markedConfig
+  }
+  return job
+})
 
 const W_UNREACHABLE_CODE = '5740'
 
@@ -45,7 +42,7 @@ task(TASK_COMPILE_SOLIDITY_COMPILE, async (params, _, runSuper) => {
     result.output = {
       ...result.output,
       errors: result.output.errors?.filter(
-        (e) => e.severity !== 'warning' || e.errorCode !== W_UNREACHABLE_CODE,
+        e => e.severity !== 'warning' || e.errorCode !== W_UNREACHABLE_CODE,
       ),
     }
   }

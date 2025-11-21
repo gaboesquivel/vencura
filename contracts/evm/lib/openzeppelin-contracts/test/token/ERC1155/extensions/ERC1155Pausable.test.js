@@ -22,9 +22,7 @@ describe('ERC1155Pausable', () => {
 
   describe('when token is paused', () => {
     beforeEach(async function () {
-      await this.token
-        .connect(this.holder)
-        .setApprovalForAll(this.operator, true)
+      await this.token.connect(this.holder).setApprovalForAll(this.operator, true)
       await this.token.$_mint(this.holder, firstTokenId, firstTokenValue, '0x')
       await this.token.$_pause()
     })
@@ -33,13 +31,7 @@ describe('ERC1155Pausable', () => {
       await expect(
         this.token
           .connect(this.holder)
-          .safeTransferFrom(
-            this.holder,
-            this.receiver,
-            firstTokenId,
-            firstTokenValue,
-            '0x',
-          ),
+          .safeTransferFrom(this.holder, this.receiver, firstTokenId, firstTokenValue, '0x'),
       ).to.be.revertedWithCustomError(this.token, 'EnforcedPause')
     })
 
@@ -47,13 +39,7 @@ describe('ERC1155Pausable', () => {
       await expect(
         this.token
           .connect(this.operator)
-          .safeTransferFrom(
-            this.holder,
-            this.receiver,
-            firstTokenId,
-            firstTokenValue,
-            '0x',
-          ),
+          .safeTransferFrom(this.holder, this.receiver, firstTokenId, firstTokenValue, '0x'),
       ).to.be.revertedWithCustomError(this.token, 'EnforcedPause')
     })
 
@@ -93,12 +79,7 @@ describe('ERC1155Pausable', () => {
 
     it('reverts when trying to mintBatch', async function () {
       await expect(
-        this.token.$_mintBatch(
-          this.holder,
-          [secondTokenId],
-          [secondTokenValue],
-          '0x',
-        ),
+        this.token.$_mintBatch(this.holder, [secondTokenId], [secondTokenValue], '0x'),
       ).to.be.revertedWithCustomError(this.token, 'EnforcedPause')
     })
 
@@ -116,26 +97,20 @@ describe('ERC1155Pausable', () => {
 
     describe('setApprovalForAll', () => {
       it('approves an operator', async function () {
-        await this.token
-          .connect(this.holder)
-          .setApprovalForAll(this.other, true)
-        expect(await this.token.isApprovedForAll(this.holder, this.other)).to.be
-          .true
+        await this.token.connect(this.holder).setApprovalForAll(this.other, true)
+        expect(await this.token.isApprovedForAll(this.holder, this.other)).to.be.true
       })
     })
 
     describe('balanceOf', () => {
       it('returns the token value owned by the given address', async function () {
-        expect(await this.token.balanceOf(this.holder, firstTokenId)).to.equal(
-          firstTokenValue,
-        )
+        expect(await this.token.balanceOf(this.holder, firstTokenId)).to.equal(firstTokenValue)
       })
     })
 
     describe('isApprovedForAll', () => {
       it('returns the approval of the operator', async function () {
-        expect(await this.token.isApprovedForAll(this.holder, this.operator)).to
-          .be.true
+        expect(await this.token.isApprovedForAll(this.holder, this.operator)).to.be.true
       })
     })
   })

@@ -10,11 +10,7 @@ async function fixture() {
   const getContent = () =>
     mock
       .$length(0)
-      .then((length) =>
-        Promise.all(
-          Array.from({ length: Number(length) }, (_, i) => mock.$at(0, i)),
-        ),
-      )
+      .then(length => Promise.all(Array.from({ length: Number(length) }, (_, i) => mock.$at(0, i))))
 
   return { mock, getContent }
 }
@@ -37,12 +33,8 @@ describe('DoubleEndedQueue', () => {
     })
 
     it('reverts on accesses', async function () {
-      await expect(this.mock.$popBack(0)).to.be.revertedWithPanic(
-        PANIC_CODES.POP_ON_EMPTY_ARRAY,
-      )
-      await expect(this.mock.$popFront(0)).to.be.revertedWithPanic(
-        PANIC_CODES.POP_ON_EMPTY_ARRAY,
-      )
+      await expect(this.mock.$popBack(0)).to.be.revertedWithPanic(PANIC_CODES.POP_ON_EMPTY_ARRAY)
+      await expect(this.mock.$popFront(0)).to.be.revertedWithPanic(PANIC_CODES.POP_ON_EMPTY_ARRAY)
       await expect(this.mock.$back(0)).to.be.revertedWithPanic(
         PANIC_CODES.ARRAY_ACCESS_OUT_OF_BOUNDS,
       )
@@ -64,16 +56,14 @@ describe('DoubleEndedQueue', () => {
       expect(await this.mock.$empty(0)).to.be.false
       expect(await this.mock.$length(0)).to.equal(this.content.length)
       expect(await this.mock.$front(0)).to.equal(this.content[0])
-      expect(await this.mock.$back(0)).to.equal(
-        this.content[this.content.length - 1],
-      )
+      expect(await this.mock.$back(0)).to.equal(this.content[this.content.length - 1])
       expect(await this.getContent()).to.have.ordered.members(this.content)
     })
 
     it('out of bounds access', async function () {
-      await expect(
-        this.mock.$at(0, this.content.length),
-      ).to.be.revertedWithPanic(PANIC_CODES.ARRAY_ACCESS_OUT_OF_BOUNDS)
+      await expect(this.mock.$at(0, this.content.length)).to.be.revertedWithPanic(
+        PANIC_CODES.ARRAY_ACCESS_OUT_OF_BOUNDS,
+      )
     })
 
     describe('push', () => {
@@ -95,18 +85,14 @@ describe('DoubleEndedQueue', () => {
     describe('pop', () => {
       it('front', async function () {
         const value = this.content.shift() // remove first element
-        await expect(this.mock.$popFront(0))
-          .to.emit(this.mock, 'return$popFront')
-          .withArgs(value)
+        await expect(this.mock.$popFront(0)).to.emit(this.mock, 'return$popFront').withArgs(value)
 
         expect(await this.getContent()).to.have.ordered.members(this.content)
       })
 
       it('back', async function () {
         const value = this.content.pop() // remove last element
-        await expect(this.mock.$popBack(0))
-          .to.emit(this.mock, 'return$popBack')
-          .withArgs(value)
+        await expect(this.mock.$popBack(0)).to.emit(this.mock, 'return$popBack').withArgs(value)
 
         expect(await this.getContent()).to.have.ordered.members(this.content)
       })

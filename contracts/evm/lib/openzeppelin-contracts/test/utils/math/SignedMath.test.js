@@ -66,7 +66,7 @@ describe('SignedMath', () => {
   })
 
   describe('abs', () => {
-    const abs = (x) => (x < 0n ? -x : x)
+    const abs = x => (x < 0n ? -x : x)
 
     for (const n of [
       ethers.MinInt256,

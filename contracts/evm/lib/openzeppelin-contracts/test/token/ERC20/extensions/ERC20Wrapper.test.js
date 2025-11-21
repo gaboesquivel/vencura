@@ -14,11 +14,7 @@ async function fixture() {
   const accounts = await ethers.getSigners()
   const [holder, recipient, other] = accounts
 
-  const underlying = await ethers.deployContract('$ERC20DecimalsMock', [
-    name,
-    symbol,
-    decimals,
-  ])
+  const underlying = await ethers.deployContract('$ERC20DecimalsMock', [name, symbol, decimals])
   await underlying.$_mint(holder, initialSupply)
 
   const token = await ethers.deployContract('$ERC20Wrapper', [
@@ -36,9 +32,7 @@ describe('ERC20Wrapper', () => {
   })
 
   afterEach('Underlying balance', async function () {
-    expect(await this.underlying.balanceOf(this.token)).to.equal(
-      await this.token.totalSupply(),
-    )
+    expect(await this.underlying.balanceOf(this.token)).to.equal(await this.token.totalSupply())
   })
 
   it('has a name', async function () {
@@ -69,13 +63,9 @@ describe('ERC20Wrapper', () => {
 
   describe('deposit', () => {
     it('executes with approval', async function () {
-      await this.underlying
-        .connect(this.holder)
-        .approve(this.token, initialSupply)
+      await this.underlying.connect(this.holder).approve(this.token, initialSupply)
 
-      const tx = await this.token
-        .connect(this.holder)
-        .depositFor(this.holder, initialSupply)
+      const tx = await this.token.connect(this.holder).depositFor(this.holder, initialSupply)
       await expect(tx)
         .to.emit(this.underlying, 'Transfer')
         .withArgs(this.holder, this.token, initialSupply)
@@ -86,49 +76,27 @@ describe('ERC20Wrapper', () => {
         [this.holder, this.token],
         [-initialSupply, initialSupply],
       )
-      await expect(tx).to.changeTokenBalance(
-        this.token,
-        this.holder,
-        initialSupply,
-      )
+      await expect(tx).to.changeTokenBalance(this.token, this.holder, initialSupply)
     })
 
     it('reverts when missing approval', async function () {
-      await expect(
-        this.token.connect(this.holder).depositFor(this.holder, initialSupply),
-      )
-        .to.be.revertedWithCustomError(
-          this.underlying,
-          'ERC20InsufficientAllowance',
-        )
+      await expect(this.token.connect(this.holder).depositFor(this.holder, initialSupply))
+        .to.be.revertedWithCustomError(this.underlying, 'ERC20InsufficientAllowance')
         .withArgs(this.token, 0, initialSupply)
     })
 
     it('reverts when inssuficient balance', async function () {
-      await this.underlying
-        .connect(this.holder)
-        .approve(this.token, ethers.MaxUint256)
+      await this.underlying.connect(this.holder).approve(this.token, ethers.MaxUint256)
 
-      await expect(
-        this.token
-          .connect(this.holder)
-          .depositFor(this.holder, ethers.MaxUint256),
-      )
-        .to.be.revertedWithCustomError(
-          this.underlying,
-          'ERC20InsufficientBalance',
-        )
+      await expect(this.token.connect(this.holder).depositFor(this.holder, ethers.MaxUint256))
+        .to.be.revertedWithCustomError(this.underlying, 'ERC20InsufficientBalance')
         .withArgs(this.holder, initialSupply, ethers.MaxUint256)
     })
 
     it('deposits to other account', async function () {
-      await this.underlying
-        .connect(this.holder)
-        .approve(this.token, initialSupply)
+      await this.underlying.connect(this.holder).approve(this.token, initialSupply)
 
-      const tx = await this.token
-        .connect(this.holder)
-        .depositFor(this.recipient, initialSupply)
+      const tx = await this.token.connect(this.holder).depositFor(this.recipient, initialSupply)
       await expect(tx)
         .to.emit(this.underlying, 'Transfer')
         .withArgs(this.holder, this.token.target, initialSupply)
@@ -147,15 +115,9 @@ describe('ERC20Wrapper', () => {
     })
 
     it('reverts minting to the wrapper contract', async function () {
-      await this.underlying
-        .connect(this.holder)
-        .approve(this.token, ethers.MaxUint256)
+      await this.underlying.connect(this.holder).approve(this.token, ethers.MaxUint256)
 
-      await expect(
-        this.token
-          .connect(this.holder)
-          .depositFor(this.token, ethers.MaxUint256),
-      )
+      await expect(this.token.connect(this.holder).depositFor(this.token, ethers.MaxUint256))
         .to.be.revertedWithCustomError(this.token, 'ERC20InvalidReceiver')
         .withArgs(this.token)
     })
@@ -163,20 +125,12 @@ describe('ERC20Wrapper', () => {
 
   describe('withdraw', () => {
     beforeEach(async function () {
-      await this.underlying
-        .connect(this.holder)
-        .approve(this.token, initialSupply)
-      await this.token
-        .connect(this.holder)
-        .depositFor(this.holder, initialSupply)
+      await this.underlying.connect(this.holder).approve(this.token, initialSupply)
+      await this.token.connect(this.holder).depositFor(this.holder, initialSupply)
     })
 
     it('reverts when inssuficient balance', async function () {
-      await expect(
-        this.token
-          .connect(this.holder)
-          .withdrawTo(this.holder, ethers.MaxInt256),
-      )
+      await expect(this.token.connect(this.holder).withdrawTo(this.holder, ethers.MaxInt256))
         .to.be.revertedWithCustomError(this.token, 'ERC20InsufficientBalance')
         .withArgs(this.holder, initialSupply, ethers.MaxInt256)
     })
@@ -184,9 +138,7 @@ describe('ERC20Wrapper', () => {
     it('executes when operation is valid', async function () {
       const value = 42n
 
-      const tx = await this.token
-        .connect(this.holder)
-        .withdrawTo(this.holder, value)
+      const tx = await this.token.connect(this.holder).withdrawTo(this.holder, value)
       await expect(tx)
         .to.emit(this.underlying, 'Transfer')
         .withArgs(this.token.target, this.holder, value)
@@ -201,9 +153,7 @@ describe('ERC20Wrapper', () => {
     })
 
     it('entire balance', async function () {
-      const tx = await this.token
-        .connect(this.holder)
-        .withdrawTo(this.holder, initialSupply)
+      const tx = await this.token.connect(this.holder).withdrawTo(this.holder, initialSupply)
       await expect(tx)
         .to.emit(this.underlying, 'Transfer')
         .withArgs(this.token.target, this.holder, initialSupply)
@@ -214,17 +164,11 @@ describe('ERC20Wrapper', () => {
         [this.token, this.holder],
         [-initialSupply, initialSupply],
       )
-      await expect(tx).to.changeTokenBalance(
-        this.token,
-        this.holder,
-        -initialSupply,
-      )
+      await expect(tx).to.changeTokenBalance(this.token, this.holder, -initialSupply)
     })
 
     it('to other account', async function () {
-      const tx = await this.token
-        .connect(this.holder)
-        .withdrawTo(this.recipient, initialSupply)
+      const tx = await this.token.connect(this.holder).withdrawTo(this.recipient, initialSupply)
       await expect(tx)
         .to.emit(this.underlying, 'Transfer')
         .withArgs(this.token, this.recipient, initialSupply)
@@ -235,17 +179,11 @@ describe('ERC20Wrapper', () => {
         [this.token, this.holder, this.recipient],
         [-initialSupply, 0, initialSupply],
       )
-      await expect(tx).to.changeTokenBalance(
-        this.token,
-        this.holder,
-        -initialSupply,
-      )
+      await expect(tx).to.changeTokenBalance(this.token, this.holder, -initialSupply)
     })
 
     it('reverts withdrawing to the wrapper contract', async function () {
-      await expect(
-        this.token.connect(this.holder).withdrawTo(this.token, initialSupply),
-      )
+      await expect(this.token.connect(this.holder).withdrawTo(this.token, initialSupply))
         .to.be.revertedWithCustomError(this.token, 'ERC20InvalidReceiver')
         .withArgs(this.token)
     })
@@ -253,12 +191,8 @@ describe('ERC20Wrapper', () => {
 
   describe('recover', () => {
     it('nothing to recover', async function () {
-      await this.underlying
-        .connect(this.holder)
-        .approve(this.token, initialSupply)
-      await this.token
-        .connect(this.holder)
-        .depositFor(this.holder, initialSupply)
+      await this.underlying.connect(this.holder).approve(this.token, initialSupply)
+      await this.token.connect(this.holder).depositFor(this.holder, initialSupply)
 
       const tx = await this.token.$_recover(this.recipient)
       await expect(tx)
@@ -268,30 +202,20 @@ describe('ERC20Wrapper', () => {
     })
 
     it('something to recover', async function () {
-      await this.underlying
-        .connect(this.holder)
-        .transfer(this.token, initialSupply)
+      await this.underlying.connect(this.holder).transfer(this.token, initialSupply)
 
       const tx = await this.token.$_recover(this.recipient)
       await expect(tx)
         .to.emit(this.token, 'Transfer')
         .withArgs(ethers.ZeroAddress, this.recipient, initialSupply)
-      await expect(tx).to.changeTokenBalance(
-        this.token,
-        this.recipient,
-        initialSupply,
-      )
+      await expect(tx).to.changeTokenBalance(this.token, this.recipient, initialSupply)
     })
   })
 
   describe('erc20 behaviour', () => {
     beforeEach(async function () {
-      await this.underlying
-        .connect(this.holder)
-        .approve(this.token, initialSupply)
-      await this.token
-        .connect(this.holder)
-        .depositFor(this.holder, initialSupply)
+      await this.underlying.connect(this.holder).approve(this.token, initialSupply)
+      await this.token.connect(this.holder).depositFor(this.holder, initialSupply)
     })
 
     shouldBehaveLikeERC20(initialSupply)

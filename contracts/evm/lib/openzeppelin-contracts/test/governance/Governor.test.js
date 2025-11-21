@@ -7,9 +7,7 @@ const { getDomain, Ballot } = require('../helpers/eip712')
 const { ProposalState, VoteType } = require('../helpers/enums')
 const time = require('../helpers/time')
 
-const {
-  shouldSupportInterfaces,
-} = require('../utils/introspection/SupportsInterface.behavior')
+const { shouldSupportInterfaces } = require('../utils/introspection/SupportsInterface.behavior')
 const { shouldBehaveLikeERC6372 } = require('./utils/ERC6372.behavior')
 
 const TOKENS = [
@@ -27,27 +25,16 @@ const votingDelay = 4n
 const votingPeriod = 16n
 const value = ethers.parseEther('1')
 
-const signBallot = (account) => (contract, message) =>
-  getDomain(contract).then((domain) =>
-    account.signTypedData(domain, { Ballot }, message),
-  )
+const signBallot = account => (contract, message) =>
+  getDomain(contract).then(domain => account.signTypedData(domain, { Ballot }, message))
 
 async function deployToken(contractName) {
   try {
-    return await ethers.deployContract(contractName, [
-      tokenName,
-      tokenSymbol,
-      tokenName,
-      version,
-    ])
+    return await ethers.deployContract(contractName, [tokenName, tokenSymbol, tokenName, version])
   } catch (error) {
     if (error.message == 'incorrect number of arguments to constructor') {
       // ERC20VotesLegacyMock has a different construction that uses version='1' by default.
-      return ethers.deployContract(contractName, [
-        tokenName,
-        tokenSymbol,
-        tokenName,
-      ])
+      return ethers.deployContract(contractName, [tokenName, tokenSymbol, tokenName])
     }
     throw error
   }
@@ -56,8 +43,7 @@ async function deployToken(contractName) {
 describe('Governor', () => {
   for (const { Token, mode } of TOKENS) {
     const fixture = async () => {
-      const [owner, proposer, voter1, voter2, voter3, voter4, userEOA] =
-        await ethers.getSigners()
+      const [owner, proposer, voter1, voter2, voter3, voter4, userEOA] = await ethers.getSigners()
       const receiver = await ethers.deployContract('CallReceiverMock')
 
       const token = await deployToken(Token, [tokenName, tokenSymbol, version])
@@ -127,28 +113,20 @@ describe('Governor', () => {
         expect(await this.mock.votingDelay()).to.equal(votingDelay)
         expect(await this.mock.votingPeriod()).to.equal(votingPeriod)
         expect(await this.mock.quorum(0)).to.equal(0n)
-        expect(await this.mock.COUNTING_MODE()).to.equal(
-          'support=bravo&quorum=for,abstain',
-        )
+        expect(await this.mock.COUNTING_MODE()).to.equal('support=bravo&quorum=for,abstain')
       })
 
       it('nominal workflow', async function () {
         // Before
-        expect(await this.mock.proposalProposer(this.proposal.id)).to.equal(
-          ethers.ZeroAddress,
-        )
-        expect(await this.mock.hasVoted(this.proposal.id, this.owner)).to.be
-          .false
-        expect(await this.mock.hasVoted(this.proposal.id, this.voter1)).to.be
-          .false
-        expect(await this.mock.hasVoted(this.proposal.id, this.voter2)).to.be
-          .false
+        expect(await this.mock.proposalProposer(this.proposal.id)).to.equal(ethers.ZeroAddress)
+        expect(await this.mock.hasVoted(this.proposal.id, this.owner)).to.be.false
+        expect(await this.mock.hasVoted(this.proposal.id, this.voter1)).to.be.false
+        expect(await this.mock.hasVoted(this.proposal.id, this.voter2)).to.be.false
         expect(await ethers.provider.getBalance(this.mock)).to.equal(value)
         expect(await ethers.provider.getBalance(this.receiver)).to.equal(0n)
 
         expect(await this.mock.proposalEta(this.proposal.id)).to.equal(0n)
-        expect(await this.mock.proposalNeedsQueuing(this.proposal.id)).to.be
-          .false
+        expect(await this.mock.proposalNeedsQueuing(this.proposal.id)).to.be.false
 
         // Run proposal
         const txPropose = await this.helper.connect(this.proposer).propose()
@@ -171,9 +149,7 @@ describe('Governor', () => {
         await this.helper.waitForSnapshot()
 
         await expect(
-          this.helper
-            .connect(this.voter1)
-            .vote({ support: VoteType.For, reason: 'This is nice' }),
+          this.helper.connect(this.voter1).vote({ support: VoteType.For, reason: 'This is nice' }),
         )
           .to.emit(this.mock, 'VoteCast')
           .withArgs(
@@ -184,68 +160,36 @@ describe('Governor', () => {
             'This is nice',
           )
 
-        await expect(
-          this.helper.connect(this.voter2).vote({ support: VoteType.For }),
-        )
+        await expect(this.helper.connect(this.voter2).vote({ support: VoteType.For }))
           .to.emit(this.mock, 'VoteCast')
-          .withArgs(
-            this.voter2,
-            this.proposal.id,
-            VoteType.For,
-            ethers.parseEther('7'),
-            '',
-          )
+          .withArgs(this.voter2, this.proposal.id, VoteType.For, ethers.parseEther('7'), '')
 
-        await expect(
-          this.helper.connect(this.voter3).vote({ support: VoteType.Against }),
-        )
+        await expect(this.helper.connect(this.voter3).vote({ support: VoteType.Against }))
           .to.emit(this.mock, 'VoteCast')
-          .withArgs(
-            this.voter3,
-            this.proposal.id,
-            VoteType.Against,
-            ethers.parseEther('5'),
-            '',
-          )
+          .withArgs(this.voter3, this.proposal.id, VoteType.Against, ethers.parseEther('5'), '')
 
-        await expect(
-          this.helper.connect(this.voter4).vote({ support: VoteType.Abstain }),
-        )
+        await expect(this.helper.connect(this.voter4).vote({ support: VoteType.Abstain }))
           .to.emit(this.mock, 'VoteCast')
-          .withArgs(
-            this.voter4,
-            this.proposal.id,
-            VoteType.Abstain,
-            ethers.parseEther('2'),
-            '',
-          )
+          .withArgs(this.voter4, this.proposal.id, VoteType.Abstain, ethers.parseEther('2'), '')
 
         await this.helper.waitForDeadline()
 
         const txExecute = await this.helper.execute()
 
-        await expect(txExecute)
-          .to.emit(this.mock, 'ProposalExecuted')
-          .withArgs(this.proposal.id)
+        await expect(txExecute).to.emit(this.mock, 'ProposalExecuted').withArgs(this.proposal.id)
 
         await expect(txExecute).to.emit(this.receiver, 'MockFunctionCalled')
 
         // After
-        expect(await this.mock.proposalProposer(this.proposal.id)).to.equal(
-          this.proposer,
-        )
-        expect(await this.mock.hasVoted(this.proposal.id, this.owner)).to.be
-          .false
-        expect(await this.mock.hasVoted(this.proposal.id, this.voter1)).to.be
-          .true
-        expect(await this.mock.hasVoted(this.proposal.id, this.voter2)).to.be
-          .true
+        expect(await this.mock.proposalProposer(this.proposal.id)).to.equal(this.proposer)
+        expect(await this.mock.hasVoted(this.proposal.id, this.owner)).to.be.false
+        expect(await this.mock.hasVoted(this.proposal.id, this.voter1)).to.be.true
+        expect(await this.mock.hasVoted(this.proposal.id, this.voter2)).to.be.true
         expect(await ethers.provider.getBalance(this.mock)).to.equal(0n)
         expect(await ethers.provider.getBalance(this.receiver)).to.equal(value)
 
         expect(await this.mock.proposalEta(this.proposal.id)).to.equal(0n)
-        expect(await this.mock.proposalNeedsQueuing(this.proposal.id)).to.be
-          .false
+        expect(await this.mock.proposalNeedsQueuing(this.proposal.id)).to.be.false
       })
 
       it('send ethers', async function () {
@@ -287,27 +231,18 @@ describe('Governor', () => {
             }),
           )
             .to.emit(this.mock, 'VoteCast')
-            .withArgs(
-              this.userEOA,
-              this.proposal.id,
-              VoteType.For,
-              ethers.parseEther('10'),
-              '',
-            )
+            .withArgs(this.userEOA, this.proposal.id, VoteType.For, ethers.parseEther('10'), '')
 
           await this.helper.waitForDeadline()
           await this.helper.execute()
 
           // After
-          expect(await this.mock.hasVoted(this.proposal.id, this.userEOA)).to.be
-            .true
+          expect(await this.mock.hasVoted(this.proposal.id, this.userEOA)).to.be.true
           expect(await this.mock.nonces(this.userEOA)).to.equal(nonce + 1n)
         })
 
         it('votes with a valid EIP-1271 signature', async function () {
-          const wallet = await ethers.deployContract('ERC1271WalletMock', [
-            this.userEOA,
-          ])
+          const wallet = await ethers.deployContract('ERC1271WalletMock', [this.userEOA])
 
           await this.token.connect(this.voter1).delegate(wallet)
 
@@ -325,13 +260,7 @@ describe('Governor', () => {
             }),
           )
             .to.emit(this.mock, 'VoteCast')
-            .withArgs(
-              wallet,
-              this.proposal.id,
-              VoteType.For,
-              ethers.parseEther('10'),
-              '',
-            )
+            .withArgs(wallet, this.proposal.id, VoteType.For, ethers.parseEther('10'), '')
           await this.helper.waitForDeadline()
           await this.helper.execute()
 
@@ -341,12 +270,9 @@ describe('Governor', () => {
         })
 
         afterEach('no other votes are cast', async function () {
-          expect(await this.mock.hasVoted(this.proposal.id, this.owner)).to.be
-            .false
-          expect(await this.mock.hasVoted(this.proposal.id, this.voter1)).to.be
-            .false
-          expect(await this.mock.hasVoted(this.proposal.id, this.voter2)).to.be
-            .false
+          expect(await this.mock.hasVoted(this.proposal.id, this.owner)).to.be.false
+          expect(await this.mock.hasVoted(this.proposal.id, this.voter1)).to.be.false
+          expect(await this.mock.hasVoted(this.proposal.id, this.voter2)).to.be.false
         })
       })
 
@@ -355,15 +281,8 @@ describe('Governor', () => {
           it('if proposal already exists', async function () {
             await this.helper.propose()
             await expect(this.helper.propose())
-              .to.be.revertedWithCustomError(
-                this.mock,
-                'GovernorUnexpectedProposalState',
-              )
-              .withArgs(
-                this.proposal.id,
-                ProposalState.Pending,
-                ethers.ZeroHash,
-              )
+              .to.be.revertedWithCustomError(this.mock, 'GovernorUnexpectedProposalState')
+              .withArgs(this.proposal.id, ProposalState.Pending, ethers.ZeroHash)
           })
 
           it('if proposer has below threshold votes', async function () {
@@ -371,35 +290,22 @@ describe('Governor', () => {
             const threshold = ethers.parseEther('1000')
             await this.mock.$_setProposalThreshold(threshold)
             await expect(this.helper.connect(this.voter1).propose())
-              .to.be.revertedWithCustomError(
-                this.mock,
-                'GovernorInsufficientProposerVotes',
-              )
+              .to.be.revertedWithCustomError(this.mock, 'GovernorInsufficientProposerVotes')
               .withArgs(this.voter1, votes, threshold)
           })
         })
 
         describe('on vote', () => {
           it('if proposal does not exist', async function () {
-            await expect(
-              this.helper.connect(this.voter1).vote({ support: VoteType.For }),
-            )
-              .to.be.revertedWithCustomError(
-                this.mock,
-                'GovernorNonexistentProposal',
-              )
+            await expect(this.helper.connect(this.voter1).vote({ support: VoteType.For }))
+              .to.be.revertedWithCustomError(this.mock, 'GovernorNonexistentProposal')
               .withArgs(this.proposal.id)
           })
 
           it('if voting has not started', async function () {
             await this.helper.propose()
-            await expect(
-              this.helper.connect(this.voter1).vote({ support: VoteType.For }),
-            )
-              .to.be.revertedWithCustomError(
-                this.mock,
-                'GovernorUnexpectedProposalState',
-              )
+            await expect(this.helper.connect(this.voter1).vote({ support: VoteType.For }))
+              .to.be.revertedWithCustomError(this.mock, 'GovernorUnexpectedProposalState')
               .withArgs(
                 this.proposal.id,
                 ProposalState.Pending,
@@ -410,9 +316,7 @@ describe('Governor', () => {
           it('if support value is invalid', async function () {
             await this.helper.propose()
             await this.helper.waitForSnapshot()
-            await expect(
-              this.helper.vote({ support: 255 }),
-            ).to.be.revertedWithCustomError(
+            await expect(this.helper.vote({ support: 255 })).to.be.revertedWithCustomError(
               this.mock,
               'GovernorInvalidVoteType',
             )
@@ -421,29 +325,17 @@ describe('Governor', () => {
           it('if vote was already casted', async function () {
             await this.helper.propose()
             await this.helper.waitForSnapshot()
-            await this.helper
-              .connect(this.voter1)
-              .vote({ support: VoteType.For })
-            await expect(
-              this.helper.connect(this.voter1).vote({ support: VoteType.For }),
-            )
-              .to.be.revertedWithCustomError(
-                this.mock,
-                'GovernorAlreadyCastVote',
-              )
+            await this.helper.connect(this.voter1).vote({ support: VoteType.For })
+            await expect(this.helper.connect(this.voter1).vote({ support: VoteType.For }))
+              .to.be.revertedWithCustomError(this.mock, 'GovernorAlreadyCastVote')
               .withArgs(this.voter1)
           })
 
           it('if voting is over', async function () {
             await this.helper.propose()
             await this.helper.waitForDeadline()
-            await expect(
-              this.helper.connect(this.voter1).vote({ support: VoteType.For }),
-            )
-              .to.be.revertedWithCustomError(
-                this.mock,
-                'GovernorUnexpectedProposalState',
-              )
+            await expect(this.helper.connect(this.voter1).vote({ support: VoteType.For }))
+              .to.be.revertedWithCustomError(this.mock, 'GovernorUnexpectedProposalState')
               .withArgs(
                 this.proposal.id,
                 ProposalState.Defeated,
@@ -475,16 +367,11 @@ describe('Governor', () => {
               voter: this.userEOA.address,
               nonce,
               signature: (...args) =>
-                signBallot(this.userEOA)(...args).then((sig) =>
-                  tamper(sig, 42, 0xff),
-                ),
+                signBallot(this.userEOA)(...args).then(sig => tamper(sig, 42, 0xff)),
             }
 
             await expect(this.helper.vote(voteParams))
-              .to.be.revertedWithCustomError(
-                this.mock,
-                'GovernorInvalidSignature',
-              )
+              .to.be.revertedWithCustomError(this.mock, 'GovernorInvalidSignature')
               .withArgs(voteParams.voter)
           })
 
@@ -499,10 +386,7 @@ describe('Governor', () => {
             }
 
             await expect(this.helper.vote(voteParams))
-              .to.be.revertedWithCustomError(
-                this.mock,
-                'GovernorInvalidSignature',
-              )
+              .to.be.revertedWithCustomError(this.mock, 'GovernorInvalidSignature')
               .withArgs(voteParams.voter)
           })
         })
@@ -511,9 +395,7 @@ describe('Governor', () => {
           it('always', async function () {
             await this.helper.connect(this.proposer).propose()
             await this.helper.waitForSnapshot()
-            await this.helper
-              .connect(this.voter1)
-              .vote({ support: VoteType.For })
+            await this.helper.connect(this.voter1).vote({ support: VoteType.For })
             await this.helper.waitForDeadline()
             await expect(this.helper.queue()).to.be.revertedWithCustomError(
               this.mock,
@@ -525,24 +407,16 @@ describe('Governor', () => {
         describe('on execute', () => {
           it('if proposal does not exist', async function () {
             await expect(this.helper.execute())
-              .to.be.revertedWithCustomError(
-                this.mock,
-                'GovernorNonexistentProposal',
-              )
+              .to.be.revertedWithCustomError(this.mock, 'GovernorNonexistentProposal')
               .withArgs(this.proposal.id)
           })
 
           it('if quorum is not reached', async function () {
             await this.helper.propose()
             await this.helper.waitForSnapshot()
-            await this.helper
-              .connect(this.voter3)
-              .vote({ support: VoteType.For })
+            await this.helper.connect(this.voter3).vote({ support: VoteType.For })
             await expect(this.helper.execute())
-              .to.be.revertedWithCustomError(
-                this.mock,
-                'GovernorUnexpectedProposalState',
-              )
+              .to.be.revertedWithCustomError(this.mock, 'GovernorUnexpectedProposalState')
               .withArgs(
                 this.proposal.id,
                 ProposalState.Active,
@@ -556,14 +430,9 @@ describe('Governor', () => {
           it('if score not reached', async function () {
             await this.helper.propose()
             await this.helper.waitForSnapshot()
-            await this.helper
-              .connect(this.voter1)
-              .vote({ support: VoteType.Against })
+            await this.helper.connect(this.voter1).vote({ support: VoteType.Against })
             await expect(this.helper.execute())
-              .to.be.revertedWithCustomError(
-                this.mock,
-                'GovernorUnexpectedProposalState',
-              )
+              .to.be.revertedWithCustomError(this.mock, 'GovernorUnexpectedProposalState')
               .withArgs(
                 this.proposal.id,
                 ProposalState.Active,
@@ -577,14 +446,9 @@ describe('Governor', () => {
           it('if voting is not over', async function () {
             await this.helper.propose()
             await this.helper.waitForSnapshot()
-            await this.helper
-              .connect(this.voter1)
-              .vote({ support: VoteType.For })
+            await this.helper.connect(this.voter1).vote({ support: VoteType.For })
             await expect(this.helper.execute())
-              .to.be.revertedWithCustomError(
-                this.mock,
-                'GovernorUnexpectedProposalState',
-              )
+              .to.be.revertedWithCustomError(this.mock, 'GovernorUnexpectedProposalState')
               .withArgs(
                 this.proposal.id,
                 ProposalState.Active,
@@ -600,9 +464,7 @@ describe('Governor', () => {
               [
                 {
                   target: this.receiver.target,
-                  data: this.receiver.interface.encodeFunctionData(
-                    'mockFunctionRevertsNoReason',
-                  ),
+                  data: this.receiver.interface.encodeFunctionData('mockFunctionRevertsNoReason'),
                 },
               ],
               '<proposal description>',
@@ -610,9 +472,7 @@ describe('Governor', () => {
 
             await this.helper.propose()
             await this.helper.waitForSnapshot()
-            await this.helper
-              .connect(this.voter1)
-              .vote({ support: VoteType.For })
+            await this.helper.connect(this.voter1).vote({ support: VoteType.For })
             await this.helper.waitForDeadline()
             await expect(this.helper.execute()).to.be.revertedWithCustomError(
               this.mock,
@@ -625,9 +485,7 @@ describe('Governor', () => {
               [
                 {
                   target: this.receiver.target,
-                  data: this.receiver.interface.encodeFunctionData(
-                    'mockFunctionRevertsReason',
-                  ),
+                  data: this.receiver.interface.encodeFunctionData('mockFunctionRevertsReason'),
                 },
               ],
               '<proposal description>',
@@ -635,28 +493,19 @@ describe('Governor', () => {
 
             await this.helper.propose()
             await this.helper.waitForSnapshot()
-            await this.helper
-              .connect(this.voter1)
-              .vote({ support: VoteType.For })
+            await this.helper.connect(this.voter1).vote({ support: VoteType.For })
             await this.helper.waitForDeadline()
-            await expect(this.helper.execute()).to.be.revertedWith(
-              'CallReceiverMock: reverting',
-            )
+            await expect(this.helper.execute()).to.be.revertedWith('CallReceiverMock: reverting')
           })
 
           it('if proposal was already executed', async function () {
             await this.helper.propose()
             await this.helper.waitForSnapshot()
-            await this.helper
-              .connect(this.voter1)
-              .vote({ support: VoteType.For })
+            await this.helper.connect(this.voter1).vote({ support: VoteType.For })
             await this.helper.waitForDeadline()
             await this.helper.execute()
             await expect(this.helper.execute())
-              .to.be.revertedWithCustomError(
-                this.mock,
-                'GovernorUnexpectedProposalState',
-              )
+              .to.be.revertedWithCustomError(this.mock, 'GovernorUnexpectedProposalState')
               .withArgs(
                 this.proposal.id,
                 ProposalState.Executed,
@@ -672,38 +521,25 @@ describe('Governor', () => {
       describe('state', () => {
         it('Unset', async function () {
           await expect(this.mock.state(this.proposal.id))
-            .to.be.revertedWithCustomError(
-              this.mock,
-              'GovernorNonexistentProposal',
-            )
+            .to.be.revertedWithCustomError(this.mock, 'GovernorNonexistentProposal')
             .withArgs(this.proposal.id)
         })
 
         it('Pending & Active', async function () {
           await this.helper.propose()
-          expect(await this.mock.state(this.proposal.id)).to.equal(
-            ProposalState.Pending,
-          )
+          expect(await this.mock.state(this.proposal.id)).to.equal(ProposalState.Pending)
           await this.helper.waitForSnapshot()
-          expect(await this.mock.state(this.proposal.id)).to.equal(
-            ProposalState.Pending,
-          )
+          expect(await this.mock.state(this.proposal.id)).to.equal(ProposalState.Pending)
           await this.helper.waitForSnapshot(1n)
-          expect(await this.mock.state(this.proposal.id)).to.equal(
-            ProposalState.Active,
-          )
+          expect(await this.mock.state(this.proposal.id)).to.equal(ProposalState.Active)
         })
 
         it('Defeated', async function () {
           await this.helper.propose()
           await this.helper.waitForDeadline()
-          expect(await this.mock.state(this.proposal.id)).to.equal(
-            ProposalState.Active,
-          )
+          expect(await this.mock.state(this.proposal.id)).to.equal(ProposalState.Active)
           await this.helper.waitForDeadline(1n)
-          expect(await this.mock.state(this.proposal.id)).to.equal(
-            ProposalState.Defeated,
-          )
+          expect(await this.mock.state(this.proposal.id)).to.equal(ProposalState.Defeated)
         })
 
         it('Succeeded', async function () {
@@ -711,13 +547,9 @@ describe('Governor', () => {
           await this.helper.waitForSnapshot()
           await this.helper.connect(this.voter1).vote({ support: VoteType.For })
           await this.helper.waitForDeadline()
-          expect(await this.mock.state(this.proposal.id)).to.equal(
-            ProposalState.Active,
-          )
+          expect(await this.mock.state(this.proposal.id)).to.equal(ProposalState.Active)
           await this.helper.waitForDeadline(1n)
-          expect(await this.mock.state(this.proposal.id)).to.equal(
-            ProposalState.Succeeded,
-          )
+          expect(await this.mock.state(this.proposal.id)).to.equal(ProposalState.Succeeded)
         })
 
         it('Executed', async function () {
@@ -726,9 +558,7 @@ describe('Governor', () => {
           await this.helper.connect(this.voter1).vote({ support: VoteType.For })
           await this.helper.waitForDeadline()
           await this.helper.execute()
-          expect(await this.mock.state(this.proposal.id)).to.equal(
-            ProposalState.Executed,
-          )
+          expect(await this.mock.state(this.proposal.id)).to.equal(ProposalState.Executed)
         })
       })
 
@@ -736,10 +566,7 @@ describe('Governor', () => {
         describe('internal', () => {
           it('before proposal', async function () {
             await expect(this.helper.cancel('internal'))
-              .to.be.revertedWithCustomError(
-                this.mock,
-                'GovernorNonexistentProposal',
-              )
+              .to.be.revertedWithCustomError(this.mock, 'GovernorNonexistentProposal')
               .withArgs(this.proposal.id)
           })
 
@@ -747,18 +574,11 @@ describe('Governor', () => {
             await this.helper.propose()
 
             await this.helper.cancel('internal')
-            expect(await this.mock.state(this.proposal.id)).to.equal(
-              ProposalState.Canceled,
-            )
+            expect(await this.mock.state(this.proposal.id)).to.equal(ProposalState.Canceled)
 
             await this.helper.waitForSnapshot()
-            await expect(
-              this.helper.connect(this.voter1).vote({ support: VoteType.For }),
-            )
-              .to.be.revertedWithCustomError(
-                this.mock,
-                'GovernorUnexpectedProposalState',
-              )
+            await expect(this.helper.connect(this.voter1).vote({ support: VoteType.For }))
+              .to.be.revertedWithCustomError(this.mock, 'GovernorUnexpectedProposalState')
               .withArgs(
                 this.proposal.id,
                 ProposalState.Canceled,
@@ -769,21 +589,14 @@ describe('Governor', () => {
           it('after vote', async function () {
             await this.helper.propose()
             await this.helper.waitForSnapshot()
-            await this.helper
-              .connect(this.voter1)
-              .vote({ support: VoteType.For })
+            await this.helper.connect(this.voter1).vote({ support: VoteType.For })
 
             await this.helper.cancel('internal')
-            expect(await this.mock.state(this.proposal.id)).to.equal(
-              ProposalState.Canceled,
-            )
+            expect(await this.mock.state(this.proposal.id)).to.equal(ProposalState.Canceled)
 
             await this.helper.waitForDeadline()
             await expect(this.helper.execute())
-              .to.be.revertedWithCustomError(
-                this.mock,
-                'GovernorUnexpectedProposalState',
-              )
+              .to.be.revertedWithCustomError(this.mock, 'GovernorUnexpectedProposalState')
               .withArgs(
                 this.proposal.id,
                 ProposalState.Canceled,
@@ -797,21 +610,14 @@ describe('Governor', () => {
           it('after deadline', async function () {
             await this.helper.propose()
             await this.helper.waitForSnapshot()
-            await this.helper
-              .connect(this.voter1)
-              .vote({ support: VoteType.For })
+            await this.helper.connect(this.voter1).vote({ support: VoteType.For })
             await this.helper.waitForDeadline()
 
             await this.helper.cancel('internal')
-            expect(await this.mock.state(this.proposal.id)).to.equal(
-              ProposalState.Canceled,
-            )
+            expect(await this.mock.state(this.proposal.id)).to.equal(ProposalState.Canceled)
 
             await expect(this.helper.execute())
-              .to.be.revertedWithCustomError(
-                this.mock,
-                'GovernorUnexpectedProposalState',
-              )
+              .to.be.revertedWithCustomError(this.mock, 'GovernorUnexpectedProposalState')
               .withArgs(
                 this.proposal.id,
                 ProposalState.Canceled,
@@ -825,26 +631,17 @@ describe('Governor', () => {
           it('after execution', async function () {
             await this.helper.propose()
             await this.helper.waitForSnapshot()
-            await this.helper
-              .connect(this.voter1)
-              .vote({ support: VoteType.For })
+            await this.helper.connect(this.voter1).vote({ support: VoteType.For })
             await this.helper.waitForDeadline()
             await this.helper.execute()
 
             await expect(this.helper.cancel('internal'))
-              .to.be.revertedWithCustomError(
-                this.mock,
-                'GovernorUnexpectedProposalState',
-              )
+              .to.be.revertedWithCustomError(this.mock, 'GovernorUnexpectedProposalState')
               .withArgs(
                 this.proposal.id,
                 ProposalState.Executed,
                 GovernorHelper.proposalStatesToBitMap(
-                  [
-                    ProposalState.Canceled,
-                    ProposalState.Expired,
-                    ProposalState.Executed,
-                  ],
+                  [ProposalState.Canceled, ProposalState.Expired, ProposalState.Executed],
                   { inverted: true },
                 ),
               )
@@ -854,10 +651,7 @@ describe('Governor', () => {
         describe('public', () => {
           it('before proposal', async function () {
             await expect(this.helper.cancel('external'))
-              .to.be.revertedWithCustomError(
-                this.mock,
-                'GovernorNonexistentProposal',
-              )
+              .to.be.revertedWithCustomError(this.mock, 'GovernorNonexistentProposal')
               .withArgs(this.proposal.id)
           })
 
@@ -880,10 +674,7 @@ describe('Governor', () => {
             await this.helper.waitForSnapshot(1n) // snapshot + 1 block
 
             await expect(this.helper.cancel('external'))
-              .to.be.revertedWithCustomError(
-                this.mock,
-                'GovernorUnexpectedProposalState',
-              )
+              .to.be.revertedWithCustomError(this.mock, 'GovernorUnexpectedProposalState')
               .withArgs(
                 this.proposal.id,
                 ProposalState.Active,
@@ -894,15 +685,10 @@ describe('Governor', () => {
           it('after vote', async function () {
             await this.helper.propose()
             await this.helper.waitForSnapshot()
-            await this.helper
-              .connect(this.voter1)
-              .vote({ support: VoteType.For })
+            await this.helper.connect(this.voter1).vote({ support: VoteType.For })
 
             await expect(this.helper.cancel('external'))
-              .to.be.revertedWithCustomError(
-                this.mock,
-                'GovernorUnexpectedProposalState',
-              )
+              .to.be.revertedWithCustomError(this.mock, 'GovernorUnexpectedProposalState')
               .withArgs(
                 this.proposal.id,
                 ProposalState.Active,
@@ -913,16 +699,11 @@ describe('Governor', () => {
           it('after deadline', async function () {
             await this.helper.propose()
             await this.helper.waitForSnapshot()
-            await this.helper
-              .connect(this.voter1)
-              .vote({ support: VoteType.For })
+            await this.helper.connect(this.voter1).vote({ support: VoteType.For })
             await this.helper.waitForDeadline()
 
             await expect(this.helper.cancel('external'))
-              .to.be.revertedWithCustomError(
-                this.mock,
-                'GovernorUnexpectedProposalState',
-              )
+              .to.be.revertedWithCustomError(this.mock, 'GovernorUnexpectedProposalState')
               .withArgs(
                 this.proposal.id,
                 ProposalState.Succeeded,
@@ -933,17 +714,12 @@ describe('Governor', () => {
           it('after execution', async function () {
             await this.helper.propose()
             await this.helper.waitForSnapshot()
-            await this.helper
-              .connect(this.voter1)
-              .vote({ support: VoteType.For })
+            await this.helper.connect(this.voter1).vote({ support: VoteType.For })
             await this.helper.waitForDeadline()
             await this.helper.execute()
 
             await expect(this.helper.cancel('external'))
-              .to.be.revertedWithCustomError(
-                this.mock,
-                'GovernorUnexpectedProposalState',
-              )
+              .to.be.revertedWithCustomError(this.mock, 'GovernorUnexpectedProposalState')
               .withArgs(
                 this.proposal.id,
                 ProposalState.Executed,
@@ -958,10 +734,7 @@ describe('Governor', () => {
           this.helper.setProposal([], '<proposal description>')
 
           await expect(this.helper.propose())
-            .to.be.revertedWithCustomError(
-              this.mock,
-              'GovernorInvalidProposalLength',
-            )
+            .to.be.revertedWithCustomError(this.mock, 'GovernorInvalidProposalLength')
             .withArgs(0, 0, 0)
         })
 
@@ -970,17 +743,12 @@ describe('Governor', () => {
             {
               targets: [],
               values: [0n],
-              data: [
-                this.receiver.interface.encodeFunctionData('mockFunction'),
-              ],
+              data: [this.receiver.interface.encodeFunctionData('mockFunction')],
             },
             '<proposal description>',
           )
           await expect(this.helper.propose())
-            .to.be.revertedWithCustomError(
-              this.mock,
-              'GovernorInvalidProposalLength',
-            )
+            .to.be.revertedWithCustomError(this.mock, 'GovernorInvalidProposalLength')
             .withArgs(0, 1, 1)
         })
 
@@ -989,17 +757,12 @@ describe('Governor', () => {
             {
               targets: [this.receiver.target],
               values: [],
-              data: [
-                this.receiver.interface.encodeFunctionData('mockFunction'),
-              ],
+              data: [this.receiver.interface.encodeFunctionData('mockFunction')],
             },
             '<proposal description>',
           )
           await expect(this.helper.propose())
-            .to.be.revertedWithCustomError(
-              this.mock,
-              'GovernorInvalidProposalLength',
-            )
+            .to.be.revertedWithCustomError(this.mock, 'GovernorInvalidProposalLength')
             .withArgs(1, 1, 0)
         })
 
@@ -1013,10 +776,7 @@ describe('Governor', () => {
             '<proposal description>',
           )
           await expect(this.helper.propose())
-            .to.be.revertedWithCustomError(
-              this.mock,
-              'GovernorInvalidProposalLength',
-            )
+            .to.be.revertedWithCustomError(this.mock, 'GovernorInvalidProposalLength')
             .withArgs(1, 0, 1)
         })
       })
@@ -1036,9 +796,7 @@ describe('Governor', () => {
                 this.proposal.signatures,
                 this.proposal.data,
                 (await time.clockFromReceipt[mode](txPropose)) + votingDelay,
-                (await time.clockFromReceipt[mode](txPropose)) +
-                  votingDelay +
-                  votingPeriod,
+                (await time.clockFromReceipt[mode](txPropose)) + votingDelay + votingPeriod,
                 this.proposal.description,
               )
           })
@@ -1056,9 +814,7 @@ describe('Governor', () => {
                 this.proposal.signatures,
                 this.proposal.data,
                 (await time.clockFromReceipt[mode](txPropose)) + votingDelay,
-                (await time.clockFromReceipt[mode](txPropose)) +
-                  votingDelay +
-                  votingPeriod,
+                (await time.clockFromReceipt[mode](txPropose)) + votingDelay + votingPeriod,
                 this.proposal.description,
               )
           })
@@ -1075,9 +831,7 @@ describe('Governor', () => {
                 [
                   {
                     target: this.receiver.target,
-                    data: this.receiver.interface.encodeFunctionData(
-                      'mockFunction',
-                    ),
+                    data: this.receiver.interface.encodeFunctionData('mockFunction'),
                     value,
                   },
                 ],
@@ -1094,9 +848,7 @@ describe('Governor', () => {
                 [
                   {
                     target: this.receiver.target,
-                    data: this.receiver.interface.encodeFunctionData(
-                      'mockFunction',
-                    ),
+                    data: this.receiver.interface.encodeFunctionData('mockFunction'),
                     value,
                   },
                 ],
@@ -1114,9 +866,7 @@ describe('Governor', () => {
               [
                 {
                   target: this.receiver.target,
-                  data: this.receiver.interface.encodeFunctionData(
-                    'mockFunction',
-                  ),
+                  data: this.receiver.interface.encodeFunctionData('mockFunction'),
                   value,
                 },
               ],
@@ -1143,9 +893,7 @@ describe('Governor', () => {
 
         it('setProposalThreshold is protected', async function () {
           await expect(
-            this.mock
-              .connect(this.owner)
-              .setProposalThreshold(1_000_000_000_000_000_000n),
+            this.mock.connect(this.owner).setProposalThreshold(1_000_000_000_000_000_000n),
           )
             .to.be.revertedWithCustomError(this.mock, 'GovernorOnlyExecutor')
             .withArgs(this.owner)
@@ -1156,9 +904,7 @@ describe('Governor', () => {
             [
               {
                 target: this.mock.target,
-                data: this.mock.interface.encodeFunctionData('setVotingDelay', [
-                  0n,
-                ]),
+                data: this.mock.interface.encodeFunctionData('setVotingDelay', [0n]),
               },
             ],
             '<proposal description>',
@@ -1169,9 +915,7 @@ describe('Governor', () => {
           await this.helper.connect(this.voter1).vote({ support: VoteType.For })
           await this.helper.waitForDeadline()
 
-          await expect(this.helper.execute())
-            .to.emit(this.mock, 'VotingDelaySet')
-            .withArgs(4n, 0n)
+          await expect(this.helper.execute()).to.emit(this.mock, 'VotingDelaySet').withArgs(4n, 0n)
 
           expect(await this.mock.votingDelay()).to.equal(0n)
         })
@@ -1181,10 +925,7 @@ describe('Governor', () => {
             [
               {
                 target: this.mock.target,
-                data: this.mock.interface.encodeFunctionData(
-                  'setVotingPeriod',
-                  [32n],
-                ),
+                data: this.mock.interface.encodeFunctionData('setVotingPeriod', [32n]),
               },
             ],
             '<proposal description>',
@@ -1209,10 +950,7 @@ describe('Governor', () => {
             [
               {
                 target: this.mock.target,
-                data: this.mock.interface.encodeFunctionData(
-                  'setVotingPeriod',
-                  [votingPeriod],
-                ),
+                data: this.mock.interface.encodeFunctionData('setVotingPeriod', [votingPeriod]),
               },
             ],
             '<proposal description>',
@@ -1224,10 +962,7 @@ describe('Governor', () => {
           await this.helper.waitForDeadline()
 
           await expect(this.helper.execute())
-            .to.be.revertedWithCustomError(
-              this.mock,
-              'GovernorInvalidVotingPeriod',
-            )
+            .to.be.revertedWithCustomError(this.mock, 'GovernorInvalidVotingPeriod')
             .withArgs(votingPeriod)
         })
 
@@ -1236,10 +971,9 @@ describe('Governor', () => {
             [
               {
                 target: this.mock.target,
-                data: this.mock.interface.encodeFunctionData(
-                  'setProposalThreshold',
-                  [1_000_000_000_000_000_000n],
-                ),
+                data: this.mock.interface.encodeFunctionData('setProposalThreshold', [
+                  1_000_000_000_000_000_000n,
+                ]),
               },
             ],
             '<proposal description>',
@@ -1254,9 +988,7 @@ describe('Governor', () => {
             .to.emit(this.mock, 'ProposalThresholdSet')
             .withArgs(0n, 1_000_000_000_000_000_000n)
 
-          expect(await this.mock.proposalThreshold()).to.equal(
-            1_000_000_000_000_000_000n,
-          )
+          expect(await this.mock.proposalThreshold()).to.equal(1_000_000_000_000_000_000n)
         })
       })
 
@@ -1265,17 +997,12 @@ describe('Governor', () => {
           const tokenId = 1n
 
           beforeEach(async function () {
-            this.token = await ethers.deployContract('$ERC721', [
-              'Non Fungible Token',
-              'NFT',
-            ])
+            this.token = await ethers.deployContract('$ERC721', ['Non Fungible Token', 'NFT'])
             await this.token.$_mint(this.owner, tokenId)
           })
 
           it('can receive an ERC721 safeTransfer', async function () {
-            await this.token
-              .connect(this.owner)
-              .safeTransferFrom(this.owner, this.mock, tokenId)
+            await this.token.connect(this.owner).safeTransferFrom(this.owner, this.mock, tokenId)
           })
         })
 

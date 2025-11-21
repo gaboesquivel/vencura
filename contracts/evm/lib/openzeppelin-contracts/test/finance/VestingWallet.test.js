@@ -5,10 +5,7 @@ const { loadFixture } = require('@nomicfoundation/hardhat-network-helpers')
 const { min } = require('../helpers/math')
 const time = require('../helpers/time')
 
-const {
-  envSetup,
-  shouldBehaveLikeVesting,
-} = require('./VestingWallet.behavior')
+const { envSetup, shouldBehaveLikeVesting } = require('./VestingWallet.behavior')
 
 async function fixture() {
   const amount = ethers.parseEther('100')
@@ -16,11 +13,7 @@ async function fixture() {
   const start = (await time.clock.timestamp()) + time.duration.hours(1)
 
   const [sender, beneficiary] = await ethers.getSigners()
-  const mock = await ethers.deployContract('VestingWallet', [
-    beneficiary,
-    start,
-    duration,
-  ])
+  const mock = await ethers.deployContract('VestingWallet', [beneficiary, start, duration])
 
   const token = await ethers.deployContract('$ERC20', ['Name', 'Symbol'])
   await token.$_mint(mock, amount)
@@ -28,12 +21,8 @@ async function fixture() {
 
   const env = await envSetup(mock, beneficiary, token)
 
-  const schedule = Array.from(
-    { length: 64 },
-    (_, i) => (BigInt(i) * duration) / 60n + start,
-  )
-  const vestingFn = (timestamp) =>
-    min(amount, (amount * (timestamp - start)) / duration)
+  const schedule = Array.from({ length: 64 }, (_, i) => (BigInt(i) * duration) / 60n + start)
+  const vestingFn = timestamp => min(amount, (amount * (timestamp - start)) / duration)
 
   return { mock, duration, start, beneficiary, schedule, vestingFn, env }
 }
@@ -45,11 +34,7 @@ describe('VestingWallet', () => {
 
   it('rejects zero address for beneficiary', async function () {
     await expect(
-      ethers.deployContract('VestingWallet', [
-        ethers.ZeroAddress,
-        this.start,
-        this.duration,
-      ]),
+      ethers.deployContract('VestingWallet', [ethers.ZeroAddress, this.start, this.duration]),
     )
       .revertedWithCustomError(this.mock, 'OwnableInvalidOwner')
       .withArgs(ethers.ZeroAddress)

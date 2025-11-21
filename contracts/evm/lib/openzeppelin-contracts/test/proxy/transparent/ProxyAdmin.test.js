@@ -2,10 +2,7 @@ const { ethers } = require('hardhat')
 const { expect } = require('chai')
 const { loadFixture } = require('@nomicfoundation/hardhat-network-helpers')
 
-const {
-  getAddressInSlot,
-  ImplementationSlot,
-} = require('../../helpers/storage')
+const { getAddressInSlot, ImplementationSlot } = require('../../helpers/storage')
 
 async function fixture() {
   const [admin, other] = await ethers.getSigners()
@@ -15,9 +12,7 @@ async function fixture() {
 
   const proxy = await ethers
     .deployContract('TransparentUpgradeableProxy', [v1, admin, '0x'])
-    .then((instance) =>
-      ethers.getContractAt('ITransparentUpgradeableProxy', instance),
-    )
+    .then(instance => ethers.getContractAt('ITransparentUpgradeableProxy', instance))
 
   const proxyAdmin = await ethers.getContractAt(
     'ProxyAdmin',
@@ -43,27 +38,16 @@ describe('ProxyAdmin', () => {
   describe('without data', () => {
     describe('with unauthorized account', () => {
       it('fails to upgrade', async function () {
-        await expect(
-          this.proxyAdmin
-            .connect(this.other)
-            .upgradeAndCall(this.proxy, this.v2, '0x'),
-        )
-          .to.be.revertedWithCustomError(
-            this.proxyAdmin,
-            'OwnableUnauthorizedAccount',
-          )
+        await expect(this.proxyAdmin.connect(this.other).upgradeAndCall(this.proxy, this.v2, '0x'))
+          .to.be.revertedWithCustomError(this.proxyAdmin, 'OwnableUnauthorizedAccount')
           .withArgs(this.other)
       })
     })
 
     describe('with authorized account', () => {
       it('upgrades implementation', async function () {
-        await this.proxyAdmin
-          .connect(this.admin)
-          .upgradeAndCall(this.proxy, this.v2, '0x')
-        expect(await getAddressInSlot(this.proxy, ImplementationSlot)).to.equal(
-          this.v2,
-        )
+        await this.proxyAdmin.connect(this.admin).upgradeAndCall(this.proxy, this.v2, '0x')
+        expect(await getAddressInSlot(this.proxy, ImplementationSlot)).to.equal(this.v2)
       })
     })
   })
@@ -71,19 +55,9 @@ describe('ProxyAdmin', () => {
   describe('with data', () => {
     describe('with unauthorized account', () => {
       it('fails to upgrade', async function () {
-        const data = this.v1.interface.encodeFunctionData(
-          'initializeNonPayableWithValue',
-          [1337n],
-        )
-        await expect(
-          this.proxyAdmin
-            .connect(this.other)
-            .upgradeAndCall(this.proxy, this.v2, data),
-        )
-          .to.be.revertedWithCustomError(
-            this.proxyAdmin,
-            'OwnableUnauthorizedAccount',
-          )
+        const data = this.v1.interface.encodeFunctionData('initializeNonPayableWithValue', [1337n])
+        await expect(this.proxyAdmin.connect(this.other).upgradeAndCall(this.proxy, this.v2, data))
+          .to.be.revertedWithCustomError(this.proxyAdmin, 'OwnableUnauthorizedAccount')
           .withArgs(this.other)
       })
     })
@@ -93,25 +67,18 @@ describe('ProxyAdmin', () => {
         it('fails to upgrade', async function () {
           const data = '0x12345678'
           await expect(
-            this.proxyAdmin
-              .connect(this.admin)
-              .upgradeAndCall(this.proxy, this.v2, data),
+            this.proxyAdmin.connect(this.admin).upgradeAndCall(this.proxy, this.v2, data),
           ).to.be.reverted
         })
       })
 
       describe('with valid callData', () => {
         it('upgrades implementation', async function () {
-          const data = this.v2.interface.encodeFunctionData(
-            'initializeNonPayableWithValue',
-            [1337n],
-          )
-          await this.proxyAdmin
-            .connect(this.admin)
-            .upgradeAndCall(this.proxy, this.v2, data)
-          expect(
-            await getAddressInSlot(this.proxy, ImplementationSlot),
-          ).to.equal(this.v2)
+          const data = this.v2.interface.encodeFunctionData('initializeNonPayableWithValue', [
+            1337n,
+          ])
+          await this.proxyAdmin.connect(this.admin).upgradeAndCall(this.proxy, this.v2, data)
+          expect(await getAddressInSlot(this.proxy, ImplementationSlot)).to.equal(this.v2)
         })
       })
     })

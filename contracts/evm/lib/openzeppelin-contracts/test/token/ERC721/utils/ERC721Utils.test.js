@@ -122,10 +122,7 @@ describe('ERC721Utils', () => {
           '0x',
         ),
       )
-        .to.be.revertedWithCustomError(
-          this.receivers.customError,
-          'CustomError',
-        )
+        .to.be.revertedWithCustomError(this.receivers.customError, 'CustomError')
         .withArgs(RECEIVER_MAGIC_VALUE)
     })
 

@@ -38,9 +38,7 @@ describe('ERC721Burnable', () => {
             .to.be.revertedWithCustomError(this.token, 'ERC721NonexistentToken')
             .withArgs(tokenId)
 
-          expect(await this.token.balanceOf(this.owner)).to.equal(
-            balanceBefore - 1n,
-          )
+          expect(await this.token.balanceOf(this.owner)).to.equal(balanceBefore - 1n)
         })
       })
 
@@ -53,10 +51,7 @@ describe('ERC721Burnable', () => {
         describe('getApproved', () => {
           it('reverts', async function () {
             await expect(this.token.getApproved(tokenId))
-              .to.be.revertedWithCustomError(
-                this.token,
-                'ERC721NonexistentToken',
-              )
+              .to.be.revertedWithCustomError(this.token, 'ERC721NonexistentToken')
               .withArgs(tokenId)
           })
         })
@@ -65,10 +60,7 @@ describe('ERC721Burnable', () => {
       describe('when there is no previous approval burned', () => {
         it('reverts', async function () {
           await expect(this.token.connect(this.another).burn(tokenId))
-            .to.be.revertedWithCustomError(
-              this.token,
-              'ERC721InsufficientApproval',
-            )
+            .to.be.revertedWithCustomError(this.token, 'ERC721InsufficientApproval')
             .withArgs(this.another, tokenId)
         })
       })

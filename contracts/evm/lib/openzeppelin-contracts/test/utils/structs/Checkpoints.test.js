@@ -2,9 +2,7 @@ const { ethers } = require('hardhat')
 const { expect } = require('chai')
 const { loadFixture } = require('@nomicfoundation/hardhat-network-helpers')
 
-const {
-  VALUE_SIZES,
-} = require('../../../scripts/generate/templates/Checkpoints.opts')
+const { VALUE_SIZES } = require('../../../scripts/generate/templates/Checkpoints.opts')
 
 describe('Checkpoints', () => {
   for (const length of VALUE_SIZES) {
@@ -12,36 +10,19 @@ describe('Checkpoints', () => {
       const fixture = async () => {
         const mock = await ethers.deployContract('$Checkpoints')
         const methods = {
-          at: (...args) =>
-            mock.getFunction(`$at_Checkpoints_Trace${length}`)(0, ...args),
-          latest: (...args) =>
-            mock.getFunction(`$latest_Checkpoints_Trace${length}`)(0, ...args),
+          at: (...args) => mock.getFunction(`$at_Checkpoints_Trace${length}`)(0, ...args),
+          latest: (...args) => mock.getFunction(`$latest_Checkpoints_Trace${length}`)(0, ...args),
           latestCheckpoint: (...args) =>
-            mock.getFunction(`$latestCheckpoint_Checkpoints_Trace${length}`)(
-              0,
-              ...args,
-            ),
-          length: (...args) =>
-            mock.getFunction(`$length_Checkpoints_Trace${length}`)(0, ...args),
+            mock.getFunction(`$latestCheckpoint_Checkpoints_Trace${length}`)(0, ...args),
+          length: (...args) => mock.getFunction(`$length_Checkpoints_Trace${length}`)(0, ...args),
           push: (...args) =>
-            mock.getFunction(
-              `$push(uint256,uint${256 - length},uint${length})`,
-            )(0, ...args),
+            mock.getFunction(`$push(uint256,uint${256 - length},uint${length})`)(0, ...args),
           lowerLookup: (...args) =>
-            mock.getFunction(`$lowerLookup(uint256,uint${256 - length})`)(
-              0,
-              ...args,
-            ),
+            mock.getFunction(`$lowerLookup(uint256,uint${256 - length})`)(0, ...args),
           upperLookup: (...args) =>
-            mock.getFunction(`$upperLookup(uint256,uint${256 - length})`)(
-              0,
-              ...args,
-            ),
+            mock.getFunction(`$upperLookup(uint256,uint${256 - length})`)(0, ...args),
           upperLookupRecent: (...args) =>
-            mock.getFunction(`$upperLookupRecent(uint256,uint${256 - length})`)(
-              0,
-              ...args,
-            ),
+            mock.getFunction(`$upperLookupRecent(uint256,uint${256 - length})`)(0, ...args),
         }
 
         return { mock, methods }
@@ -112,10 +93,7 @@ describe('Checkpoints', () => {
         it('cannot push values in the past', async function () {
           await expect(
             this.methods.push(this.checkpoints.at(-1).key - 1n, 0n),
-          ).to.be.revertedWithCustomError(
-            this.mock,
-            'CheckpointUnorderedInsertion',
-          )
+          ).to.be.revertedWithCustomError(this.mock, 'CheckpointUnorderedInsertion')
         })
 
         it('can update last value', async function () {
@@ -134,7 +112,7 @@ describe('Checkpoints', () => {
 
         it('lower lookup', async function () {
           for (let i = 0; i < 14; ++i) {
-            const value = this.checkpoints.find((x) => i <= x.key)?.value || 0n
+            const value = this.checkpoints.find(x => i <= x.key)?.value || 0n
 
             expect(await this.methods.lowerLookup(i)).to.equal(value)
           }
@@ -142,8 +120,7 @@ describe('Checkpoints', () => {
 
         it('upper lookup & upperLookupRecent', async function () {
           for (let i = 0; i < 14; ++i) {
-            const value =
-              this.checkpoints.findLast((x) => i >= x.key)?.value || 0n
+            const value = this.checkpoints.findLast(x => i >= x.key)?.value || 0n
 
             expect(await this.methods.upperLookup(i)).to.equal(value)
             expect(await this.methods.upperLookupRecent(i)).to.equal(value)
@@ -165,8 +142,7 @@ describe('Checkpoints', () => {
           }
 
           for (let i = 0; i < 25; ++i) {
-            const value =
-              allCheckpoints.findLast((x) => i >= x.key)?.value || 0n
+            const value = allCheckpoints.findLast(x => i >= x.key)?.value || 0n
             expect(await this.methods.upperLookup(i)).to.equal(value)
             expect(await this.methods.upperLookupRecent(i)).to.equal(value)
           }

@@ -3,10 +3,7 @@ const { loadFixture } = require('@nomicfoundation/hardhat-network-helpers')
 
 const { mapValues } = require('../../helpers/iterate')
 const { generators } = require('../../helpers/random')
-const {
-  TYPES,
-  formatType,
-} = require('../../../scripts/generate/templates/EnumerableMap.opts')
+const { TYPES, formatType } = require('../../../scripts/generate/templates/EnumerableMap.opts')
 
 const { shouldBehaveLikeMap } = require('./EnumerableMap.behavior')
 
@@ -34,7 +31,7 @@ async function fixture() {
             contains: `$contains_EnumerableMap_${name}(uint256,${keyType})`,
             keys: `$keys_EnumerableMap_${name}(uint256)`,
           },
-          (fnSig) =>
+          fnSig =>
             (...args) =>
               mock.getFunction(fnSig)(0, ...args),
         ),

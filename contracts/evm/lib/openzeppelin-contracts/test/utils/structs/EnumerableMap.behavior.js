@@ -1,8 +1,7 @@
 const { ethers } = require('hardhat')
 const { expect } = require('chai')
 
-const zip = (array1, array2) =>
-  array1.map((item, index) => [item, array2[index]])
+const zip = (array1, array2) => array1.map((item, index) => [item, array2[index]])
 
 function shouldBehaveLikeMap() {
   async function expectMembersMatch(methods, keys, values) {
@@ -15,9 +14,9 @@ function shouldBehaveLikeMap() {
       expect(await methods.get(key)).to.equal(value)
     }
 
-    expect(
-      await Promise.all(keys.map((_, index) => methods.at(index))),
-    ).to.have.deep.members(zip(keys, values))
+    expect(await Promise.all(keys.map((_, index) => methods.at(index)))).to.have.deep.members(
+      zip(keys, values),
+    )
   }
 
   it('starts empty', async function () {
@@ -39,11 +38,7 @@ function shouldBehaveLikeMap() {
       await this.methods.set(this.keyA, this.valueA)
       await this.methods.set(this.keyB, this.valueB)
 
-      await expectMembersMatch(
-        this.methods,
-        [this.keyA, this.keyB],
-        [this.valueA, this.valueB],
-      )
+      await expectMembersMatch(this.methods, [this.keyA, this.keyB], [this.valueA, this.valueB])
       expect(await this.methods.contains(this.keyC)).to.be.false
     })
 
@@ -122,11 +117,7 @@ function shouldBehaveLikeMap() {
 
       // [A, C]
 
-      await expectMembersMatch(
-        this.methods,
-        [this.keyA, this.keyC],
-        [this.valueA, this.valueC],
-      )
+      await expectMembersMatch(this.methods, [this.keyA, this.keyC], [this.valueA, this.valueC])
 
       expect(await this.methods.contains(this.keyA)).to.be.true
       expect(await this.methods.contains(this.keyB)).to.be.false
@@ -146,25 +137,14 @@ function shouldBehaveLikeMap() {
 
       it('missing value', async function () {
         await expect(this.methods.get(this.keyB))
-          .to.be.revertedWithCustomError(
-            this.mock,
-            'EnumerableMapNonexistentKey',
-          )
-          .withArgs(
-            ethers.AbiCoder.defaultAbiCoder().encode(
-              [this.keyType],
-              [this.keyB],
-            ),
-          )
+          .to.be.revertedWithCustomError(this.mock, 'EnumerableMapNonexistentKey')
+          .withArgs(ethers.AbiCoder.defaultAbiCoder().encode([this.keyType], [this.keyB]))
       })
     })
 
     describe('tryGet', () => {
       it('existing value', async function () {
-        expect(await this.methods.tryGet(this.keyA)).to.have.ordered.members([
-          true,
-          this.valueA,
-        ])
+        expect(await this.methods.tryGet(this.keyA)).to.have.ordered.members([true, this.valueA])
       })
 
       it('missing value', async function () {

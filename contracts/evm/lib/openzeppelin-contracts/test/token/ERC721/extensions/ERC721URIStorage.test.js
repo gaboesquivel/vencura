@@ -16,10 +16,7 @@ const nonExistentTokenId = 2n
 
 async function fixture() {
   const [owner] = await ethers.getSigners()
-  const token = await ethers.deployContract('$ERC721URIStorageMock', [
-    name,
-    symbol,
-  ])
+  const token = await ethers.deployContract('$ERC721URIStorageMock', [name, symbol])
   return { owner, token }
 }
 
@@ -57,9 +54,7 @@ describe('ERC721URIStorage', () => {
     })
 
     it('setting the uri for non existent token id is allowed', async function () {
-      await expect(
-        await this.token.$_setTokenURI(nonExistentTokenId, sampleUri),
-      )
+      await expect(await this.token.$_setTokenURI(nonExistentTokenId, sampleUri))
         .to.emit(this.token, 'MetadataUpdate')
         .withArgs(nonExistentTokenId)
 
@@ -85,9 +80,7 @@ describe('ERC721URIStorage', () => {
       await this.token.$_setTokenURI(tokenId, sampleUri)
 
       await this.token.setBaseURI(otherBaseURI)
-      expect(await this.token.tokenURI(tokenId)).to.equal(
-        otherBaseURI + sampleUri,
-      )
+      expect(await this.token.tokenURI(tokenId)).to.equal(otherBaseURI + sampleUri)
     })
 
     it('tokenId is appended to base URI for tokens with no URI', async function () {

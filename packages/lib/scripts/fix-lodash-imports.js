@@ -23,4 +23,3 @@ if (content !== fixed) {
   // eslint-disable-next-line no-console
   console.log('Fixed lodash import extensions in @vencura/lib ESM build')
 }
-

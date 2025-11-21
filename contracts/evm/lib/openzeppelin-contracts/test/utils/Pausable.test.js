@@ -58,10 +58,7 @@ describe('Pausable', () => {
       })
 
       it('reverts when re-pausing', async function () {
-        await expect(this.mock.pause()).to.be.revertedWithCustomError(
-          this.mock,
-          'EnforcedPause',
-        )
+        await expect(this.mock.pause()).to.be.revertedWithCustomError(this.mock, 'EnforcedPause')
       })
 
       describe('unpausing', () => {
@@ -76,9 +73,7 @@ describe('Pausable', () => {
           })
 
           it('emits an Unpaused event', async function () {
-            await expect(this.tx)
-              .to.emit(this.mock, 'Unpaused')
-              .withArgs(this.pauser)
+            await expect(this.tx).to.emit(this.mock, 'Unpaused').withArgs(this.pauser)
           })
 
           it('should resume allowing normal process', async function () {
@@ -88,9 +83,10 @@ describe('Pausable', () => {
           })
 
           it('should prevent drastic measure', async function () {
-            await expect(
-              this.mock.drasticMeasure(),
-            ).to.be.revertedWithCustomError(this.mock, 'ExpectedPause')
+            await expect(this.mock.drasticMeasure()).to.be.revertedWithCustomError(
+              this.mock,
+              'ExpectedPause',
+            )
           })
 
           it('reverts when re-unpausing', async function () {

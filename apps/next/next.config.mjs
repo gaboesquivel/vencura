@@ -2,12 +2,9 @@ import { withSentryConfig } from '@sentry/nextjs'
 
 /** @type {import('next').NextConfig} */
 const nextConfig = {
-  transpilePackages: ["@vencura/ui", "@vencura/core", "@vencura/types", "@vencura/react"],
+  transpilePackages: ['@vencura/ui', '@vencura/core', '@vencura/types', '@vencura/react'],
   // Suppress OpenTelemetry/Sentry warnings about external packages
-  serverExternalPackages: [
-    'import-in-the-middle',
-    'require-in-the-middle',
-  ],
+  serverExternalPackages: ['import-in-the-middle', 'require-in-the-middle'],
 }
 
 // Only wrap with Sentry if DSN is configured

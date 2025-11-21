@@ -41,7 +41,7 @@ function buildBaseRoles() {
   return roles
 }
 
-const formatAccess = (access) => [access[0], access[1].toString()]
+const formatAccess = access => [access[0], access[1].toString()]
 
 const MINSETBACK = time.duration.days(5)
 const EXPIRATION = time.duration.weeks(1)
@@ -57,15 +57,13 @@ async function prepareOperation(manager, { caller, target, calldata, delay }) {
   await time.increaseTo.timestamp(scheduledAt, false) // Fix next block timestamp for predictability
 
   return {
-    schedule: () =>
-      manager.connect(caller).schedule(target, calldata, scheduledAt + delay),
+    schedule: () => manager.connect(caller).schedule(target, calldata, scheduledAt + delay),
     scheduledAt,
     operationId: hashOperation(caller, target, calldata),
   }
 }
 
-const lazyGetAddress = (addressable) =>
-  addressable.address ?? addressable.target ?? addressable
+const lazyGetAddress = addressable => addressable.address ?? addressable.target ?? addressable
 
 const hashOperation = (caller, target, data) =>
   ethers.keccak256(

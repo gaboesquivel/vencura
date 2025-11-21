@@ -30,21 +30,11 @@ const delay = 3600n
 describe('GovernorStorage', () => {
   for (const { Token, mode } of TOKENS) {
     const fixture = async () => {
-      const [deployer, owner, proposer, voter1, voter2, voter3, voter4] =
-        await ethers.getSigners()
+      const [deployer, owner, proposer, voter1, voter2, voter3, voter4] = await ethers.getSigners()
       const receiver = await ethers.deployContract('CallReceiverMock')
 
-      const token = await ethers.deployContract(Token, [
-        tokenName,
-        tokenSymbol,
-        version,
-      ])
-      const timelock = await ethers.deployContract('TimelockController', [
-        delay,
-        [],
-        [],
-        deployer,
-      ])
+      const token = await ethers.deployContract(Token, [tokenName, tokenSymbol, version])
+      const timelock = await ethers.deployContract('TimelockController', [delay, [], [], deployer])
       const mock = await ethers.deployContract('$GovernorStorageMock', [
         name,
         votingDelay,
@@ -65,18 +55,10 @@ describe('GovernorStorage', () => {
       await timelock.revokeRole(DEFAULT_ADMIN_ROLE, deployer)
 
       const helper = new GovernorHelper(mock, mode)
-      await helper
-        .connect(owner)
-        .delegate({ token, to: voter1, value: ethers.parseEther('10') })
-      await helper
-        .connect(owner)
-        .delegate({ token, to: voter2, value: ethers.parseEther('7') })
-      await helper
-        .connect(owner)
-        .delegate({ token, to: voter3, value: ethers.parseEther('5') })
-      await helper
-        .connect(owner)
-        .delegate({ token, to: voter4, value: ethers.parseEther('2') })
+      await helper.connect(owner).delegate({ token, to: voter1, value: ethers.parseEther('10') })
+      await helper.connect(owner).delegate({ token, to: voter2, value: ethers.parseEther('7') })
+      await helper.connect(owner).delegate({ token, to: voter3, value: ethers.parseEther('5') })
+      await helper.connect(owner).delegate({ token, to: voter4, value: ethers.parseEther('2') })
 
       return {
         deployer,
@@ -124,10 +106,7 @@ describe('GovernorStorage', () => {
           )
 
           await expect(this.mock.proposalDetails(this.proposal.id))
-            .to.be.revertedWithCustomError(
-              this.mock,
-              'GovernorNonexistentProposal',
-            )
+            .to.be.revertedWithCustomError(this.mock, 'GovernorNonexistentProposal')
             .withArgs(this.proposal.id)
         })
 
@@ -144,9 +123,7 @@ describe('GovernorStorage', () => {
             this.proposal.descriptionHash,
           ])
 
-          expect(
-            await this.mock.proposalDetails(this.proposal.id),
-          ).to.deep.equal([
+          expect(await this.mock.proposalDetails(this.proposal.id)).to.deep.equal([
             this.proposal.targets,
             this.proposal.values,
             this.proposal.data,
@@ -160,12 +137,8 @@ describe('GovernorStorage', () => {
         await this.helper.waitForSnapshot()
         await this.helper.connect(this.voter1).vote({ support: VoteType.For })
         await this.helper.connect(this.voter2).vote({ support: VoteType.For })
-        await this.helper
-          .connect(this.voter3)
-          .vote({ support: VoteType.Against })
-        await this.helper
-          .connect(this.voter4)
-          .vote({ support: VoteType.Abstain })
+        await this.helper.connect(this.voter3).vote({ support: VoteType.Against })
+        await this.helper.connect(this.voter4).vote({ support: VoteType.Abstain })
         await this.helper.waitForDeadline()
 
         await expect(this.mock.queue(this.proposal.id))

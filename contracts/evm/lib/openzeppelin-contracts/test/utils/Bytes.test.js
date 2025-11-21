@@ -30,27 +30,21 @@ describe('Bytes', () => {
         const index = lorem.indexOf(present, start)
         const result = index === -1 ? ethers.MaxUint256 : index
         expect(
-          await this.mock.$indexOf(
-            lorem,
-            ethers.toBeHex(present),
-            ethers.Typed.uint256(start),
-          ),
+          await this.mock.$indexOf(lorem, ethers.toBeHex(present), ethers.Typed.uint256(start)),
         ).to.equal(result)
       }
     })
 
     it('absent', async function () {
-      expect(await this.mock.$indexOf(lorem, ethers.toBeHex(absent))).to.equal(
-        ethers.MaxUint256,
-      )
+      expect(await this.mock.$indexOf(lorem, ethers.toBeHex(absent))).to.equal(ethers.MaxUint256)
     })
   })
 
   describe('lastIndexOf', () => {
     it('first', async function () {
-      expect(
-        await this.mock.$lastIndexOf(lorem, ethers.toBeHex(present)),
-      ).to.equal(lorem.lastIndexOf(present))
+      expect(await this.mock.$lastIndexOf(lorem, ethers.toBeHex(present))).to.equal(
+        lorem.lastIndexOf(present),
+      )
     })
 
     it('from index', async function () {
@@ -58,19 +52,15 @@ describe('Bytes', () => {
         const index = lorem.lastIndexOf(present, start)
         const result = index === -1 ? ethers.MaxUint256 : index
         expect(
-          await this.mock.$lastIndexOf(
-            lorem,
-            ethers.toBeHex(present),
-            ethers.Typed.uint256(start),
-          ),
+          await this.mock.$lastIndexOf(lorem, ethers.toBeHex(present), ethers.Typed.uint256(start)),
         ).to.equal(result)
       }
     })
 
     it('absent', async function () {
-      expect(
-        await this.mock.$lastIndexOf(lorem, ethers.toBeHex(absent)),
-      ).to.equal(ethers.MaxUint256)
+      expect(await this.mock.$lastIndexOf(lorem, ethers.toBeHex(absent))).to.equal(
+        ethers.MaxUint256,
+      )
     })
   })
 
@@ -98,9 +88,7 @@ describe('Bytes', () => {
       })) {
         it(descr, async function () {
           const result = ethers.hexlify(lorem.slice(start, end))
-          expect(
-            await this.mock.$slice(lorem, start, ethers.Typed.uint256(end)),
-          ).to.equal(result)
+          expect(await this.mock.$slice(lorem, start, ethers.Typed.uint256(end))).to.equal(result)
         })
       }
     })

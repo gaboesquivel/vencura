@@ -85,19 +85,19 @@ const makeCAIP = ({ namespace, reference, account }) => ({
   account,
   caip2: `${namespace}:${reference}`,
   caip10: `${namespace}:${reference}:${account}`,
-  toCaip10: (other) =>
+  toCaip10: other =>
     `${namespace}:${reference}:${ethers.getAddress(other.target ?? other.address ?? other)}`,
 })
 
 module.exports = {
   CHAINS: mapValues(
     Object.assign(
-      mapValues(ethereum, (reference) => ({
+      mapValues(ethereum, reference => ({
         namespace: 'eip155',
         reference,
         account: ethers.Wallet.createRandom().address,
       })),
-      mapValues(cosmos, (reference) => ({
+      mapValues(cosmos, reference => ({
         namespace: 'cosmos',
         reference,
         account: ethers.encodeBase58(ethers.randomBytes(32)),
@@ -105,10 +105,8 @@ module.exports = {
     ),
     makeCAIP,
   ),
-  getLocalCAIP: (account) =>
+  getLocalCAIP: account =>
     ethers.provider
       .getNetwork()
-      .then(({ chainId }) =>
-        makeCAIP({ namespace: 'eip155', reference: chainId, account }),
-      ),
+      .then(({ chainId }) => makeCAIP({ namespace: 'eip155', reference: chainId, account })),
 }

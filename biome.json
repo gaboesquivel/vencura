@@ -1,0 +1,68 @@
+{
+  "$schema": "https://biomejs.dev/schemas/1.9.4/schema.json",
+  "files": {
+    "ignore": [
+      "node_modules/**",
+      ".next/**",
+      "out/**",
+      "dist/**",
+      "build/**",
+      "bin/**",
+      ".turbo/**",
+      ".vercel/**",
+      ".bun/**",
+      "coverage/**",
+      "test-results/**",
+      "playwright-report/**",
+      "playwright/.cache/**",
+      "contracts/evm/out/**",
+      "contracts/evm/cache/**",
+      "contracts/evm/broadcast/**",
+      "contracts/evm/lib/**",
+      "contracts/solana/target/**",
+      "contracts/solana/.anchor/**",
+      "contracts/solana/tests/**",
+      "contracts/**/*.so",
+      "**/target/**",
+      "*.generated.*",
+      "*.log",
+      "pnpm-lock.yaml",
+      "package-lock.json",
+      "yarn.lock",
+      ".pnp.js",
+      ".DS_Store",
+      "*.pem",
+      "__dev/**"
+    ],
+    "maxSize": 1048576
+  },
+  "formatter": {
+    "enabled": true,
+    "formatWithErrors": true,
+    "indentStyle": "space",
+    "indentWidth": 2,
+    "lineWidth": 100,
+    "lineEnding": "lf"
+  },
+  "javascript": {
+    "formatter": {
+      "quoteStyle": "single",
+      "jsxQuoteStyle": "double",
+      "trailingCommas": "all",
+      "semicolons": "asNeeded",
+      "arrowParentheses": "asNeeded"
+    },
+    "parser": {
+      "unsafeParameterDecoratorsEnabled": true
+    }
+  },
+  "linter": {
+    "enabled": true,
+    "rules": {
+      "recommended": true
+    }
+  },
+  "organizeImports": {
+    "enabled": true
+  }
+}

@@ -11,9 +11,8 @@ const { product, range } = require('../../helpers/iterate')
 const RoundingDown = [Rounding.Floor, Rounding.Trunc]
 const RoundingUp = [Rounding.Ceil, Rounding.Expand]
 
-const bytes = (value, width = undefined) =>
-  ethers.Typed.bytes(ethers.toBeHex(value, width))
-const uint256 = (value) => ethers.Typed.uint256(value)
+const bytes = (value, width = undefined) => ethers.Typed.bytes(ethers.toBeHex(value, width))
+const uint256 = value => ethers.Typed.uint256(value)
 bytes.zero = '0x'
 uint256.zero = 0n
 
@@ -190,9 +189,7 @@ describe('Math', () => {
       const a = 2n
       const b = 0n
       // It's unspecified because it's a low level 0 division error
-      await expect(this.mock.$ceilDiv(a, b)).to.be.revertedWithPanic(
-        PANIC_CODES.DIVISION_BY_ZERO,
-      )
+      await expect(this.mock.$ceilDiv(a, b)).to.be.revertedWithPanic(PANIC_CODES.DIVISION_BY_ZERO)
     })
 
     it('does not round up a zero result', async function () {
@@ -236,18 +233,18 @@ describe('Math', () => {
       const a = 1n
       const b = 1n
       const c = 0n
-      await expect(
-        this.mock.$mulDiv(a, b, c, Rounding.Floor),
-      ).to.be.revertedWithPanic(PANIC_CODES.DIVISION_BY_ZERO)
+      await expect(this.mock.$mulDiv(a, b, c, Rounding.Floor)).to.be.revertedWithPanic(
+        PANIC_CODES.DIVISION_BY_ZERO,
+      )
     })
 
     it('reverts with result higher than 2 ^ 256', async function () {
       const a = 5n
       const b = ethers.MaxUint256
       const c = 2n
-      await expect(
-        this.mock.$mulDiv(a, b, c, Rounding.Floor),
-      ).to.be.revertedWithPanic(PANIC_CODES.ARITHMETIC_UNDER_OR_OVERFLOW)
+      await expect(this.mock.$mulDiv(a, b, c, Rounding.Floor)).to.be.revertedWithPanic(
+        PANIC_CODES.ARITHMETIC_UNDER_OR_OVERFLOW,
+      )
     })
 
     describe('does round down', () => {
@@ -261,21 +258,11 @@ describe('Math', () => {
       it('large values', async function () {
         for (const rounding of RoundingDown) {
           expect(
-            await this.mock.$mulDiv(
-              42n,
-              ethers.MaxUint256 - 1n,
-              ethers.MaxUint256,
-              rounding,
-            ),
+            await this.mock.$mulDiv(42n, ethers.MaxUint256 - 1n, ethers.MaxUint256, rounding),
           ).to.equal(41n)
 
           expect(
-            await this.mock.$mulDiv(
-              17n,
-              ethers.MaxUint256,
-              ethers.MaxUint256,
-              rounding,
-            ),
+            await this.mock.$mulDiv(17n, ethers.MaxUint256, ethers.MaxUint256, rounding),
           ).to.equal(17n)
 
           expect(
@@ -319,21 +306,11 @@ describe('Math', () => {
       it('large values', async function () {
         for (const rounding of RoundingUp) {
           expect(
-            await this.mock.$mulDiv(
-              42n,
-              ethers.MaxUint256 - 1n,
-              ethers.MaxUint256,
-              rounding,
-            ),
+            await this.mock.$mulDiv(42n, ethers.MaxUint256 - 1n, ethers.MaxUint256, rounding),
           ).to.equal(42n)
 
           expect(
-            await this.mock.$mulDiv(
-              17n,
-              ethers.MaxUint256,
-              ethers.MaxUint256,
-              rounding,
-            ),
+            await this.mock.$mulDiv(17n, ethers.MaxUint256, ethers.MaxUint256, rounding),
           ).to.equal(17n)
 
           expect(
@@ -389,7 +366,7 @@ describe('Math', () => {
 
         if (p != 0) {
           for (const value of Array.from({ length: 16 }, generators.uint256)) {
-            const isInversible = factors.every((f) => value % f)
+            const isInversible = factors.every(f => value % f)
             it(`trying to inverse ${value}`, async function () {
               const result = await this.mock.$invMod(value, p)
               if (isInversible) {
@@ -422,25 +399,25 @@ describe('Math', () => {
           const e = 200n
           const m = 0n
 
-          await expect(
-            this.mock.$modExp(type(b), type(e), type(m)),
-          ).to.be.revertedWithPanic(PANIC_CODES.DIVISION_BY_ZERO)
+          await expect(this.mock.$modExp(type(b), type(e), type(m))).to.be.revertedWithPanic(
+            PANIC_CODES.DIVISION_BY_ZERO,
+          )
         })
       })
     }
 
     describe('with large bytes inputs', () => {
       for (const [[b, log2b], [e, log2e], [m, log2m]] of product(
-        range(320, 512, 64).map((e) => [2n ** BigInt(e) + 1n, e]),
-        range(320, 512, 64).map((e) => [2n ** BigInt(e) + 1n, e]),
-        range(320, 512, 64).map((e) => [2n ** BigInt(e) + 1n, e]),
+        range(320, 512, 64).map(e => [2n ** BigInt(e) + 1n, e]),
+        range(320, 512, 64).map(e => [2n ** BigInt(e) + 1n, e]),
+        range(320, 512, 64).map(e => [2n ** BigInt(e) + 1n, e]),
       )) {
         it(`calculates b ** e % m (b=2**${log2b}+1) (e=2**${log2e}+1) (m=2**${log2m}+1)`, async function () {
           const mLength = ethers.dataLength(ethers.toBeHex(m))
 
-          expect(
-            await this.mock.$modExp(bytes(b), bytes(e), bytes(m)),
-          ).to.equal(bytes(modExp(b, e, m), mLength).value)
+          expect(await this.mock.$modExp(bytes(b), bytes(e), bytes(m))).to.equal(
+            bytes(modExp(b, e, m), mLength).value,
+          )
         })
       }
     })
@@ -454,9 +431,10 @@ describe('Math', () => {
           const e = 200n
           const m = 50n
 
-          expect(
-            await this.mock.$tryModExp(type(b), type(e), type(m)),
-          ).to.deep.equal([true, type(b ** e % m).value])
+          expect(await this.mock.$tryModExp(type(b), type(e), type(m))).to.deep.equal([
+            true,
+            type(b ** e % m).value,
+          ])
         })
 
         it('is correctly reverting when modulus is zero', async function () {
@@ -464,25 +442,27 @@ describe('Math', () => {
           const e = 200n
           const m = 0n
 
-          expect(
-            await this.mock.$tryModExp(type(b), type(e), type(m)),
-          ).to.deep.equal([false, type.zero])
+          expect(await this.mock.$tryModExp(type(b), type(e), type(m))).to.deep.equal([
+            false,
+            type.zero,
+          ])
         })
       })
     }
 
     describe('with large bytes inputs', () => {
       for (const [[b, log2b], [e, log2e], [m, log2m]] of product(
-        range(320, 513, 64).map((e) => [2n ** BigInt(e) + 1n, e]),
-        range(320, 513, 64).map((e) => [2n ** BigInt(e) + 1n, e]),
-        range(320, 513, 64).map((e) => [2n ** BigInt(e) + 1n, e]),
+        range(320, 513, 64).map(e => [2n ** BigInt(e) + 1n, e]),
+        range(320, 513, 64).map(e => [2n ** BigInt(e) + 1n, e]),
+        range(320, 513, 64).map(e => [2n ** BigInt(e) + 1n, e]),
       )) {
         it(`calculates b ** e % m (b=2**${log2b}+1) (e=2**${log2e}+1) (m=2**${log2m}+1)`, async function () {
           const mLength = ethers.dataLength(ethers.toBeHex(m))
 
-          expect(
-            await this.mock.$tryModExp(bytes(b), bytes(e), bytes(m)),
-          ).to.deep.equal([true, bytes(modExp(b, e, m), mLength).value])
+          expect(await this.mock.$tryModExp(bytes(b), bytes(e), bytes(m))).to.deep.equal([
+            true,
+            bytes(modExp(b, e, m), mLength).value,
+          ])
         })
       }
     })
@@ -542,9 +522,7 @@ describe('Math', () => {
           expect(await this.mock.$log2(7n, rounding)).to.equal(2n)
           expect(await this.mock.$log2(8n, rounding)).to.equal(3n)
           expect(await this.mock.$log2(9n, rounding)).to.equal(3n)
-          expect(await this.mock.$log2(ethers.MaxUint256, rounding)).to.equal(
-            255n,
-          )
+          expect(await this.mock.$log2(ethers.MaxUint256, rounding)).to.equal(255n)
         }
       })
 
@@ -560,9 +538,7 @@ describe('Math', () => {
           expect(await this.mock.$log2(7n, rounding)).to.equal(3n)
           expect(await this.mock.$log2(8n, rounding)).to.equal(3n)
           expect(await this.mock.$log2(9n, rounding)).to.equal(4n)
-          expect(await this.mock.$log2(ethers.MaxUint256, rounding)).to.equal(
-            256n,
-          )
+          expect(await this.mock.$log2(ethers.MaxUint256, rounding)).to.equal(256n)
         }
       })
     })
@@ -582,9 +558,7 @@ describe('Math', () => {
           expect(await this.mock.$log10(999n, rounding)).to.equal(2n)
           expect(await this.mock.$log10(1000n, rounding)).to.equal(3n)
           expect(await this.mock.$log10(1001n, rounding)).to.equal(3n)
-          expect(await this.mock.$log10(ethers.MaxUint256, rounding)).to.equal(
-            77n,
-          )
+          expect(await this.mock.$log10(ethers.MaxUint256, rounding)).to.equal(77n)
         }
       })
 
@@ -602,9 +576,7 @@ describe('Math', () => {
           expect(await this.mock.$log10(999n, rounding)).to.equal(3n)
           expect(await this.mock.$log10(1000n, rounding)).to.equal(3n)
           expect(await this.mock.$log10(1001n, rounding)).to.equal(4n)
-          expect(await this.mock.$log10(ethers.MaxUint256, rounding)).to.equal(
-            78n,
-          )
+          expect(await this.mock.$log10(ethers.MaxUint256, rounding)).to.equal(78n)
         }
       })
     })
@@ -621,9 +593,7 @@ describe('Math', () => {
           expect(await this.mock.$log256(65535n, rounding)).to.equal(1n)
           expect(await this.mock.$log256(65536n, rounding)).to.equal(2n)
           expect(await this.mock.$log256(65537n, rounding)).to.equal(2n)
-          expect(await this.mock.$log256(ethers.MaxUint256, rounding)).to.equal(
-            31n,
-          )
+          expect(await this.mock.$log256(ethers.MaxUint256, rounding)).to.equal(31n)
         }
       })
 
@@ -638,9 +608,7 @@ describe('Math', () => {
           expect(await this.mock.$log256(65535n, rounding)).to.equal(2n)
           expect(await this.mock.$log256(65536n, rounding)).to.equal(2n)
           expect(await this.mock.$log256(65537n, rounding)).to.equal(3n)
-          expect(await this.mock.$log256(ethers.MaxUint256, rounding)).to.equal(
-            32n,
-          )
+          expect(await this.mock.$log256(ethers.MaxUint256, rounding)).to.equal(32n)
         }
       })
     })

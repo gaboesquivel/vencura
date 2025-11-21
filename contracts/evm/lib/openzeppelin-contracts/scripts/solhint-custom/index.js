@@ -8,8 +8,7 @@ class Base {
   constructor(reporter, config, source, fileName) {
     this.reporter = reporter
     this.ignored =
-      this.constructor.global ||
-      ignore.some((p) => minimatch(path.normalize(fileName), p))
+      this.constructor.global || ignore.some(p => minimatch(path.normalize(fileName), p))
     this.ruleId = this.constructor.ruleId
     if (this.ruleId === undefined) {
       throw Error('missing ruleId static property')
@@ -39,11 +38,7 @@ module.exports = [
 
     VariableDeclaration(node) {
       const constantOrImmutable = node.isDeclaredConst || node.isImmutable
-      if (
-        node.isStateVar &&
-        !constantOrImmutable &&
-        node.visibility !== 'private'
-      ) {
+      if (node.isStateVar && !constantOrImmutable && node.visibility !== 'private') {
         this.error(node, 'State variables must be private')
       }
     }
@@ -56,16 +51,10 @@ module.exports = [
       if (node.isDeclaredConst) {
         // TODO: expand visibility and fix
         if (node.visibility === 'private' && /^_/.test(node.name)) {
-          this.error(
-            node,
-            'Constant variables should not have leading underscore',
-          )
+          this.error(node, 'Constant variables should not have leading underscore')
         }
       } else if (node.visibility === 'private' && !/^_/.test(node.name)) {
-        this.error(
-          node,
-          'Non-constant private variables must have leading underscore',
-        )
+        this.error(node, 'Non-constant private variables must have leading underscore')
       }
     }
 
@@ -75,18 +64,12 @@ module.exports = [
         (node.visibility === 'internal' && node.parent.kind !== 'library')
       ) {
         if (!/^_/.test(node.name)) {
-          this.error(
-            node,
-            'Private and internal functions must have leading underscore',
-          )
+          this.error(node, 'Private and internal functions must have leading underscore')
         }
       }
       if (node.visibility === 'internal' && node.parent.kind === 'library') {
         if (/^_/.test(node.name)) {
-          this.error(
-            node,
-            'Library internal functions should not have leading underscore',
-          )
+          this.error(node, 'Library internal functions should not have leading underscore')
         }
       }
     }

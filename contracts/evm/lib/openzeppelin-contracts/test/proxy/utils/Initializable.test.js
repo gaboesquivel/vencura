@@ -41,9 +41,10 @@ describe('Initializable', () => {
 
     describe('nested under an initializer', () => {
       it('initializer modifier reverts', async function () {
-        await expect(
-          this.mock.initializerNested(),
-        ).to.be.revertedWithCustomError(this.mock, 'InvalidInitialization')
+        await expect(this.mock.initializerNested()).to.be.revertedWithCustomError(
+          this.mock,
+          'InvalidInitialization',
+        )
       })
 
       it('onlyInitializing modifier succeeds', async function () {
@@ -53,9 +54,10 @@ describe('Initializable', () => {
     })
 
     it('cannot call onlyInitializable function outside the scope of an initializable function', async function () {
-      await expect(
-        this.mock.initializeOnlyInitializing(),
-      ).to.be.revertedWithCustomError(this.mock, 'NotInitializing')
+      await expect(this.mock.initializeOnlyInitializing()).to.be.revertedWithCustomError(
+        this.mock,
+        'NotInitializing',
+      )
     })
   })
 
@@ -66,9 +68,7 @@ describe('Initializable', () => {
   })
 
   it('multiple constructor levels can be initializers', async () => {
-    const mock = await ethers.deployContract(
-      'ChildConstructorInitializableMock',
-    )
+    const mock = await ethers.deployContract('ChildConstructorInitializableMock')
     expect(await mock.initializerRan()).to.be.true
     expect(await mock.childInitializerRan()).to.be.true
     expect(await mock.onlyInitializingRan()).to.be.true
@@ -99,15 +99,18 @@ describe('Initializable', () => {
 
     it('cannot nest reinitializers', async function () {
       expect(await this.mock.counter()).to.equal(0n)
-      await expect(
-        this.mock.nestedReinitialize(2, 2),
-      ).to.be.revertedWithCustomError(this.mock, 'InvalidInitialization')
-      await expect(
-        this.mock.nestedReinitialize(2, 3),
-      ).to.be.revertedWithCustomError(this.mock, 'InvalidInitialization')
-      await expect(
-        this.mock.nestedReinitialize(3, 2),
-      ).to.be.revertedWithCustomError(this.mock, 'InvalidInitialization')
+      await expect(this.mock.nestedReinitialize(2, 2)).to.be.revertedWithCustomError(
+        this.mock,
+        'InvalidInitialization',
+      )
+      await expect(this.mock.nestedReinitialize(2, 3)).to.be.revertedWithCustomError(
+        this.mock,
+        'InvalidInitialization',
+      )
+      await expect(this.mock.nestedReinitialize(3, 2)).to.be.revertedWithCustomError(
+        this.mock,
+        'InvalidInitialization',
+      )
     })
 
     it('can chain reinitializers', async function () {
@@ -134,17 +137,19 @@ describe('Initializable', () => {
 
       it('prevents re-initialization', async function () {
         await this.mock.disableInitializers()
-        await expect(
-          this.mock.reinitialize(255n),
-        ).to.be.revertedWithCustomError(this.mock, 'InvalidInitialization')
+        await expect(this.mock.reinitialize(255n)).to.be.revertedWithCustomError(
+          this.mock,
+          'InvalidInitialization',
+        )
       })
 
       it('can lock contract after initialization', async function () {
         await this.mock.initialize()
         await this.mock.disableInitializers()
-        await expect(
-          this.mock.reinitialize(255n),
-        ).to.be.revertedWithCustomError(this.mock, 'InvalidInitialization')
+        await expect(this.mock.reinitialize(255n)).to.be.revertedWithCustomError(
+          this.mock,
+          'InvalidInitialization',
+        )
       })
     })
   })
@@ -152,9 +157,7 @@ describe('Initializable', () => {
   describe('events', () => {
     it('constructor initialization emits event', async () => {
       const mock = await ethers.deployContract('ConstructorInitializableMock')
-      await expect(mock.deploymentTransaction())
-        .to.emit(mock, 'Initialized')
-        .withArgs(1n)
+      await expect(mock.deploymentTransaction()).to.emit(mock, 'Initialized').withArgs(1n)
     })
 
     it('initialization emits event', async () => {
@@ -164,9 +167,7 @@ describe('Initializable', () => {
 
     it('reinitialization emits event', async () => {
       const mock = await ethers.deployContract('ReinitializerMock')
-      await expect(mock.reinitialize(128))
-        .to.emit(mock, 'Initialized')
-        .withArgs(128n)
+      await expect(mock.reinitialize(128)).to.emit(mock, 'Initialized').withArgs(128n)
     })
 
     it('chained reinitialization emits multiple events', async () => {
