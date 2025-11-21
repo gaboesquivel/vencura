@@ -10,20 +10,14 @@ function shouldBehaveLikeERC6372(mode = 'blocknumber') {
     it('should have a correct clock value', async function () {
       const currentClock = await this.mock.clock()
       const expectedClock = await time.clock[mode]()
-      expect(currentClock).to.equal(
-        expectedClock,
-        `Clock mismatch in ${mode} mode`,
-      )
+      expect(currentClock).to.equal(expectedClock, `Clock mismatch in ${mode} mode`)
     })
 
     it('should have the correct CLOCK_MODE parameters', async function () {
       const clockModeParams = new URLSearchParams(await this.mock.CLOCK_MODE())
       const expectedFromValue = mode === 'blocknumber' ? 'default' : null
 
-      expect(clockModeParams.get('mode')).to.equal(
-        mode,
-        `Expected mode to be ${mode}`,
-      )
+      expect(clockModeParams.get('mode')).to.equal(mode, `Expected mode to be ${mode}`)
       expect(clockModeParams.get('from')).to.equal(
         expectedFromValue,
         `Expected 'from' to be ${expectedFromValue}`,

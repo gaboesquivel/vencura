@@ -12,8 +12,7 @@ async function fixture() {
   const factory = await ethers.getContractFactory('BeaconProxy')
   const beacon = await ethers.deployContract('UpgradeableBeacon', [v1, admin])
 
-  const newBeaconProxy = (beacon, data, opts = {}) =>
-    factory.deploy(beacon, data, opts)
+  const newBeaconProxy = (beacon, data, opts = {}) => factory.deploy(beacon, data, opts)
 
   return { admin, other, factory, beacon, v1, v2, newBeaconProxy }
 }
@@ -37,19 +36,14 @@ describe('BeaconProxy', () => {
 
       // BadBeaconNoImpl does not provide `implementation()` has no fallback.
       // This causes ERC1967Utils._setBeacon to revert.
-      await expect(
-        this.newBeaconProxy(badBeacon, '0x'),
-      ).to.be.revertedWithoutReason()
+      await expect(this.newBeaconProxy(badBeacon, '0x')).to.be.revertedWithoutReason()
     })
 
     it('non-contract implementation', async function () {
       const badBeacon = await ethers.deployContract('BadBeaconNotContract')
 
       await expect(this.newBeaconProxy(badBeacon, '0x'))
-        .to.be.revertedWithCustomError(
-          this.factory,
-          'ERC1967InvalidImplementation',
-        )
+        .to.be.revertedWithCustomError(this.factory, 'ERC1967InvalidImplementation')
         .withArgs(await badBeacon.implementation())
     })
   })
@@ -72,10 +66,7 @@ describe('BeaconProxy', () => {
 
     it('non-payable initialization', async function () {
       const value = 55n
-      const data = this.v1.interface.encodeFunctionData(
-        'initializeNonPayableWithValue',
-        [value],
-      )
+      const data = this.v1.interface.encodeFunctionData('initializeNonPayableWithValue', [value])
 
       this.proxy = await this.newBeaconProxy(this.beacon, data)
       await assertInitialized.bind(this)({ value, balance: 0n })
@@ -83,10 +74,7 @@ describe('BeaconProxy', () => {
 
     it('payable initialization', async function () {
       const value = 55n
-      const data = this.v1.interface.encodeFunctionData(
-        'initializePayableWithValue',
-        [value],
-      )
+      const data = this.v1.interface.encodeFunctionData('initializePayableWithValue', [value])
       const balance = 100n
 
       this.proxy = await this.newBeaconProxy(this.beacon, data, {
@@ -112,12 +100,9 @@ describe('BeaconProxy', () => {
   describe('upgrade', () => {
     it('upgrade a proxy by upgrading its beacon', async function () {
       const value = 10n
-      const data = this.v1.interface.encodeFunctionData(
-        'initializeNonPayableWithValue',
-        [value],
-      )
-      const proxy = await this.newBeaconProxy(this.beacon, data).then(
-        (instance) => this.v1.attach(instance),
+      const data = this.v1.interface.encodeFunctionData('initializeNonPayableWithValue', [value])
+      const proxy = await this.newBeaconProxy(this.beacon, data).then(instance =>
+        this.v1.attach(instance),
       )
 
       // test initial values
@@ -135,21 +120,15 @@ describe('BeaconProxy', () => {
 
     it('upgrade 2 proxies by upgrading shared beacon', async function () {
       const value1 = 10n
-      const data1 = this.v1.interface.encodeFunctionData(
-        'initializeNonPayableWithValue',
-        [value1],
-      )
-      const proxy1 = await this.newBeaconProxy(this.beacon, data1).then(
-        (instance) => this.v1.attach(instance),
+      const data1 = this.v1.interface.encodeFunctionData('initializeNonPayableWithValue', [value1])
+      const proxy1 = await this.newBeaconProxy(this.beacon, data1).then(instance =>
+        this.v1.attach(instance),
       )
 
       const value2 = 42n
-      const data2 = this.v1.interface.encodeFunctionData(
-        'initializeNonPayableWithValue',
-        [value2],
-      )
-      const proxy2 = await this.newBeaconProxy(this.beacon, data2).then(
-        (instance) => this.v1.attach(instance),
+      const data2 = this.v1.interface.encodeFunctionData('initializeNonPayableWithValue', [value2])
+      const proxy2 = await this.newBeaconProxy(this.beacon, data2).then(instance =>
+        this.v1.attach(instance),
       )
 
       // test initial values

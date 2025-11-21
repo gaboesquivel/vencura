@@ -23,9 +23,7 @@ describe('Address', () => {
   describe('sendValue', () => {
     describe('when sender contract has no funds', () => {
       it('sends 0 wei', async function () {
-        await expect(
-          this.mock.$sendValue(this.other, 0n),
-        ).to.changeEtherBalance(this.recipient, 0n)
+        await expect(this.mock.$sendValue(this.other, 0n)).to.changeEtherBalance(this.recipient, 0n)
       })
 
       it('reverts when sending non-zero amounts', async function () {
@@ -44,21 +42,24 @@ describe('Address', () => {
 
       describe('with EOA recipient', () => {
         it('sends 0 wei', async function () {
-          await expect(
-            this.mock.$sendValue(this.recipient, 0n),
-          ).to.changeEtherBalance(this.recipient, 0n)
+          await expect(this.mock.$sendValue(this.recipient, 0n)).to.changeEtherBalance(
+            this.recipient,
+            0n,
+          )
         })
 
         it('sends non-zero amounts', async function () {
-          await expect(
-            this.mock.$sendValue(this.recipient, funds - 1n),
-          ).to.changeEtherBalance(this.recipient, funds - 1n)
+          await expect(this.mock.$sendValue(this.recipient, funds - 1n)).to.changeEtherBalance(
+            this.recipient,
+            funds - 1n,
+          )
         })
 
         it('sends the whole balance', async function () {
-          await expect(
-            this.mock.$sendValue(this.recipient, funds),
-          ).to.changeEtherBalance(this.recipient, funds)
+          await expect(this.mock.$sendValue(this.recipient, funds)).to.changeEtherBalance(
+            this.recipient,
+            funds,
+          )
           expect(await ethers.provider.getBalance(this.mock)).to.equal(0n)
         })
 
@@ -72,16 +73,18 @@ describe('Address', () => {
       describe('with contract recipient', () => {
         it('sends funds', async function () {
           await this.targetEther.setAcceptEther(true)
-          await expect(
-            this.mock.$sendValue(this.targetEther, funds),
-          ).to.changeEtherBalance(this.targetEther, funds)
+          await expect(this.mock.$sendValue(this.targetEther, funds)).to.changeEtherBalance(
+            this.targetEther,
+            funds,
+          )
         })
 
         it('reverts on recipient revert', async function () {
           await this.targetEther.setAcceptEther(false)
-          await expect(
-            this.mock.$sendValue(this.targetEther, funds),
-          ).to.be.revertedWithCustomError(this.mock, 'FailedCall')
+          await expect(this.mock.$sendValue(this.targetEther, funds)).to.be.revertedWithCustomError(
+            this.mock,
+            'FailedCall',
+          )
         })
       })
     })
@@ -99,9 +102,7 @@ describe('Address', () => {
       })
 
       it('calls the requested empty return function', async function () {
-        const call = this.target.interface.encodeFunctionData(
-          'mockFunctionEmptyReturn',
-        )
+        const call = this.target.interface.encodeFunctionData('mockFunctionEmptyReturn')
 
         await expect(this.mock.$functionCall(this.target, call)).to.emit(
           this.target,
@@ -110,29 +111,24 @@ describe('Address', () => {
       })
 
       it('reverts when the called function reverts with no reason', async function () {
-        const call = this.target.interface.encodeFunctionData(
-          'mockFunctionRevertsNoReason',
-        )
+        const call = this.target.interface.encodeFunctionData('mockFunctionRevertsNoReason')
 
-        await expect(
-          this.mock.$functionCall(this.target, call),
-        ).to.be.revertedWithCustomError(this.mock, 'FailedCall')
+        await expect(this.mock.$functionCall(this.target, call)).to.be.revertedWithCustomError(
+          this.mock,
+          'FailedCall',
+        )
       })
 
       it('reverts when the called function reverts, bubbling up the revert reason', async function () {
-        const call = this.target.interface.encodeFunctionData(
-          'mockFunctionRevertsReason',
-        )
+        const call = this.target.interface.encodeFunctionData('mockFunctionRevertsReason')
 
-        await expect(
-          this.mock.$functionCall(this.target, call),
-        ).to.be.revertedWith('CallReceiverMock: reverting')
+        await expect(this.mock.$functionCall(this.target, call)).to.be.revertedWith(
+          'CallReceiverMock: reverting',
+        )
       })
 
       it('reverts when the called function runs out of gas', async function () {
-        const call = this.target.interface.encodeFunctionData(
-          'mockFunctionOutOfGas',
-        )
+        const call = this.target.interface.encodeFunctionData('mockFunctionOutOfGas')
 
         await expect(
           this.mock.$functionCall(this.target, call, { gasLimit: 120_000n }),
@@ -140,12 +136,11 @@ describe('Address', () => {
       })
 
       it('reverts when the called function throws', async function () {
-        const call =
-          this.target.interface.encodeFunctionData('mockFunctionThrows')
+        const call = this.target.interface.encodeFunctionData('mockFunctionThrows')
 
-        await expect(
-          this.mock.$functionCall(this.target, call),
-        ).to.be.revertedWithPanic(PANIC_CODES.ASSERTION_ERROR)
+        await expect(this.mock.$functionCall(this.target, call)).to.be.revertedWithPanic(
+          PANIC_CODES.ASSERTION_ERROR,
+        )
       })
 
       it('reverts when function does not exist', async function () {
@@ -153,9 +148,10 @@ describe('Address', () => {
           'function mockFunctionDoesNotExist()',
         ]).encodeFunctionData('mockFunctionDoesNotExist')
 
-        await expect(
-          this.mock.$functionCall(this.target, call),
-        ).to.be.revertedWithCustomError(this.mock, 'FailedCall')
+        await expect(this.mock.$functionCall(this.target, call)).to.be.revertedWithCustomError(
+          this.mock,
+          'FailedCall',
+        )
       })
     })
 
@@ -197,11 +193,7 @@ describe('Address', () => {
         await this.other.sendTransaction({ to: this.mock, value })
 
         const call = this.target.interface.encodeFunctionData('mockFunction')
-        const tx = await this.mock.$functionCallWithValue(
-          this.target,
-          call,
-          value,
-        )
+        const tx = await this.mock.$functionCallWithValue(this.target, call, value)
 
         await expect(tx).to.changeEtherBalance(this.target, value)
 
@@ -229,9 +221,7 @@ describe('Address', () => {
       it('reverts when calling non-payable functions', async function () {
         await this.other.sendTransaction({ to: this.mock, value })
 
-        const call = this.target.interface.encodeFunctionData(
-          'mockFunctionNonPayable',
-        )
+        const call = this.target.interface.encodeFunctionData('mockFunctionNonPayable')
 
         await expect(
           this.mock.$functionCallWithValue(this.target, call, value),
@@ -242,8 +232,7 @@ describe('Address', () => {
 
   describe('functionStaticCall', () => {
     it('calls the requested function', async function () {
-      const call =
-        this.target.interface.encodeFunctionData('mockStaticFunction')
+      const call = this.target.interface.encodeFunctionData('mockStaticFunction')
 
       expect(await this.mock.$functionStaticCall(this.target, call)).to.equal(
         coder.encode(['string'], ['0x1234']),
@@ -253,19 +242,18 @@ describe('Address', () => {
     it('reverts on a non-static function', async function () {
       const call = this.target.interface.encodeFunctionData('mockFunction')
 
-      await expect(
-        this.mock.$functionStaticCall(this.target, call),
-      ).to.be.revertedWithCustomError(this.mock, 'FailedCall')
+      await expect(this.mock.$functionStaticCall(this.target, call)).to.be.revertedWithCustomError(
+        this.mock,
+        'FailedCall',
+      )
     })
 
     it('bubbles up revert reason', async function () {
-      const call = this.target.interface.encodeFunctionData(
-        'mockFunctionRevertsReason',
-      )
+      const call = this.target.interface.encodeFunctionData('mockFunctionRevertsReason')
 
-      await expect(
-        this.mock.$functionStaticCall(this.target, call),
-      ).to.be.revertedWith('CallReceiverMock: reverting')
+      await expect(this.mock.$functionStaticCall(this.target, call)).to.be.revertedWith(
+        'CallReceiverMock: reverting',
+      )
     })
 
     it('reverts when address is not a contract', async function () {
@@ -282,14 +270,12 @@ describe('Address', () => {
       const slot = ethers.hexlify(ethers.randomBytes(32))
       const value = ethers.hexlify(ethers.randomBytes(32))
 
-      const call = this.target.interface.encodeFunctionData(
-        'mockFunctionWritesStorage',
-        [slot, value],
-      )
+      const call = this.target.interface.encodeFunctionData('mockFunctionWritesStorage', [
+        slot,
+        value,
+      ])
 
-      expect(await ethers.provider.getStorage(this.mock, slot)).to.equal(
-        ethers.ZeroHash,
-      )
+      expect(await ethers.provider.getStorage(this.mock, slot)).to.equal(ethers.ZeroHash)
 
       await expect(await this.mock.$functionDelegateCall(this.target, call))
         .to.emit(this.mock, 'return$functionDelegateCall')
@@ -299,13 +285,11 @@ describe('Address', () => {
     })
 
     it('bubbles up revert reason', async function () {
-      const call = this.target.interface.encodeFunctionData(
-        'mockFunctionRevertsReason',
-      )
+      const call = this.target.interface.encodeFunctionData('mockFunctionRevertsReason')
 
-      await expect(
-        this.mock.$functionDelegateCall(this.target, call),
-      ).to.be.revertedWith('CallReceiverMock: reverting')
+      await expect(this.mock.$functionDelegateCall(this.target, call)).to.be.revertedWith(
+        'CallReceiverMock: reverting',
+      )
     })
 
     it('reverts when address is not a contract', async function () {
@@ -320,9 +304,7 @@ describe('Address', () => {
   describe('verifyCallResult', () => {
     it('returns returndata on success', async function () {
       const returndata = '0x123abc'
-      expect(await this.mock.$verifyCallResult(true, returndata)).to.equal(
-        returndata,
-      )
+      expect(await this.mock.$verifyCallResult(true, returndata)).to.equal(returndata)
     })
   })
 })

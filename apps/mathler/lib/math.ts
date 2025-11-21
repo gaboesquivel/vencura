@@ -151,7 +151,7 @@ const OPS: Op[] = [
   {
     sym: '/',
     fn: (x, y) => (y !== 0 && x % y === 0 ? x / y : undefined),
-    guard: (x, y) => y !== 0,
+    guard: (_x, y) => y !== 0,
     prec: 2,
     commutative: false,
   },

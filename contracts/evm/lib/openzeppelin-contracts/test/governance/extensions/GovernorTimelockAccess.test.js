@@ -35,19 +35,12 @@ const value = ethers.parseEther('1')
 describe('GovernorTimelockAccess', () => {
   for (const { Token, mode } of TOKENS) {
     const fixture = async () => {
-      const [admin, voter1, voter2, voter3, voter4, other] =
-        await ethers.getSigners()
+      const [admin, voter1, voter2, voter3, voter4, other] = await ethers.getSigners()
 
       const manager = await ethers.deployContract('$AccessManager', [admin])
-      const receiver = await ethers.deployContract('$AccessManagedTarget', [
-        manager,
-      ])
+      const receiver = await ethers.deployContract('$AccessManagedTarget', [manager])
 
-      const token = await ethers.deployContract(Token, [
-        tokenName,
-        tokenSymbol,
-        version,
-      ])
+      const token = await ethers.deployContract(Token, [tokenName, tokenSymbol, version])
       const mock = await ethers.deployContract('$GovernorTimelockAccessMock', [
         name,
         votingDelay,
@@ -63,18 +56,10 @@ describe('GovernorTimelockAccess', () => {
       await token.$_mint(admin, tokenSupply)
 
       const helper = new GovernorHelper(mock, mode)
-      await helper
-        .connect(admin)
-        .delegate({ token, to: voter1, value: ethers.parseEther('10') })
-      await helper
-        .connect(admin)
-        .delegate({ token, to: voter2, value: ethers.parseEther('7') })
-      await helper
-        .connect(admin)
-        .delegate({ token, to: voter3, value: ethers.parseEther('5') })
-      await helper
-        .connect(admin)
-        .delegate({ token, to: voter4, value: ethers.parseEther('2') })
+      await helper.connect(admin).delegate({ token, to: voter1, value: ethers.parseEther('10') })
+      await helper.connect(admin).delegate({ token, to: voter2, value: ethers.parseEther('7') })
+      await helper.connect(admin).delegate({ token, to: voter3, value: ethers.parseEther('5') })
+      await helper.connect(admin).delegate({ token, to: voter4, value: ethers.parseEther('2') })
 
       return {
         admin,
@@ -133,9 +118,7 @@ describe('GovernorTimelockAccess', () => {
         const baseDelay = time.duration.hours(10n)
 
         // Only through governance
-        await expect(
-          this.mock.connect(this.voter1).setBaseDelaySeconds(baseDelay),
-        )
+        await expect(this.mock.connect(this.voter1).setBaseDelaySeconds(baseDelay))
           .to.be.revertedWithCustomError(this.mock, 'GovernorOnlyExecutor')
           .withArgs(this.voter1)
 
@@ -143,10 +126,7 @@ describe('GovernorTimelockAccess', () => {
           [
             {
               target: this.mock.target,
-              data: this.mock.interface.encodeFunctionData(
-                'setBaseDelaySeconds',
-                [baseDelay],
-              ),
+              data: this.mock.interface.encodeFunctionData('setBaseDelaySeconds', [baseDelay]),
             },
           ],
           'descr',
@@ -169,9 +149,7 @@ describe('GovernorTimelockAccess', () => {
 
         // Only through governance
         await expect(
-          this.mock
-            .connect(this.voter1)
-            .setAccessManagerIgnored(this.other, selectors, true),
+          this.mock.connect(this.voter1).setAccessManagerIgnored(this.other, selectors, true),
         )
           .to.be.revertedWithCustomError(this.mock, 'GovernorOnlyExecutor')
           .withArgs(this.voter1)
@@ -181,10 +159,11 @@ describe('GovernorTimelockAccess', () => {
           [
             {
               target: this.mock.target,
-              data: this.mock.interface.encodeFunctionData(
-                'setAccessManagerIgnored',
-                [this.other.address, selectors, true],
-              ),
+              data: this.mock.interface.encodeFunctionData('setAccessManagerIgnored', [
+                this.other.address,
+                selectors,
+                true,
+              ]),
             },
           ],
           'descr',
@@ -199,8 +178,7 @@ describe('GovernorTimelockAccess', () => {
           await expect(ignoreReceipt)
             .to.emit(this.mock, 'AccessManagerIgnoredSet')
             .withArgs(this.other, selector, true)
-          expect(await this.mock.isAccessManagerIgnored(this.other, selector))
-            .to.be.true
+          expect(await this.mock.isAccessManagerIgnored(this.other, selector)).to.be.true
         }
 
         // Unignore
@@ -208,10 +186,11 @@ describe('GovernorTimelockAccess', () => {
           [
             {
               target: this.mock.target,
-              data: this.mock.interface.encodeFunctionData(
-                'setAccessManagerIgnored',
-                [this.other.address, selectors, false],
-              ),
+              data: this.mock.interface.encodeFunctionData('setAccessManagerIgnored', [
+                this.other.address,
+                selectors,
+                false,
+              ]),
             },
           ],
           'descr',
@@ -227,8 +206,7 @@ describe('GovernorTimelockAccess', () => {
           await expect(unignoreReceipt)
             .to.emit(this.mock, 'AccessManagerIgnoredSet')
             .withArgs(this.other, selector, false)
-          expect(await this.mock.isAccessManagerIgnored(this.other, selector))
-            .to.be.false
+          expect(await this.mock.isAccessManagerIgnored(this.other, selector)).to.be.false
         }
       })
 
@@ -239,10 +217,11 @@ describe('GovernorTimelockAccess', () => {
           [
             {
               target: this.mock.target,
-              data: this.mock.interface.encodeFunctionData(
-                'setAccessManagerIgnored',
-                [this.mock.target, selectors, true],
-              ),
+              data: this.mock.interface.encodeFunctionData('setAccessManagerIgnored', [
+                this.mock.target,
+                selectors,
+                true,
+              ]),
             },
           ],
           'descr',
@@ -258,8 +237,7 @@ describe('GovernorTimelockAccess', () => {
           await expect(tx)
             .to.emit(this.mock, 'AccessManagerIgnoredSet')
             .withArgs(this.mock, selector, true)
-          expect(await this.mock.isAccessManagerIgnored(this.mock, selector)).to
-            .be.true
+          expect(await this.mock.isAccessManagerIgnored(this.mock, selector)).to.be.true
         }
       })
 
@@ -271,23 +249,15 @@ describe('GovernorTimelockAccess', () => {
         // Set execution delay
         await this.manager
           .connect(this.admin)
-          .setTargetFunctionRole(
-            this.receiver,
-            [this.restricted.selector],
-            roleId,
-          )
-        await this.manager
-          .connect(this.admin)
-          .grantRole(roleId, this.mock, executionDelay)
+          .setTargetFunctionRole(this.receiver, [this.restricted.selector], roleId)
+        await this.manager.connect(this.admin).grantRole(roleId, this.mock, executionDelay)
 
         // Set base delay
         await this.mock.$_setBaseDelaySeconds(baseDelay)
 
         await this.helper.setProposal([this.restricted.operation], 'descr')
         await this.helper.propose()
-        expect(
-          await this.mock.proposalNeedsQueuing(this.helper.currentProposal.id),
-        ).to.be.false
+        expect(await this.mock.proposalNeedsQueuing(this.helper.currentProposal.id)).to.be.false
       })
 
       it('needs to queue proposals with any delay', async function () {
@@ -301,14 +271,8 @@ describe('GovernorTimelockAccess', () => {
           // Set execution delay
           await this.manager
             .connect(this.admin)
-            .setTargetFunctionRole(
-              this.receiver,
-              [this.restricted.selector],
-              roleId,
-            )
-          await this.manager
-            .connect(this.admin)
-            .grantRole(roleId, this.mock, executionDelay)
+            .setTargetFunctionRole(this.receiver, [this.restricted.selector], roleId)
+          await this.manager.connect(this.admin).grantRole(roleId, this.mock, executionDelay)
 
           // Set base delay
           await this.mock.$_setBaseDelaySeconds(baseDelay)
@@ -318,11 +282,7 @@ describe('GovernorTimelockAccess', () => {
             `executionDelay=${executionDelay.toString()}}baseDelay=${baseDelay.toString()}}`,
           )
           await this.helper.propose()
-          expect(
-            await this.mock.proposalNeedsQueuing(
-              this.helper.currentProposal.id,
-            ),
-          ).to.be.true
+          expect(await this.mock.proposalNeedsQueuing(this.helper.currentProposal.id)).to.be.true
         }
       })
 
@@ -338,14 +298,8 @@ describe('GovernorTimelockAccess', () => {
             // Set execution delay
             await this.manager
               .connect(this.admin)
-              .setTargetFunctionRole(
-                this.receiver,
-                [this.restricted.selector],
-                roleId,
-              )
-            await this.manager
-              .connect(this.admin)
-              .grantRole(roleId, this.mock, executionDelay)
+              .setTargetFunctionRole(this.receiver, [this.restricted.selector], roleId)
+            await this.manager.connect(this.admin).grantRole(roleId, this.mock, executionDelay)
 
             // Set base delay
             await this.mock.$_setBaseDelaySeconds(baseDelay)
@@ -356,9 +310,11 @@ describe('GovernorTimelockAccess', () => {
             )
             await this.helper.propose()
 
-            expect(
-              await this.mock.proposalExecutionPlan(this.proposal.id),
-            ).to.deep.equal([max(baseDelay, executionDelay), [true], [true]])
+            expect(await this.mock.proposalExecutionPlan(this.proposal.id)).to.deep.equal([
+              max(baseDelay, executionDelay),
+              [true],
+              [true],
+            ])
           }
         })
 
@@ -370,35 +326,24 @@ describe('GovernorTimelockAccess', () => {
           // Set execution delay
           await this.manager
             .connect(this.admin)
-            .setTargetFunctionRole(
-              this.receiver,
-              [this.restricted.selector],
-              roleId,
-            )
-          await this.manager
-            .connect(this.admin)
-            .grantRole(roleId, this.mock, executionDelay)
+            .setTargetFunctionRole(this.receiver, [this.restricted.selector], roleId)
+          await this.manager.connect(this.admin).grantRole(roleId, this.mock, executionDelay)
 
           // Set base delay
           await this.mock.$_setBaseDelaySeconds(baseDelay)
 
-          this.proposal = await this.helper.setProposal(
-            [this.restricted.operation],
-            `descr`,
-          )
+          this.proposal = await this.helper.setProposal([this.restricted.operation], `descr`)
           await this.helper.propose()
 
-          expect(
-            await this.mock.proposalExecutionPlan(this.proposal.id),
-          ).to.deep.equal([0n, [true], [false]])
+          expect(await this.mock.proposalExecutionPlan(this.proposal.id)).to.deep.equal([
+            0n,
+            [true],
+            [false],
+          ])
         })
 
         it('returns plan for an operation ignoring the manager', async function () {
-          await this.mock.$_setAccessManagerIgnored(
-            this.receiver,
-            this.restricted.selector,
-            true,
-          )
+          await this.mock.$_setAccessManagerIgnored(this.receiver, this.restricted.selector, true)
 
           const roleId = 1n
           const delays = [
@@ -410,14 +355,8 @@ describe('GovernorTimelockAccess', () => {
             // Set execution delay
             await this.manager
               .connect(this.admin)
-              .setTargetFunctionRole(
-                this.receiver,
-                [this.restricted.selector],
-                roleId,
-              )
-            await this.manager
-              .connect(this.admin)
-              .grantRole(roleId, this.mock, executionDelay)
+              .setTargetFunctionRole(this.receiver, [this.restricted.selector], roleId)
+            await this.manager.connect(this.admin).grantRole(roleId, this.mock, executionDelay)
 
             // Set base delay
             await this.mock.$_setBaseDelaySeconds(baseDelay)
@@ -428,9 +367,11 @@ describe('GovernorTimelockAccess', () => {
             )
             await this.helper.propose()
 
-            expect(
-              await this.mock.proposalExecutionPlan(this.proposal.id),
-            ).to.deep.equal([baseDelay, [false], [false]])
+            expect(await this.mock.proposalExecutionPlan(this.proposal.id)).to.deep.equal([
+              baseDelay,
+              [false],
+              [false],
+            ])
           }
         })
       })
@@ -444,16 +385,11 @@ describe('GovernorTimelockAccess', () => {
           it(`delay ${delay}, ${queue ? 'with' : 'without'} queuing`, async function () {
             await this.mock.$_setBaseDelaySeconds(delay)
 
-            this.proposal = await this.helper.setProposal(
-              [this.unrestricted.operation],
-              'descr',
-            )
+            this.proposal = await this.helper.setProposal([this.unrestricted.operation], 'descr')
 
             await this.helper.propose()
             await this.helper.waitForSnapshot()
-            await this.helper
-              .connect(this.voter1)
-              .vote({ support: VoteType.For })
+            await this.helper.connect(this.voter1).vote({ support: VoteType.For })
             await this.helper.waitForDeadline()
             if (await this.mock.proposalNeedsQueuing(this.proposal.id)) {
               expect(await this.helper.queue())
@@ -475,10 +411,7 @@ describe('GovernorTimelockAccess', () => {
         const delay = time.duration.hours(2n)
         await this.mock.$_setBaseDelaySeconds(delay)
 
-        this.proposal = await this.helper.setProposal(
-          [this.unrestricted.operation],
-          'descr',
-        )
+        this.proposal = await this.helper.setProposal([this.unrestricted.operation], 'descr')
 
         await this.helper.propose()
         await this.helper.waitForSnapshot()
@@ -487,10 +420,7 @@ describe('GovernorTimelockAccess', () => {
         await this.helper.queue()
         await expect(this.helper.execute())
           .to.be.revertedWithCustomError(this.mock, 'GovernorUnmetDelay')
-          .withArgs(
-            this.proposal.id,
-            await this.mock.proposalEta(this.proposal.id),
-          )
+          .withArgs(this.proposal.id, await this.mock.proposalEta(this.proposal.id))
       })
 
       it('reverts with a proposal including multiple operations but one of those was cancelled in the manager', async function () {
@@ -499,14 +429,8 @@ describe('GovernorTimelockAccess', () => {
 
         await this.manager
           .connect(this.admin)
-          .setTargetFunctionRole(
-            this.receiver,
-            [this.restricted.selector],
-            roleId,
-          )
-        await this.manager
-          .connect(this.admin)
-          .grantRole(roleId, this.mock, delay)
+          .setTargetFunctionRole(this.receiver, [this.restricted.selector], roleId)
+        await this.manager.connect(this.admin).grantRole(roleId, this.mock, delay)
 
         // Set proposals
         const original = new GovernorHelper(this.mock, mode)
@@ -526,11 +450,7 @@ describe('GovernorTimelockAccess', () => {
         // Suddenly cancel one of the proposed operations in the manager
         await this.manager
           .connect(this.admin)
-          .cancel(
-            this.mock,
-            this.restricted.operation.target,
-            this.restricted.operation.data,
-          )
+          .cancel(this.mock, this.restricted.operation.target, this.restricted.operation.data)
 
         // Reschedule the same operation in a different proposal to avoid "AccessManagerNotScheduled" error
         const rescheduled = new GovernorHelper(this.mock, mode)
@@ -554,19 +474,10 @@ describe('GovernorTimelockAccess', () => {
 
         await this.manager
           .connect(this.admin)
-          .setTargetFunctionRole(
-            this.receiver,
-            [this.restricted.selector],
-            roleId,
-          )
-        await this.manager
-          .connect(this.admin)
-          .grantRole(roleId, this.mock, delay)
+          .setTargetFunctionRole(this.receiver, [this.restricted.selector], roleId)
+        await this.manager.connect(this.admin).grantRole(roleId, this.mock, delay)
 
-        this.proposal = await this.helper.setProposal(
-          [this.restricted.operation],
-          'descr',
-        )
+        this.proposal = await this.helper.setProposal([this.restricted.operation], 'descr')
 
         await this.helper.propose()
         await this.helper.waitForSnapshot()
@@ -606,21 +517,11 @@ describe('GovernorTimelockAccess', () => {
 
         await this.manager
           .connect(this.admin)
-          .setTargetFunctionRole(
-            this.receiver,
-            [this.restricted.selector],
-            roleId,
-          )
-        await this.manager
-          .connect(this.admin)
-          .grantRole(roleId, this.mock, managerDelay)
+          .setTargetFunctionRole(this.receiver, [this.restricted.selector], roleId)
+        await this.manager.connect(this.admin).grantRole(roleId, this.mock, managerDelay)
 
         this.proposal = await this.helper.setProposal(
-          [
-            this.restricted.operation,
-            this.unrestricted.operation,
-            this.fallback.operation,
-          ],
+          [this.restricted.operation, this.unrestricted.operation, this.fallback.operation],
           'descr',
         )
 
@@ -662,21 +563,12 @@ describe('GovernorTimelockAccess', () => {
         beforeEach(async function () {
           await this.manager
             .connect(this.admin)
-            .setTargetFunctionRole(
-              this.receiver,
-              [this.restricted.selector],
-              roleId,
-            )
-          await this.manager
-            .connect(this.admin)
-            .grantRole(roleId, this.mock, delay)
+            .setTargetFunctionRole(this.receiver, [this.restricted.selector], roleId)
+          await this.manager.connect(this.admin).grantRole(roleId, this.mock, delay)
         })
 
         it('cancels restricted with delay after queue (internal)', async function () {
-          this.proposal = await this.helper.setProposal(
-            [this.restricted.operation],
-            'descr',
-          )
+          this.proposal = await this.helper.setProposal([this.restricted.operation], 'descr')
 
           await this.helper.propose()
           await this.helper.waitForSnapshot()
@@ -693,10 +585,7 @@ describe('GovernorTimelockAccess', () => {
           await this.helper.waitForEta()
 
           await expect(this.helper.execute())
-            .to.be.revertedWithCustomError(
-              this.mock,
-              'GovernorUnexpectedProposalState',
-            )
+            .to.be.revertedWithCustomError(this.mock, 'GovernorUnexpectedProposalState')
             .withArgs(
               this.proposal.id,
               ProposalState.Canceled,
@@ -722,18 +611,11 @@ describe('GovernorTimelockAccess', () => {
           // Cancel the operation in the manager
           await this.manager
             .connect(this.admin)
-            .cancel(
-              this.mock,
-              this.restricted.operation.target,
-              this.restricted.operation.data,
-            )
+            .cancel(this.mock, this.restricted.operation.target, this.restricted.operation.data)
 
           // Another proposal is added with the same operation
           const rescheduled = new GovernorHelper(this.mock, mode)
-          await rescheduled.setProposal(
-            [this.restricted.operation],
-            'another descr',
-          )
+          await rescheduled.setProposal([this.restricted.operation], 'another descr')
 
           // Queue the new proposal
           await rescheduled.propose()
@@ -743,9 +625,7 @@ describe('GovernorTimelockAccess', () => {
           await rescheduled.queue() // This will schedule it again in the manager
 
           // Cancel
-          const eta = await this.mock.proposalEta(
-            rescheduled.currentProposal.id,
-          )
+          const eta = await this.mock.proposalEta(rescheduled.currentProposal.id)
 
           await expect(original.cancel('internal'))
             .to.emit(this.mock, 'ProposalCanceled')
@@ -753,13 +633,10 @@ describe('GovernorTimelockAccess', () => {
 
           await time.clock
             .timestamp()
-            .then((clock) => time.increaseTo.timestamp(max(clock + 1n, eta)))
+            .then(clock => time.increaseTo.timestamp(max(clock + 1n, eta)))
 
           await expect(original.execute())
-            .to.be.revertedWithCustomError(
-              this.mock,
-              'GovernorUnexpectedProposalState',
-            )
+            .to.be.revertedWithCustomError(this.mock, 'GovernorUnexpectedProposalState')
             .withArgs(
               original.currentProposal.id,
               ProposalState.Canceled,
@@ -771,10 +648,7 @@ describe('GovernorTimelockAccess', () => {
         })
 
         it('cancels unrestricted with queueing (internal)', async function () {
-          this.proposal = await this.helper.setProposal(
-            [this.unrestricted.operation],
-            'descr',
-          )
+          this.proposal = await this.helper.setProposal([this.unrestricted.operation], 'descr')
 
           await this.helper.propose()
           await this.helper.waitForSnapshot()
@@ -790,13 +664,10 @@ describe('GovernorTimelockAccess', () => {
 
           await time.clock
             .timestamp()
-            .then((clock) => time.increaseTo.timestamp(max(clock + 1n, eta)))
+            .then(clock => time.increaseTo.timestamp(max(clock + 1n, eta)))
 
           await expect(this.helper.execute())
-            .to.be.revertedWithCustomError(
-              this.mock,
-              'GovernorUnexpectedProposalState',
-            )
+            .to.be.revertedWithCustomError(this.mock, 'GovernorUnexpectedProposalState')
             .withArgs(
               this.proposal.id,
               ProposalState.Canceled,
@@ -808,10 +679,7 @@ describe('GovernorTimelockAccess', () => {
         })
 
         it('cancels unrestricted without queueing (internal)', async function () {
-          this.proposal = await this.helper.setProposal(
-            [this.unrestricted.operation],
-            'descr',
-          )
+          this.proposal = await this.helper.setProposal([this.unrestricted.operation], 'descr')
 
           await this.helper.propose()
           await this.helper.waitForSnapshot()
@@ -823,10 +691,7 @@ describe('GovernorTimelockAccess', () => {
             .withArgs(this.proposal.id)
 
           await expect(this.helper.execute())
-            .to.be.revertedWithCustomError(
-              this.mock,
-              'GovernorUnexpectedProposalState',
-            )
+            .to.be.revertedWithCustomError(this.mock, 'GovernorUnexpectedProposalState')
             .withArgs(
               this.proposal.id,
               ProposalState.Canceled,
@@ -850,16 +715,8 @@ describe('GovernorTimelockAccess', () => {
             target: this.receiver.target,
             data: this.restricted.selector + '02',
           }
-          const operationAId = hashOperation(
-            this.mock.target,
-            operationA.target,
-            operationA.data,
-          )
-          const operationBId = hashOperation(
-            this.mock.target,
-            operationB.target,
-            operationB.data,
-          )
+          const operationAId = hashOperation(this.mock.target, operationA.target, operationA.data)
+          const operationBId = hashOperation(this.mock.target, operationB.target, operationB.data)
 
           const proposal1 = new GovernorHelper(this.mock, mode)
           const proposal2 = new GovernorHelper(this.mock, mode)
@@ -878,10 +735,7 @@ describe('GovernorTimelockAccess', () => {
 
           // Cannot queue the second proposal: operation A already scheduled with delay
           await expect(proposal2.queue())
-            .to.be.revertedWithCustomError(
-              this.manager,
-              'AccessManagerAlreadyScheduled',
-            )
+            .to.be.revertedWithCustomError(this.manager, 'AccessManagerAlreadyScheduled')
             .withArgs(operationAId)
 
           // Admin cancels operation B on the manager
@@ -891,20 +745,14 @@ describe('GovernorTimelockAccess', () => {
 
           // Still cannot queue the second proposal: operation A already scheduled with delay
           await expect(proposal2.queue())
-            .to.be.revertedWithCustomError(
-              this.manager,
-              'AccessManagerAlreadyScheduled',
-            )
+            .to.be.revertedWithCustomError(this.manager, 'AccessManagerAlreadyScheduled')
             .withArgs(operationAId)
 
           await proposal1.waitForEta()
 
           // Cannot execute first proposal: operation B has been canceled
           await expect(proposal1.execute())
-            .to.be.revertedWithCustomError(
-              this.manager,
-              'AccessManagerNotScheduled',
-            )
+            .to.be.revertedWithCustomError(this.manager, 'AccessManagerNotScheduled')
             .withArgs(operationBId)
 
           // Cancel the first proposal to release operation A
@@ -922,52 +770,31 @@ describe('GovernorTimelockAccess', () => {
 
       describe('ignore AccessManager', () => {
         it('defaults', async function () {
-          expect(
-            await this.mock.isAccessManagerIgnored(
-              this.receiver,
-              this.restricted.selector,
-            ),
-          ).to.be.false
-          expect(
-            await this.mock.isAccessManagerIgnored(this.mock, '0x12341234'),
-          ).to.be.true
+          expect(await this.mock.isAccessManagerIgnored(this.receiver, this.restricted.selector)).to
+            .be.false
+          expect(await this.mock.isAccessManagerIgnored(this.mock, '0x12341234')).to.be.true
         })
 
         it('internal setter', async function () {
           await expect(
-            this.mock.$_setAccessManagerIgnored(
-              this.receiver,
-              this.restricted.selector,
-              true,
-            ),
+            this.mock.$_setAccessManagerIgnored(this.receiver, this.restricted.selector, true),
           )
             .to.emit(this.mock, 'AccessManagerIgnoredSet')
             .withArgs(this.receiver, this.restricted.selector, true)
 
-          expect(
-            await this.mock.isAccessManagerIgnored(
-              this.receiver,
-              this.restricted.selector,
-            ),
-          ).to.be.true
+          expect(await this.mock.isAccessManagerIgnored(this.receiver, this.restricted.selector)).to
+            .be.true
 
-          await expect(
-            this.mock.$_setAccessManagerIgnored(this.mock, '0x12341234', false),
-          )
+          await expect(this.mock.$_setAccessManagerIgnored(this.mock, '0x12341234', false))
             .to.emit(this.mock, 'AccessManagerIgnoredSet')
             .withArgs(this.mock, '0x12341234', false)
 
-          expect(
-            await this.mock.isAccessManagerIgnored(this.mock, '0x12341234'),
-          ).to.be.false
+          expect(await this.mock.isAccessManagerIgnored(this.mock, '0x12341234')).to.be.false
         })
 
         it('external setter', async function () {
           const setAccessManagerIgnored = (...args) =>
-            this.mock.interface.encodeFunctionData(
-              'setAccessManagerIgnored',
-              args,
-            )
+            this.mock.interface.encodeFunctionData('setAccessManagerIgnored', args)
 
           await this.helper.setProposal(
             [
@@ -996,49 +823,24 @@ describe('GovernorTimelockAccess', () => {
           await this.helper.connect(this.voter1).vote({ support: VoteType.For })
           await this.helper.waitForDeadline()
 
-          await expect(this.helper.execute()).to.emit(
-            this.mock,
-            'AccessManagerIgnoredSet',
-          )
+          await expect(this.helper.execute()).to.emit(this.mock, 'AccessManagerIgnoredSet')
 
-          expect(
-            await this.mock.isAccessManagerIgnored(
-              this.receiver,
-              this.restricted.selector,
-            ),
-          ).to.be.true
-          expect(
-            await this.mock.isAccessManagerIgnored(
-              this.receiver,
-              this.unrestricted.selector,
-            ),
-          ).to.be.true
-          expect(
-            await this.mock.isAccessManagerIgnored(this.mock, '0x12341234'),
-          ).to.be.false
-          expect(
-            await this.mock.isAccessManagerIgnored(this.mock, '0x67896789'),
-          ).to.be.false
+          expect(await this.mock.isAccessManagerIgnored(this.receiver, this.restricted.selector)).to
+            .be.true
+          expect(await this.mock.isAccessManagerIgnored(this.receiver, this.unrestricted.selector))
+            .to.be.true
+          expect(await this.mock.isAccessManagerIgnored(this.mock, '0x12341234')).to.be.false
+          expect(await this.mock.isAccessManagerIgnored(this.mock, '0x67896789')).to.be.false
         })
 
         it('locked function', async function () {
-          const setAccessManagerIgnored = selector(
-            'setAccessManagerIgnored(address,bytes4[],bool)',
-          )
+          const setAccessManagerIgnored = selector('setAccessManagerIgnored(address,bytes4[],bool)')
 
           await expect(
-            this.mock.$_setAccessManagerIgnored(
-              this.mock,
-              setAccessManagerIgnored,
-              true,
-            ),
+            this.mock.$_setAccessManagerIgnored(this.mock, setAccessManagerIgnored, true),
           ).to.be.revertedWithCustomError(this.mock, 'GovernorLockedIgnore')
 
-          await this.mock.$_setAccessManagerIgnored(
-            this.receiver,
-            setAccessManagerIgnored,
-            true,
-          )
+          await this.mock.$_setAccessManagerIgnored(this.receiver, setAccessManagerIgnored, true)
         })
 
         it('ignores access manager', async function () {
@@ -1052,9 +854,7 @@ describe('GovernorTimelockAccess', () => {
           await this.token.$_mint(this.mock, amount)
 
           const roleId = 1n
-          await this.manager
-            .connect(this.admin)
-            .setTargetFunctionRole(target, [selector], roleId)
+          await this.manager.connect(this.admin).setTargetFunctionRole(target, [selector], roleId)
           await this.manager.connect(this.admin).grantRole(roleId, this.mock, 0)
 
           await this.helper.setProposal([{ target, data }], 'descr #1')
@@ -1064,10 +864,7 @@ describe('GovernorTimelockAccess', () => {
           await this.helper.waitForDeadline()
 
           await expect(this.helper.execute())
-            .to.be.revertedWithCustomError(
-              this.token,
-              'ERC20InsufficientBalance',
-            )
+            .to.be.revertedWithCustomError(this.token, 'ERC20InsufficientBalance')
             .withArgs(this.manager, 0n, amount)
 
           await this.mock.$_setAccessManagerIgnored(target, selector, true)
@@ -1104,9 +901,7 @@ describe('GovernorTimelockAccess', () => {
           await this.manager
             .connect(this.admin)
             .setTargetFunctionRole(this.ownable, [method], roleId)
-          await this.manager
-            .connect(this.admin)
-            .grantRole(roleId, this.mock, executionDelay)
+          await this.manager.connect(this.admin).grantRole(roleId, this.mock, executionDelay)
 
           // Set base delay
           await this.mock.$_setBaseDelaySeconds(baseDelay)
@@ -1130,9 +925,7 @@ describe('GovernorTimelockAccess', () => {
           await this.manager
             .connect(this.admin)
             .setTargetFunctionRole(this.ownable, [method], roleId)
-          await this.manager
-            .connect(this.admin)
-            .grantRole(roleId, this.mock, executionDelay)
+          await this.manager.connect(this.admin).grantRole(roleId, this.mock, executionDelay)
 
           // Set base delay
           await this.mock.$_setBaseDelaySeconds(baseDelay)

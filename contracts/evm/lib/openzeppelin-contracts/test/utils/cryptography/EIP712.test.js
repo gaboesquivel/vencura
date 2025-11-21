@@ -2,11 +2,7 @@ const { ethers } = require('hardhat')
 const { expect } = require('chai')
 const { loadFixture } = require('@nomicfoundation/hardhat-network-helpers')
 
-const {
-  getDomain,
-  domainSeparator,
-  hashTypedData,
-} = require('../../helpers/eip712')
+const { getDomain, domainSeparator, hashTypedData } = require('../../helpers/eip712')
 const { formatType } = require('../../helpers/eip712-types')
 
 const LENGTHS = {
@@ -20,16 +16,11 @@ const fixture = async () => {
   const lengths = {}
   for (const [shortOrLong, [name, version]] of Object.entries(LENGTHS)) {
     lengths[shortOrLong] = { name, version }
-    lengths[shortOrLong].eip712 = await ethers.deployContract(
-      '$EIP712Verifier',
-      [name, version],
-    )
+    lengths[shortOrLong].eip712 = await ethers.deployContract('$EIP712Verifier', [name, version])
     lengths[shortOrLong].domain = {
       name,
       version,
-      chainId: await ethers.provider
-        .getNetwork()
-        .then(({ chainId }) => chainId),
+      chainId: await ethers.provider.getNetwork().then(({ chainId }) => chainId),
       verifyingContract: lengths[shortOrLong].eip712.target,
     }
   }
@@ -66,16 +57,12 @@ describe('EIP712', () => {
 
             const clone = await factory
               .$clone(this.eip712)
-              .then((tx) => tx.wait())
+              .then(tx => tx.wait())
               .then(
-                (receipt) =>
-                  receipt.logs.find(
-                    (ev) => ev.fragment.name == 'return$clone_address',
-                  ).args.instance,
+                receipt =>
+                  receipt.logs.find(ev => ev.fragment.name == 'return$clone_address').args.instance,
               )
-              .then((address) =>
-                ethers.getContractAt('$EIP712Verifier', address),
-              )
+              .then(address => ethers.getContractAt('$EIP712Verifier', address))
 
             const expectedDomain = {
               ...this.domain,
@@ -84,9 +71,7 @@ describe('EIP712', () => {
             expect(await getDomain(clone)).to.be.deep.equal(expectedDomain)
 
             const expectedSeparator = await domainSeparator(expectedDomain)
-            expect(await clone.$_domainSeparatorV4()).to.equal(
-              expectedSeparator,
-            )
+            expect(await clone.$_domainSeparatorV4()).to.equal(expectedSeparator)
           })
         }
       })
@@ -111,20 +96,10 @@ describe('EIP712', () => {
           contents: 'very interesting',
         }
 
-        const signature = await this.from.signTypedData(
-          this.domain,
-          types,
-          message,
-        )
+        const signature = await this.from.signTypedData(this.domain, types, message)
 
-        await expect(
-          this.eip712.verify(
-            signature,
-            this.from.address,
-            message.to,
-            message.contents,
-          ),
-        ).to.not.be.reverted
+        await expect(this.eip712.verify(signature, this.from.address, message.to, message.contents))
+          .to.not.be.reverted
       })
 
       it('name', async function () {

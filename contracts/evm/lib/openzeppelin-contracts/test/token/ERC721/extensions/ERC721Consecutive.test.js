@@ -79,9 +79,7 @@ describe('ERC721Consecutive', () => {
 
           for (const tokenId in owners) {
             if (owners[tokenId] != ethers.ZeroAddress) {
-              expect(await this.token.ownerOf(tokenId)).to.equal(
-                owners[tokenId],
-              )
+              expect(await this.token.ownerOf(tokenId)).to.equal(owners[tokenId])
             }
           }
         })
@@ -127,16 +125,14 @@ describe('ERC721Consecutive', () => {
 
       describe('minting after construction', () => {
         it('consecutive minting is not possible after construction', async function () {
-          await expect(
-            this.token.$_mintConsecutive(this.alice, 10),
-          ).to.be.revertedWithCustomError(
+          await expect(this.token.$_mintConsecutive(this.alice, 10)).to.be.revertedWithCustomError(
             this.token,
             'ERC721ForbiddenBatchMint',
           )
         })
 
         it('simple minting is possible after construction', async function () {
-          const tokenId = sum(...this.batches.map((b) => b.amount)) + offset
+          const tokenId = sum(...this.batches.map(b => b.amount)) + offset
 
           await expect(this.token.ownerOf(tokenId))
             .to.be.revertedWithCustomError(this.token, 'ERC721NonexistentToken')
@@ -148,12 +144,9 @@ describe('ERC721Consecutive', () => {
         })
 
         it('cannot mint a token that has been batched minted', async function () {
-          const tokenId =
-            sum(...this.batches.map((b) => b.amount)) + offset - 1n
+          const tokenId = sum(...this.batches.map(b => b.amount)) + offset - 1n
 
-          expect(await this.token.ownerOf(tokenId)).to.not.equal(
-            ethers.ZeroAddress,
-          )
+          expect(await this.token.ownerOf(tokenId)).to.not.equal(ethers.ZeroAddress)
 
           await expect(this.token.$_mint(this.alice, tokenId))
             .to.be.revertedWithCustomError(this.token, 'ERC721InvalidSender')
@@ -165,9 +158,7 @@ describe('ERC721Consecutive', () => {
         const tokenId = offset + 1n
 
         it('core takes over ownership on transfer', async function () {
-          await this.token
-            .connect(this.alice)
-            .transferFrom(this.alice, this.receiver, tokenId)
+          await this.token.connect(this.alice).transferFrom(this.alice, this.receiver, tokenId)
 
           expect(await this.token.ownerOf(tokenId)).to.equal(this.receiver)
         })
@@ -189,8 +180,7 @@ describe('ERC721Consecutive', () => {
         })
 
         it('tokens can be burned and re-minted #2', async function () {
-          const tokenId =
-            sum(...this.batches.map(({ amount }) => amount)) + offset
+          const tokenId = sum(...this.batches.map(({ amount }) => amount)) + offset
 
           await expect(this.token.ownerOf(tokenId))
             .to.be.revertedWithCustomError(this.token, 'ERC721NonexistentToken')
@@ -230,49 +220,30 @@ describe('ERC721Consecutive', () => {
       const factory = await ethers.getContractFactory('$ERC721ConsecutiveMock')
 
       await expect(
-        ethers.deployContract('$ERC721ConsecutiveMock', [
-          name,
-          symbol,
-          0,
-          [],
-          [receiver],
-          [5001n],
-        ]),
+        ethers.deployContract('$ERC721ConsecutiveMock', [name, symbol, 0, [], [receiver], [5001n]]),
       )
         .to.be.revertedWithCustomError(factory, 'ERC721ExceededMaxBatchMint')
         .withArgs(5001n, 5000n)
     })
 
     it('cannot use single minting during construction', async () => {
-      const factory = await ethers.getContractFactory(
-        '$ERC721ConsecutiveNoConstructorMintMock',
-      )
+      const factory = await ethers.getContractFactory('$ERC721ConsecutiveNoConstructorMintMock')
 
       await expect(
-        ethers.deployContract('$ERC721ConsecutiveNoConstructorMintMock', [
-          name,
-          symbol,
-        ]),
+        ethers.deployContract('$ERC721ConsecutiveNoConstructorMintMock', [name, symbol]),
       ).to.be.revertedWithCustomError(factory, 'ERC721ForbiddenMint')
     })
 
     it('cannot use single minting during construction', async () => {
-      const factory = await ethers.getContractFactory(
-        '$ERC721ConsecutiveNoConstructorMintMock',
-      )
+      const factory = await ethers.getContractFactory('$ERC721ConsecutiveNoConstructorMintMock')
 
       await expect(
-        ethers.deployContract('$ERC721ConsecutiveNoConstructorMintMock', [
-          name,
-          symbol,
-        ]),
+        ethers.deployContract('$ERC721ConsecutiveNoConstructorMintMock', [name, symbol]),
       ).to.be.revertedWithCustomError(factory, 'ERC721ForbiddenMint')
     })
 
     it('consecutive mint not compatible with enumerability', async () => {
-      const factory = await ethers.getContractFactory(
-        '$ERC721ConsecutiveEnumerableMock',
-      )
+      const factory = await ethers.getContractFactory('$ERC721ConsecutiveEnumerableMock')
 
       await expect(
         ethers.deployContract('$ERC721ConsecutiveEnumerableMock', [
@@ -281,10 +252,7 @@ describe('ERC721Consecutive', () => {
           [receiver],
           [100n],
         ]),
-      ).to.be.revertedWithCustomError(
-        factory,
-        'ERC721EnumerableForbiddenBatchMint',
-      )
+      ).to.be.revertedWithCustomError(factory, 'ERC721EnumerableForbiddenBatchMint')
     })
   })
 })

@@ -32,19 +32,13 @@ describe('SafeCast', () => {
 
       it(`reverts when downcasting 2^${bits} (${maxValue + 1n})`, async function () {
         await expect(this.mock[`$toUint${bits}`](maxValue + 1n))
-          .to.be.revertedWithCustomError(
-            this.mock,
-            'SafeCastOverflowedUintDowncast',
-          )
+          .to.be.revertedWithCustomError(this.mock, 'SafeCastOverflowedUintDowncast')
           .withArgs(bits, maxValue + 1n)
       })
 
       it(`reverts when downcasting 2^${bits} + 1 (${maxValue + 2n})`, async function () {
         await expect(this.mock[`$toUint${bits}`](maxValue + 2n))
-          .to.be.revertedWithCustomError(
-            this.mock,
-            'SafeCastOverflowedUintDowncast',
-          )
+          .to.be.revertedWithCustomError(this.mock, 'SafeCastOverflowedUintDowncast')
           .withArgs(bits, maxValue + 2n)
       })
     })
@@ -60,9 +54,7 @@ describe('SafeCast', () => {
     })
 
     it(`casts INT256_MAX (${ethers.MaxInt256})`, async function () {
-      expect(await this.mock.$toUint256(ethers.MaxInt256)).is.equal(
-        ethers.MaxInt256,
-      )
+      expect(await this.mock.$toUint256(ethers.MaxInt256)).is.equal(ethers.MaxInt256)
     })
 
     it('reverts when casting -1', async function () {
@@ -105,37 +97,25 @@ describe('SafeCast', () => {
 
       it(`reverts when downcasting -2^${bits - 1n} - 1 (${minValue - 1n})`, async function () {
         await expect(this.mock[`$toInt${bits}`](minValue - 1n))
-          .to.be.revertedWithCustomError(
-            this.mock,
-            'SafeCastOverflowedIntDowncast',
-          )
+          .to.be.revertedWithCustomError(this.mock, 'SafeCastOverflowedIntDowncast')
           .withArgs(bits, minValue - 1n)
       })
 
       it(`reverts when downcasting -2^${bits - 1n} - 2 (${minValue - 2n})`, async function () {
         await expect(this.mock[`$toInt${bits}`](minValue - 2n))
-          .to.be.revertedWithCustomError(
-            this.mock,
-            'SafeCastOverflowedIntDowncast',
-          )
+          .to.be.revertedWithCustomError(this.mock, 'SafeCastOverflowedIntDowncast')
           .withArgs(bits, minValue - 2n)
       })
 
       it(`reverts when downcasting 2^${bits - 1n} (${maxValue + 1n})`, async function () {
         await expect(this.mock[`$toInt${bits}`](maxValue + 1n))
-          .to.be.revertedWithCustomError(
-            this.mock,
-            'SafeCastOverflowedIntDowncast',
-          )
+          .to.be.revertedWithCustomError(this.mock, 'SafeCastOverflowedIntDowncast')
           .withArgs(bits, maxValue + 1n)
       })
 
       it(`reverts when downcasting 2^${bits - 1n} + 1 (${maxValue + 2n})`, async function () {
         await expect(this.mock[`$toInt${bits}`](maxValue + 2n))
-          .to.be.revertedWithCustomError(
-            this.mock,
-            'SafeCastOverflowedIntDowncast',
-          )
+          .to.be.revertedWithCustomError(this.mock, 'SafeCastOverflowedIntDowncast')
           .withArgs(bits, maxValue + 2n)
       })
     })
@@ -151,9 +131,7 @@ describe('SafeCast', () => {
     })
 
     it(`casts INT256_MAX (${ethers.MaxInt256})`, async function () {
-      expect(await this.mock.$toInt256(ethers.MaxInt256)).is.equal(
-        ethers.MaxInt256,
-      )
+      expect(await this.mock.$toInt256(ethers.MaxInt256)).is.equal(ethers.MaxInt256)
     })
 
     it(`reverts when casting INT256_MAX + 1 (${ethers.MaxInt256 + 1n})`, async function () {

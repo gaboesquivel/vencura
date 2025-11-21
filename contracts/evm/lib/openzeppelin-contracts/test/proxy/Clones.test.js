@@ -29,12 +29,12 @@ async function fixture() {
   const implementation = await ethers.deployContract('DummyImplementation')
 
   const newClone =
-    (args) =>
+    args =>
     async (opts = {}) => {
       const clone = await (args
         ? factory.$cloneWithImmutableArgs.staticCall(implementation, args)
         : factory.$clone.staticCall(implementation)
-      ).then((address) => implementation.attach(address))
+      ).then(address => implementation.attach(address))
       const tx = await (args
         ? opts.deployValue
           ? factory.$cloneWithImmutableArgs(
@@ -44,10 +44,7 @@ async function fixture() {
             )
           : factory.$cloneWithImmutableArgs(implementation, args)
         : opts.deployValue
-          ? factory.$clone(
-              implementation,
-              ethers.Typed.uint256(opts.deployValue),
-            )
+          ? factory.$clone(implementation, ethers.Typed.uint256(opts.deployValue))
           : factory.$clone(implementation))
       if (opts.initData || opts.initValue) {
         await deployer.sendTransaction({
@@ -60,17 +57,13 @@ async function fixture() {
     }
 
   const newCloneDeterministic =
-    (args) =>
+    args =>
     async (opts = {}) => {
       const salt = opts.salt ?? ethers.randomBytes(32)
       const clone = await (args
-        ? factory.$cloneDeterministicWithImmutableArgs.staticCall(
-            implementation,
-            args,
-            salt,
-          )
+        ? factory.$cloneDeterministicWithImmutableArgs.staticCall(implementation, args, salt)
         : factory.$cloneDeterministic.staticCall(implementation, salt)
-      ).then((address) => implementation.attach(address))
+      ).then(address => implementation.attach(address))
       const tx = await (args
         ? opts.deployValue
           ? factory.$cloneDeterministicWithImmutableArgs(
@@ -79,11 +72,7 @@ async function fixture() {
               salt,
               ethers.Typed.uint256(opts.deployValue),
             )
-          : factory.$cloneDeterministicWithImmutableArgs(
-              implementation,
-              args,
-              salt,
-            )
+          : factory.$cloneDeterministicWithImmutableArgs(implementation, args, salt)
         : opts.deployValue
           ? factory.$cloneDeterministic(
               implementation,
@@ -110,110 +99,89 @@ describe('Clones', () => {
   })
 
   for (const args of [undefined, '0x', '0x11223344']) {
-    describe(
-      args ? `with immutable args: ${args}` : 'without immutable args',
-      () => {
-        describe('clone', () => {
-          beforeEach(async function () {
-            this.createClone = this.newClone(args)
-          })
-
-          shouldBehaveLikeClone()
-
-          it('get immutable arguments', async function () {
-            const instance = await this.createClone()
-            expect(await this.factory.$fetchCloneArgs(instance)).to.equal(
-              args ?? '0x',
-            )
-          })
+    describe(args ? `with immutable args: ${args}` : 'without immutable args', () => {
+      describe('clone', () => {
+        beforeEach(async function () {
+          this.createClone = this.newClone(args)
         })
 
-        describe('cloneDeterministic', () => {
-          beforeEach(async function () {
-            this.createClone = this.newCloneDeterministic(args)
-          })
+        shouldBehaveLikeClone()
 
-          shouldBehaveLikeClone()
+        it('get immutable arguments', async function () {
+          const instance = await this.createClone()
+          expect(await this.factory.$fetchCloneArgs(instance)).to.equal(args ?? '0x')
+        })
+      })
 
-          it('get immutable arguments', async function () {
-            const instance = await this.createClone()
-            expect(await this.factory.$fetchCloneArgs(instance)).to.equal(
-              args ?? '0x',
-            )
-          })
+      describe('cloneDeterministic', () => {
+        beforeEach(async function () {
+          this.createClone = this.newCloneDeterministic(args)
+        })
 
-          it('revert if address already used', async function () {
-            const salt = ethers.randomBytes(32)
+        shouldBehaveLikeClone()
 
-            const deployClone = () =>
-              args
-                ? this.factory.$cloneDeterministicWithImmutableArgs(
-                    this.implementation,
-                    args,
-                    salt,
-                  )
-                : this.factory.$cloneDeterministic(this.implementation, salt)
+        it('get immutable arguments', async function () {
+          const instance = await this.createClone()
+          expect(await this.factory.$fetchCloneArgs(instance)).to.equal(args ?? '0x')
+        })
 
-            // deploy once
-            await expect(deployClone()).to.not.be.reverted
+        it('revert if address already used', async function () {
+          const salt = ethers.randomBytes(32)
 
-            // deploy twice
-            await expect(deployClone()).to.be.revertedWithCustomError(
-              this.factory,
-              'FailedDeployment',
-            )
-          })
+          const deployClone = () =>
+            args
+              ? this.factory.$cloneDeterministicWithImmutableArgs(this.implementation, args, salt)
+              : this.factory.$cloneDeterministic(this.implementation, salt)
 
-          it('address prediction', async function () {
-            const salt = ethers.randomBytes(32)
+          // deploy once
+          await expect(deployClone()).to.not.be.reverted
 
-            const expected = ethers.getCreate2Address(
-              this.factory.target,
+          // deploy twice
+          await expect(deployClone()).to.be.revertedWithCustomError(
+            this.factory,
+            'FailedDeployment',
+          )
+        })
+
+        it('address prediction', async function () {
+          const salt = ethers.randomBytes(32)
+
+          const expected = ethers.getCreate2Address(
+            this.factory.target,
+            salt,
+            ethers.keccak256(cloneInitCode(this.implementation, args)),
+          )
+
+          if (args) {
+            const predicted = await this.factory.$predictDeterministicAddressWithImmutableArgs(
+              this.implementation,
+              args,
               salt,
-              ethers.keccak256(cloneInitCode(this.implementation, args)),
             )
+            expect(predicted).to.equal(expected)
 
-            if (args) {
-              const predicted =
-                await this.factory.$predictDeterministicAddressWithImmutableArgs(
-                  this.implementation,
-                  args,
-                  salt,
-                )
-              expect(predicted).to.equal(expected)
+            await expect(
+              this.factory.$cloneDeterministicWithImmutableArgs(this.implementation, args, salt),
+            )
+              .to.emit(
+                this.factory,
+                'return$cloneDeterministicWithImmutableArgs_address_bytes_bytes32',
+              )
+              .withArgs(predicted)
+          } else {
+            const predicted = await this.factory.$predictDeterministicAddress(
+              this.implementation,
+              salt,
+            )
+            expect(predicted).to.equal(expected)
 
-              await expect(
-                this.factory.$cloneDeterministicWithImmutableArgs(
-                  this.implementation,
-                  args,
-                  salt,
-                ),
-              )
-                .to.emit(
-                  this.factory,
-                  'return$cloneDeterministicWithImmutableArgs_address_bytes_bytes32',
-                )
-                .withArgs(predicted)
-            } else {
-              const predicted = await this.factory.$predictDeterministicAddress(
-                this.implementation,
-                salt,
-              )
-              expect(predicted).to.equal(expected)
-
-              await expect(
-                this.factory.$cloneDeterministic(this.implementation, salt),
-              )
-                .to.emit(
-                  this.factory,
-                  'return$cloneDeterministic_address_bytes32',
-                )
-                .withArgs(predicted)
-            }
-          })
+            await expect(this.factory.$cloneDeterministic(this.implementation, salt))
+              .to.emit(this.factory, 'return$cloneDeterministic_address_bytes32')
+              .withArgs(predicted)
+          }
         })
-      },
-    )
+      })
+    })
   }
 
   it('EIP-170 limit on immutable args', async function () {
@@ -223,11 +191,7 @@ describe('Clones', () => {
     const salt = ethers.randomBytes(32)
 
     await expect(
-      this.factory.$predictDeterministicAddressWithImmutableArgs(
-        this.implementation,
-        args,
-        salt,
-      ),
+      this.factory.$predictDeterministicAddressWithImmutableArgs(this.implementation, args, salt),
     ).to.be.revertedWithCustomError(this.factory, 'CloneArgumentsTooLong')
 
     await expect(

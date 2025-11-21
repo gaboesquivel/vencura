@@ -3,9 +3,7 @@ const { expect } = require('chai')
 const { anyValue } = require('@nomicfoundation/hardhat-chai-matchers/withArgs')
 
 const { RevertType } = require('../../helpers/enums')
-const {
-  shouldSupportInterfaces,
-} = require('../../utils/introspection/SupportsInterface.behavior')
+const { shouldSupportInterfaces } = require('../../utils/introspection/SupportsInterface.behavior')
 
 function shouldBehaveLikeERC1155() {
   const firstTokenId = 1n
@@ -25,51 +23,27 @@ function shouldBehaveLikeERC1155() {
   describe('like an ERC1155', () => {
     describe('balanceOf', () => {
       it('should return 0 when queried about the zero address', async function () {
-        expect(
-          await this.token.balanceOf(ethers.ZeroAddress, firstTokenId),
-        ).to.equal(0n)
+        expect(await this.token.balanceOf(ethers.ZeroAddress, firstTokenId)).to.equal(0n)
       })
 
       describe("when accounts don't own tokens", () => {
         it('returns zero for given addresses', async function () {
-          expect(await this.token.balanceOf(this.alice, firstTokenId)).to.equal(
-            0n,
-          )
-          expect(
-            await this.token.balanceOf(this.bruce, secondTokenId),
-          ).to.equal(0n)
-          expect(
-            await this.token.balanceOf(this.alice, unknownTokenId),
-          ).to.equal(0n)
+          expect(await this.token.balanceOf(this.alice, firstTokenId)).to.equal(0n)
+          expect(await this.token.balanceOf(this.bruce, secondTokenId)).to.equal(0n)
+          expect(await this.token.balanceOf(this.alice, unknownTokenId)).to.equal(0n)
         })
       })
 
       describe('when accounts own some tokens', () => {
         beforeEach(async function () {
-          await this.token.$_mint(
-            this.alice,
-            firstTokenId,
-            firstTokenValue,
-            '0x',
-          )
-          await this.token.$_mint(
-            this.bruce,
-            secondTokenId,
-            secondTokenValue,
-            '0x',
-          )
+          await this.token.$_mint(this.alice, firstTokenId, firstTokenValue, '0x')
+          await this.token.$_mint(this.bruce, secondTokenId, secondTokenValue, '0x')
         })
 
         it('returns the amount of tokens owned by the given addresses', async function () {
-          expect(await this.token.balanceOf(this.alice, firstTokenId)).to.equal(
-            firstTokenValue,
-          )
-          expect(
-            await this.token.balanceOf(this.bruce, secondTokenId),
-          ).to.equal(secondTokenValue)
-          expect(
-            await this.token.balanceOf(this.alice, unknownTokenId),
-          ).to.equal(0n)
+          expect(await this.token.balanceOf(this.alice, firstTokenId)).to.equal(firstTokenValue)
+          expect(await this.token.balanceOf(this.bruce, secondTokenId)).to.equal(secondTokenValue)
+          expect(await this.token.balanceOf(this.alice, unknownTokenId)).to.equal(0n)
         })
       })
     })
@@ -80,19 +54,13 @@ function shouldBehaveLikeERC1155() {
         const ids1 = [firstTokenId, secondTokenId, unknownTokenId]
 
         await expect(this.token.balanceOfBatch(accounts1, ids1))
-          .to.be.revertedWithCustomError(
-            this.token,
-            'ERC1155InvalidArrayLength',
-          )
+          .to.be.revertedWithCustomError(this.token, 'ERC1155InvalidArrayLength')
           .withArgs(ids1.length, accounts1.length)
 
         const accounts2 = [this.alice, this.bruce]
         const ids2 = [firstTokenId, secondTokenId, unknownTokenId]
         await expect(this.token.balanceOfBatch(accounts2, ids2))
-          .to.be.revertedWithCustomError(
-            this.token,
-            'ERC1155InvalidArrayLength',
-          )
+          .to.be.revertedWithCustomError(this.token, 'ERC1155InvalidArrayLength')
           .withArgs(ids2.length, accounts2.length)
       })
 
@@ -116,18 +84,8 @@ function shouldBehaveLikeERC1155() {
 
       describe('when accounts own some tokens', () => {
         beforeEach(async function () {
-          await this.token.$_mint(
-            this.alice,
-            firstTokenId,
-            firstTokenValue,
-            '0x',
-          )
-          await this.token.$_mint(
-            this.bruce,
-            secondTokenId,
-            secondTokenValue,
-            '0x',
-          )
+          await this.token.$_mint(this.alice, firstTokenId, firstTokenValue, '0x')
+          await this.token.$_mint(this.bruce, secondTokenId, secondTokenValue, '0x')
         })
 
         it('returns amounts owned by each account in order passed', async function () {
@@ -143,25 +101,18 @@ function shouldBehaveLikeERC1155() {
             [this.alice, this.bruce, this.alice],
             [firstTokenId, secondTokenId, firstTokenId],
           )
-          expect(result).to.deep.equal([
-            firstTokenValue,
-            secondTokenValue,
-            firstTokenValue,
-          ])
+          expect(result).to.deep.equal([firstTokenValue, secondTokenValue, firstTokenValue])
         })
       })
     })
 
     describe('setApprovalForAll', () => {
       beforeEach(async function () {
-        this.tx = await this.token
-          .connect(this.holder)
-          .setApprovalForAll(this.proxy, true)
+        this.tx = await this.token.connect(this.holder).setApprovalForAll(this.proxy, true)
       })
 
       it('sets approval status which can be queried via isApprovedForAll', async function () {
-        expect(await this.token.isApprovedForAll(this.holder, this.proxy)).to.be
-          .true
+        expect(await this.token.isApprovedForAll(this.holder, this.proxy)).to.be.true
       })
 
       it('emits an ApprovalForAll log', async function () {
@@ -171,19 +122,12 @@ function shouldBehaveLikeERC1155() {
       })
 
       it('can unset approval for an operator', async function () {
-        await this.token
-          .connect(this.holder)
-          .setApprovalForAll(this.proxy, false)
-        expect(await this.token.isApprovedForAll(this.holder, this.proxy)).to.be
-          .false
+        await this.token.connect(this.holder).setApprovalForAll(this.proxy, false)
+        expect(await this.token.isApprovedForAll(this.holder, this.proxy)).to.be.false
       })
 
       it('reverts if attempting to approve zero address as an operator', async function () {
-        await expect(
-          this.token
-            .connect(this.holder)
-            .setApprovalForAll(ethers.ZeroAddress, true),
-        )
+        await expect(this.token.connect(this.holder).setApprovalForAll(ethers.ZeroAddress, true))
           .to.be.revertedWithCustomError(this.token, 'ERC1155InvalidOperator')
           .withArgs(ethers.ZeroAddress)
       })
@@ -191,18 +135,8 @@ function shouldBehaveLikeERC1155() {
 
     describe('safeTransferFrom', () => {
       beforeEach(async function () {
-        await this.token.$_mint(
-          this.holder,
-          firstTokenId,
-          firstTokenValue,
-          '0x',
-        )
-        await this.token.$_mint(
-          this.holder,
-          secondTokenId,
-          secondTokenValue,
-          '0x',
-        )
+        await this.token.$_mint(this.holder, firstTokenId, firstTokenValue, '0x')
+        await this.token.$_mint(this.holder, secondTokenId, secondTokenValue, '0x')
       })
 
       it('reverts when transferring more than balance', async function () {
@@ -217,29 +151,15 @@ function shouldBehaveLikeERC1155() {
               '0x',
             ),
         )
-          .to.be.revertedWithCustomError(
-            this.token,
-            'ERC1155InsufficientBalance',
-          )
-          .withArgs(
-            this.holder,
-            firstTokenValue,
-            firstTokenValue + 1n,
-            firstTokenId,
-          )
+          .to.be.revertedWithCustomError(this.token, 'ERC1155InsufficientBalance')
+          .withArgs(this.holder, firstTokenValue, firstTokenValue + 1n, firstTokenId)
       })
 
       it('reverts when transferring to zero address', async function () {
         await expect(
           this.token
             .connect(this.holder)
-            .safeTransferFrom(
-              this.holder,
-              ethers.ZeroAddress,
-              firstTokenId,
-              firstTokenValue,
-              '0x',
-            ),
+            .safeTransferFrom(this.holder, ethers.ZeroAddress, firstTokenId, firstTokenValue, '0x'),
         )
           .to.be.revertedWithCustomError(this.token, 'ERC1155InvalidReceiver')
           .withArgs(ethers.ZeroAddress)
@@ -247,15 +167,11 @@ function shouldBehaveLikeERC1155() {
 
       function transferWasSuccessful() {
         it('debits transferred balance from sender', async function () {
-          expect(
-            await this.token.balanceOf(this.args.from, this.args.id),
-          ).to.equal(0n)
+          expect(await this.token.balanceOf(this.args.from, this.args.id)).to.equal(0n)
         })
 
         it('credits transferred balance to receiver', async function () {
-          expect(
-            await this.token.balanceOf(this.args.to, this.args.id),
-          ).to.equal(this.args.value)
+          expect(await this.token.balanceOf(this.args.to, this.args.id)).to.equal(this.args.value)
         })
 
         it('emits a TransferSingle log', async function () {
@@ -295,48 +211,31 @@ function shouldBehaveLikeERC1155() {
         transferWasSuccessful()
 
         it('preserves existing balances which are not transferred by holder', async function () {
-          expect(
-            await this.token.balanceOf(this.holder, secondTokenId),
-          ).to.equal(secondTokenValue)
-          expect(
-            await this.token.balanceOf(this.recipient, secondTokenId),
-          ).to.equal(0n)
+          expect(await this.token.balanceOf(this.holder, secondTokenId)).to.equal(secondTokenValue)
+          expect(await this.token.balanceOf(this.recipient, secondTokenId)).to.equal(0n)
         })
       })
 
       describe('when called by an operator on behalf of the holder', () => {
         describe('when operator is not approved by holder', () => {
           beforeEach(async function () {
-            await this.token
-              .connect(this.holder)
-              .setApprovalForAll(this.proxy, false)
+            await this.token.connect(this.holder).setApprovalForAll(this.proxy, false)
           })
 
           it('reverts', async function () {
             await expect(
               this.token
                 .connect(this.proxy)
-                .safeTransferFrom(
-                  this.holder,
-                  this.recipient,
-                  firstTokenId,
-                  firstTokenValue,
-                  '0x',
-                ),
+                .safeTransferFrom(this.holder, this.recipient, firstTokenId, firstTokenValue, '0x'),
             )
-              .to.be.revertedWithCustomError(
-                this.token,
-                'ERC1155MissingApprovalForAll',
-              )
+              .to.be.revertedWithCustomError(this.token, 'ERC1155MissingApprovalForAll')
               .withArgs(this.proxy, this.holder)
           })
         })
 
         describe('when operator is approved by holder', () => {
           beforeEach(async function () {
-            await this.token
-              .connect(this.holder)
-              .setApprovalForAll(this.proxy, true)
+            await this.token.connect(this.holder).setApprovalForAll(this.proxy, true)
 
             this.args = {
               operator: this.proxy,
@@ -360,12 +259,8 @@ function shouldBehaveLikeERC1155() {
           transferWasSuccessful()
 
           it("preserves operator's balances not involved in the transfer", async function () {
-            expect(
-              await this.token.balanceOf(this.proxy, firstTokenId),
-            ).to.equal(0n)
-            expect(
-              await this.token.balanceOf(this.proxy, secondTokenId),
-            ).to.equal(0n)
+            expect(await this.token.balanceOf(this.proxy, firstTokenId)).to.equal(0n)
+            expect(await this.token.balanceOf(this.proxy, secondTokenId)).to.equal(0n)
           })
         })
       })
@@ -465,13 +360,7 @@ function shouldBehaveLikeERC1155() {
           await expect(
             this.token
               .connect(this.holder)
-              .safeTransferFrom(
-                this.holder,
-                receiver,
-                firstTokenId,
-                firstTokenValue,
-                '0x',
-              ),
+              .safeTransferFrom(this.holder, receiver, firstTokenId, firstTokenValue, '0x'),
           )
             .to.be.revertedWithCustomError(this.token, 'ERC1155InvalidReceiver')
             .withArgs(receiver)
@@ -481,80 +370,50 @@ function shouldBehaveLikeERC1155() {
       describe('to a receiver contract that reverts', () => {
         describe('with a revert string', () => {
           it('reverts', async function () {
-            const receiver = await ethers.deployContract(
-              '$ERC1155ReceiverMock',
-              [
-                RECEIVER_SINGLE_MAGIC_VALUE,
-                RECEIVER_BATCH_MAGIC_VALUE,
-                RevertType.RevertWithMessage,
-              ],
-            )
+            const receiver = await ethers.deployContract('$ERC1155ReceiverMock', [
+              RECEIVER_SINGLE_MAGIC_VALUE,
+              RECEIVER_BATCH_MAGIC_VALUE,
+              RevertType.RevertWithMessage,
+            ])
 
             await expect(
               this.token
                 .connect(this.holder)
-                .safeTransferFrom(
-                  this.holder,
-                  receiver,
-                  firstTokenId,
-                  firstTokenValue,
-                  '0x',
-                ),
+                .safeTransferFrom(this.holder, receiver, firstTokenId, firstTokenValue, '0x'),
             ).to.be.revertedWith('ERC1155ReceiverMock: reverting on receive')
           })
         })
 
         describe('without a revert string', () => {
           it('reverts', async function () {
-            const receiver = await ethers.deployContract(
-              '$ERC1155ReceiverMock',
-              [
-                RECEIVER_SINGLE_MAGIC_VALUE,
-                RECEIVER_BATCH_MAGIC_VALUE,
-                RevertType.RevertWithoutMessage,
-              ],
-            )
+            const receiver = await ethers.deployContract('$ERC1155ReceiverMock', [
+              RECEIVER_SINGLE_MAGIC_VALUE,
+              RECEIVER_BATCH_MAGIC_VALUE,
+              RevertType.RevertWithoutMessage,
+            ])
 
             await expect(
               this.token
                 .connect(this.holder)
-                .safeTransferFrom(
-                  this.holder,
-                  receiver,
-                  firstTokenId,
-                  firstTokenValue,
-                  '0x',
-                ),
+                .safeTransferFrom(this.holder, receiver, firstTokenId, firstTokenValue, '0x'),
             )
-              .to.be.revertedWithCustomError(
-                this.token,
-                'ERC1155InvalidReceiver',
-              )
+              .to.be.revertedWithCustomError(this.token, 'ERC1155InvalidReceiver')
               .withArgs(receiver)
           })
         })
 
         describe('with a custom error', () => {
           it('reverts', async function () {
-            const receiver = await ethers.deployContract(
-              '$ERC1155ReceiverMock',
-              [
-                RECEIVER_SINGLE_MAGIC_VALUE,
-                RECEIVER_BATCH_MAGIC_VALUE,
-                RevertType.RevertWithCustomError,
-              ],
-            )
+            const receiver = await ethers.deployContract('$ERC1155ReceiverMock', [
+              RECEIVER_SINGLE_MAGIC_VALUE,
+              RECEIVER_BATCH_MAGIC_VALUE,
+              RevertType.RevertWithCustomError,
+            ])
 
             await expect(
               this.token
                 .connect(this.holder)
-                .safeTransferFrom(
-                  this.holder,
-                  receiver,
-                  firstTokenId,
-                  firstTokenValue,
-                  '0x',
-                ),
+                .safeTransferFrom(this.holder, receiver, firstTokenId, firstTokenValue, '0x'),
             )
               .to.be.revertedWithCustomError(receiver, 'CustomError')
               .withArgs(RECEIVER_SINGLE_MAGIC_VALUE)
@@ -563,25 +422,16 @@ function shouldBehaveLikeERC1155() {
 
         describe('with a panic', () => {
           it('reverts', async function () {
-            const receiver = await ethers.deployContract(
-              '$ERC1155ReceiverMock',
-              [
-                RECEIVER_SINGLE_MAGIC_VALUE,
-                RECEIVER_BATCH_MAGIC_VALUE,
-                RevertType.Panic,
-              ],
-            )
+            const receiver = await ethers.deployContract('$ERC1155ReceiverMock', [
+              RECEIVER_SINGLE_MAGIC_VALUE,
+              RECEIVER_BATCH_MAGIC_VALUE,
+              RevertType.Panic,
+            ])
 
             await expect(
               this.token
                 .connect(this.holder)
-                .safeTransferFrom(
-                  this.holder,
-                  receiver,
-                  firstTokenId,
-                  firstTokenValue,
-                  '0x',
-                ),
+                .safeTransferFrom(this.holder, receiver, firstTokenId, firstTokenValue, '0x'),
             ).to.be.revertedWithPanic()
           })
         })
@@ -594,13 +444,7 @@ function shouldBehaveLikeERC1155() {
           await expect(
             this.token
               .connect(this.holder)
-              .safeTransferFrom(
-                this.holder,
-                invalidReceiver,
-                firstTokenId,
-                firstTokenValue,
-                '0x',
-              ),
+              .safeTransferFrom(this.holder, invalidReceiver, firstTokenId, firstTokenValue, '0x'),
           )
             .to.be.revertedWithCustomError(this.token, 'ERC1155InvalidReceiver')
             .withArgs(invalidReceiver)
@@ -610,18 +454,8 @@ function shouldBehaveLikeERC1155() {
 
     describe('safeBatchTransferFrom', () => {
       beforeEach(async function () {
-        await this.token.$_mint(
-          this.holder,
-          firstTokenId,
-          firstTokenValue,
-          '0x',
-        )
-        await this.token.$_mint(
-          this.holder,
-          secondTokenId,
-          secondTokenValue,
-          '0x',
-        )
+        await this.token.$_mint(this.holder, firstTokenId, firstTokenValue, '0x')
+        await this.token.$_mint(this.holder, secondTokenId, secondTokenValue, '0x')
       })
 
       it('reverts when transferring value more than any of balances', async function () {
@@ -636,16 +470,8 @@ function shouldBehaveLikeERC1155() {
               '0x',
             ),
         )
-          .to.be.revertedWithCustomError(
-            this.token,
-            'ERC1155InsufficientBalance',
-          )
-          .withArgs(
-            this.holder,
-            secondTokenValue,
-            secondTokenValue + 1n,
-            secondTokenId,
-          )
+          .to.be.revertedWithCustomError(this.token, 'ERC1155InsufficientBalance')
+          .withArgs(this.holder, secondTokenValue, secondTokenValue + 1n, secondTokenId)
       })
 
       it("reverts when ids array length doesn't match values array length", async function () {
@@ -655,18 +481,9 @@ function shouldBehaveLikeERC1155() {
         await expect(
           this.token
             .connect(this.holder)
-            .safeBatchTransferFrom(
-              this.holder,
-              this.recipient,
-              ids1,
-              tokenValues1,
-              '0x',
-            ),
+            .safeBatchTransferFrom(this.holder, this.recipient, ids1, tokenValues1, '0x'),
         )
-          .to.be.revertedWithCustomError(
-            this.token,
-            'ERC1155InvalidArrayLength',
-          )
+          .to.be.revertedWithCustomError(this.token, 'ERC1155InvalidArrayLength')
           .withArgs(ids1.length, tokenValues1.length)
 
         const ids2 = [firstTokenId, secondTokenId]
@@ -675,18 +492,9 @@ function shouldBehaveLikeERC1155() {
         await expect(
           this.token
             .connect(this.holder)
-            .safeBatchTransferFrom(
-              this.holder,
-              this.recipient,
-              ids2,
-              tokenValues2,
-              '0x',
-            ),
+            .safeBatchTransferFrom(this.holder, this.recipient, ids2, tokenValues2, '0x'),
         )
-          .to.be.revertedWithCustomError(
-            this.token,
-            'ERC1155InvalidArrayLength',
-          )
+          .to.be.revertedWithCustomError(this.token, 'ERC1155InvalidArrayLength')
           .withArgs(ids2.length, tokenValues2.length)
       })
 
@@ -777,9 +585,7 @@ function shouldBehaveLikeERC1155() {
       describe('when called by an operator on behalf of the holder', () => {
         describe('when operator is not approved by holder', () => {
           beforeEach(async function () {
-            await this.token
-              .connect(this.holder)
-              .setApprovalForAll(this.proxy, false)
+            await this.token.connect(this.holder).setApprovalForAll(this.proxy, false)
           })
 
           it('reverts', async function () {
@@ -794,19 +600,14 @@ function shouldBehaveLikeERC1155() {
                   '0x',
                 ),
             )
-              .to.be.revertedWithCustomError(
-                this.token,
-                'ERC1155MissingApprovalForAll',
-              )
+              .to.be.revertedWithCustomError(this.token, 'ERC1155MissingApprovalForAll')
               .withArgs(this.proxy, this.holder)
           })
         })
 
         describe('when operator is approved by holder', () => {
           beforeEach(async function () {
-            await this.token
-              .connect(this.holder)
-              .setApprovalForAll(this.proxy, true)
+            await this.token.connect(this.holder).setApprovalForAll(this.proxy, true)
 
             this.args = {
               operator: this.proxy,
@@ -830,12 +631,8 @@ function shouldBehaveLikeERC1155() {
           batchTransferWasSuccessful()
 
           it("preserves operator's balances not involved in the transfer", async function () {
-            expect(
-              await this.token.balanceOf(this.proxy, firstTokenId),
-            ).to.equal(0n)
-            expect(
-              await this.token.balanceOf(this.proxy, secondTokenId),
-            ).to.equal(0n)
+            expect(await this.token.balanceOf(this.proxy, firstTokenId)).to.equal(0n)
+            expect(await this.token.balanceOf(this.proxy, secondTokenId)).to.equal(0n)
           })
         })
       })
@@ -951,14 +748,11 @@ function shouldBehaveLikeERC1155() {
       describe('to a receiver contract that reverts', () => {
         describe('with a revert string', () => {
           it('reverts', async function () {
-            const receiver = await ethers.deployContract(
-              '$ERC1155ReceiverMock',
-              [
-                RECEIVER_SINGLE_MAGIC_VALUE,
-                RECEIVER_BATCH_MAGIC_VALUE,
-                RevertType.RevertWithMessage,
-              ],
-            )
+            const receiver = await ethers.deployContract('$ERC1155ReceiverMock', [
+              RECEIVER_SINGLE_MAGIC_VALUE,
+              RECEIVER_BATCH_MAGIC_VALUE,
+              RevertType.RevertWithMessage,
+            ])
 
             await expect(
               this.token
@@ -970,22 +764,17 @@ function shouldBehaveLikeERC1155() {
                   [firstTokenValue, secondTokenValue],
                   '0x',
                 ),
-            ).to.be.revertedWith(
-              'ERC1155ReceiverMock: reverting on batch receive',
-            )
+            ).to.be.revertedWith('ERC1155ReceiverMock: reverting on batch receive')
           })
         })
 
         describe('without a revert string', () => {
           it('reverts', async function () {
-            const receiver = await ethers.deployContract(
-              '$ERC1155ReceiverMock',
-              [
-                RECEIVER_SINGLE_MAGIC_VALUE,
-                RECEIVER_BATCH_MAGIC_VALUE,
-                RevertType.RevertWithoutMessage,
-              ],
-            )
+            const receiver = await ethers.deployContract('$ERC1155ReceiverMock', [
+              RECEIVER_SINGLE_MAGIC_VALUE,
+              RECEIVER_BATCH_MAGIC_VALUE,
+              RevertType.RevertWithoutMessage,
+            ])
 
             await expect(
               this.token
@@ -998,24 +787,18 @@ function shouldBehaveLikeERC1155() {
                   '0x',
                 ),
             )
-              .to.be.revertedWithCustomError(
-                this.token,
-                'ERC1155InvalidReceiver',
-              )
+              .to.be.revertedWithCustomError(this.token, 'ERC1155InvalidReceiver')
               .withArgs(receiver)
           })
         })
 
         describe('with a custom error', () => {
           it('reverts', async function () {
-            const receiver = await ethers.deployContract(
-              '$ERC1155ReceiverMock',
-              [
-                RECEIVER_SINGLE_MAGIC_VALUE,
-                RECEIVER_BATCH_MAGIC_VALUE,
-                RevertType.RevertWithCustomError,
-              ],
-            )
+            const receiver = await ethers.deployContract('$ERC1155ReceiverMock', [
+              RECEIVER_SINGLE_MAGIC_VALUE,
+              RECEIVER_BATCH_MAGIC_VALUE,
+              RevertType.RevertWithCustomError,
+            ])
 
             await expect(
               this.token
@@ -1035,14 +818,11 @@ function shouldBehaveLikeERC1155() {
 
         describe('with a panic', () => {
           it('reverts', async function () {
-            const receiver = await ethers.deployContract(
-              '$ERC1155ReceiverMock',
-              [
-                RECEIVER_SINGLE_MAGIC_VALUE,
-                RECEIVER_BATCH_MAGIC_VALUE,
-                RevertType.Panic,
-              ],
-            )
+            const receiver = await ethers.deployContract('$ERC1155ReceiverMock', [
+              RECEIVER_SINGLE_MAGIC_VALUE,
+              RECEIVER_BATCH_MAGIC_VALUE,
+              RevertType.Panic,
+            ])
 
             await expect(
               this.token

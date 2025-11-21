@@ -22,9 +22,7 @@ describe('Heap', () => {
       await expect(this.mock.$peek(0)).to.be.revertedWithPanic(
         PANIC_CODES.ARRAY_ACCESS_OUT_OF_BOUNDS,
       )
-      await expect(this.mock.$pop(0)).to.be.revertedWithPanic(
-        PANIC_CODES.POP_ON_EMPTY_ARRAY,
-      )
+      await expect(this.mock.$pop(0)).to.be.revertedWithPanic(PANIC_CODES.POP_ON_EMPTY_ARRAY)
       await expect(this.mock.$replace(0, 0n)).to.be.revertedWithPanic(
         PANIC_CODES.POP_ON_EMPTY_ARRAY,
       )
@@ -55,26 +53,14 @@ describe('Heap', () => {
       await this.mock.$insert(0, 42n)
 
       // pop 5 times
-      await expect(this.mock.$pop(0))
-        .to.emit(this.mock, 'return$pop')
-        .withArgs(42n)
-      await expect(this.mock.$pop(0))
-        .to.emit(this.mock, 'return$pop')
-        .withArgs(42n)
-      await expect(this.mock.$pop(0))
-        .to.emit(this.mock, 'return$pop')
-        .withArgs(42n)
-      await expect(this.mock.$pop(0))
-        .to.emit(this.mock, 'return$pop')
-        .withArgs(42n)
-      await expect(this.mock.$pop(0))
-        .to.emit(this.mock, 'return$pop')
-        .withArgs(42n)
+      await expect(this.mock.$pop(0)).to.emit(this.mock, 'return$pop').withArgs(42n)
+      await expect(this.mock.$pop(0)).to.emit(this.mock, 'return$pop').withArgs(42n)
+      await expect(this.mock.$pop(0)).to.emit(this.mock, 'return$pop').withArgs(42n)
+      await expect(this.mock.$pop(0)).to.emit(this.mock, 'return$pop').withArgs(42n)
+      await expect(this.mock.$pop(0)).to.emit(this.mock, 'return$pop').withArgs(42n)
 
       // popping a 6th time panics
-      await expect(this.mock.$pop(0)).to.be.revertedWithPanic(
-        PANIC_CODES.POP_ON_EMPTY_ARRAY,
-      )
+      await expect(this.mock.$pop(0)).to.be.revertedWithPanic(PANIC_CODES.POP_ON_EMPTY_ARRAY)
     })
 
     it('insert, pop and replace', async function () {
@@ -117,9 +103,9 @@ describe('Heap', () => {
             break
           case 'replace':
             if (heap.length == 0) {
-              await expect(
-                this.mock.$replace(0, value),
-              ).to.be.revertedWithPanic(PANIC_CODES.POP_ON_EMPTY_ARRAY)
+              await expect(this.mock.$replace(0, value)).to.be.revertedWithPanic(
+                PANIC_CODES.POP_ON_EMPTY_ARRAY,
+              )
             } else {
               await expect(this.mock.$replace(0, value))
                 .to.emit(this.mock, 'return$replace')

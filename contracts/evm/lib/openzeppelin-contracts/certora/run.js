@@ -42,24 +42,18 @@ const argv = require('yargs')
 
 function match(entry, request) {
   const [reqSpec, reqContract] = request.split(':').reverse()
-  return (
-    entry.spec == reqSpec && (!reqContract || entry.contract == reqContract)
-  )
+  return entry.spec == reqSpec && (!reqContract || entry.contract == reqContract)
 }
 
-const specs = require(argv.spec).filter(
-  (s) => argv.all || argv._.some((r) => match(s, r)),
-)
+const specs = require(argv.spec).filter(s => argv.all || argv._.some(r => match(s, r)))
 const limit = require('p-limit')(argv.parallel)
 
 if (argv._.length == 0 && !argv.all) {
-  console.error(
-    `Warning: No specs requested. Did you forgot to toggle '--all'?`,
-  )
+  console.error(`Warning: No specs requested. Did you forgot to toggle '--all'?`)
 }
 
 for (const r of argv._) {
-  if (!specs.some((s) => match(s, r))) {
+  if (!specs.some(s => match(s, r))) {
     console.error(`Error: Requested spec '${r}' not found in ${argv.spec}`)
     process.exitCode = 1
   }
@@ -75,18 +69,13 @@ for (const { spec, contract, files, options = [] } of specs) {
     spec,
     contract,
     files,
-    [...options, ...argv.options].flatMap((opt) => opt.split(' ')),
+    [...options, ...argv.options].flatMap(opt => opt.split(' ')),
   )
 }
 
 // Run certora, aggregate the output and print it at the end
 async function runCertora(spec, contract, files, options = []) {
-  const args = [
-    ...files,
-    '--verify',
-    `${contract}:certora/specs/${spec}.spec`,
-    ...options,
-  ]
+  const args = [...files, '--verify', `${contract}:certora/specs/${spec}.spec`, ...options]
   if (argv.verbose) {
     console.log('Running:', args.join(' '))
   }
@@ -104,13 +93,11 @@ async function runCertora(spec, contract, files, options = []) {
       data
         .toString('utf8')
         .match(/-D\S+=\S+/g)
-        ?.map((s) => s.split('=')) || [],
+        ?.map(s => s.split('=')) || [],
     )
 
     if (jobId && userId) {
-      console.error(
-        `[${spec}] https://prover.certora.com/output/${userId}/${jobId}/`,
-      )
+      console.error(`[${spec}] https://prover.certora.com/output/${userId}/${jobId}/`)
       stream.off('data', logStatusUrl)
     }
   })

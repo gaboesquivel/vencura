@@ -1,9 +1,6 @@
 const { ethers } = require('hardhat')
 const { expect } = require('chai')
-const {
-  loadFixture,
-  mine,
-} = require('@nomicfoundation/hardhat-network-helpers')
+const { loadFixture, mine } = require('@nomicfoundation/hardhat-network-helpers')
 
 const { GovernorHelper } = require('../../helpers/governance')
 const { getDomain, OverrideBallot } = require('../../helpers/eip712')
@@ -23,52 +20,33 @@ const votingDelay = 4n
 const votingPeriod = 16n
 const value = ethers.parseEther('1')
 
-const signBallot = (account) => (contract, message) =>
-  getDomain(contract).then((domain) =>
-    account.signTypedData(domain, { OverrideBallot }, message),
-  )
+const signBallot = account => (contract, message) =>
+  getDomain(contract).then(domain => account.signTypedData(domain, { OverrideBallot }, message))
 
 describe('GovernorCountingOverridable', () => {
   for (const { Token, mode } of TOKENS) {
     const fixture = async () => {
-      const [owner, proposer, voter1, voter2, voter3, voter4, other] =
-        await ethers.getSigners()
+      const [owner, proposer, voter1, voter2, voter3, voter4, other] = await ethers.getSigners()
       const receiver = await ethers.deployContract('CallReceiverMock')
 
-      const token = await ethers.deployContract(Token, [
-        tokenName,
-        tokenSymbol,
-        tokenName,
-        version,
+      const token = await ethers.deployContract(Token, [tokenName, tokenSymbol, tokenName, version])
+      const mock = await ethers.deployContract('$GovernorCountingOverridableMock', [
+        name, // name
+        votingDelay, // initialVotingDelay
+        votingPeriod, // initialVotingPeriod
+        0n, // initialProposalThreshold
+        token, // tokenAddress
+        10n, // quorumNumeratorValue
       ])
-      const mock = await ethers.deployContract(
-        '$GovernorCountingOverridableMock',
-        [
-          name, // name
-          votingDelay, // initialVotingDelay
-          votingPeriod, // initialVotingPeriod
-          0n, // initialProposalThreshold
-          token, // tokenAddress
-          10n, // quorumNumeratorValue
-        ],
-      )
 
       await owner.sendTransaction({ to: mock, value })
       await token.$_mint(owner, tokenSupply)
 
       const helper = new GovernorHelper(mock, mode)
-      await helper
-        .connect(owner)
-        .delegate({ token, to: voter1, value: ethers.parseEther('10') })
-      await helper
-        .connect(owner)
-        .delegate({ token, to: voter2, value: ethers.parseEther('7') })
-      await helper
-        .connect(owner)
-        .delegate({ token, to: voter3, value: ethers.parseEther('5') })
-      await helper
-        .connect(owner)
-        .delegate({ token, to: voter4, value: ethers.parseEther('2') })
+      await helper.connect(owner).delegate({ token, to: voter1, value: ethers.parseEther('10') })
+      await helper.connect(owner).delegate({ token, to: voter2, value: ethers.parseEther('7') })
+      await helper.connect(owner).delegate({ token, to: voter3, value: ethers.parseEther('5') })
+      await helper.connect(owner).delegate({ token, to: voter4, value: ethers.parseEther('2') })
 
       return {
         owner,
@@ -119,21 +97,14 @@ describe('GovernorCountingOverridable', () => {
           .connect(this.voter1)
           .vote({ support: VoteType.For, reason: 'This is nice' })
         await this.helper.connect(this.voter2).vote({ support: VoteType.For })
-        await this.helper
-          .connect(this.voter3)
-          .vote({ support: VoteType.Against })
-        await this.helper
-          .connect(this.voter4)
-          .vote({ support: VoteType.Abstain })
+        await this.helper.connect(this.voter3).vote({ support: VoteType.Against })
+        await this.helper.connect(this.voter4).vote({ support: VoteType.Abstain })
         await this.helper.waitForDeadline()
         await this.helper.execute()
 
-        expect(await this.mock.hasVoted(this.proposal.id, this.owner)).to.be
-          .false
-        expect(await this.mock.hasVoted(this.proposal.id, this.voter1)).to.be
-          .true
-        expect(await this.mock.hasVoted(this.proposal.id, this.voter2)).to.be
-          .true
+        expect(await this.mock.hasVoted(this.proposal.id, this.owner)).to.be.false
+        expect(await this.mock.hasVoted(this.proposal.id, this.voter1)).to.be.true
+        expect(await this.mock.hasVoted(this.proposal.id, this.voter2)).to.be.true
         expect(await ethers.provider.getBalance(this.mock)).to.equal(0n)
         expect(await ethers.provider.getBalance(this.receiver)).to.equal(value)
       })
@@ -154,44 +125,26 @@ describe('GovernorCountingOverridable', () => {
         })
 
         it('override after delegate vote', async function () {
-          expect(await this.mock.hasVoted(this.helper.id, this.voter1)).to.be
-            .false
-          expect(await this.mock.hasVoted(this.helper.id, this.voter2)).to.be
-            .false
-          expect(await this.mock.hasVoted(this.helper.id, this.voter3)).to.be
-            .false
-          expect(await this.mock.hasVoted(this.helper.id, this.voter4)).to.be
-            .false
-          expect(await this.mock.hasVotedOverride(this.helper.id, this.voter1))
-            .to.be.false
-          expect(await this.mock.hasVotedOverride(this.helper.id, this.voter2))
-            .to.be.false
-          expect(await this.mock.hasVotedOverride(this.helper.id, this.voter3))
-            .to.be.false
-          expect(await this.mock.hasVotedOverride(this.helper.id, this.voter4))
-            .to.be.false
+          expect(await this.mock.hasVoted(this.helper.id, this.voter1)).to.be.false
+          expect(await this.mock.hasVoted(this.helper.id, this.voter2)).to.be.false
+          expect(await this.mock.hasVoted(this.helper.id, this.voter3)).to.be.false
+          expect(await this.mock.hasVoted(this.helper.id, this.voter4)).to.be.false
+          expect(await this.mock.hasVotedOverride(this.helper.id, this.voter1)).to.be.false
+          expect(await this.mock.hasVotedOverride(this.helper.id, this.voter2)).to.be.false
+          expect(await this.mock.hasVotedOverride(this.helper.id, this.voter3)).to.be.false
+          expect(await this.mock.hasVotedOverride(this.helper.id, this.voter4)).to.be.false
 
           // user 2 votes
 
-          await expect(
-            this.helper.connect(this.voter2).vote({ support: VoteType.For }),
-          )
+          await expect(this.helper.connect(this.voter2).vote({ support: VoteType.For }))
             .to.emit(this.mock, 'VoteCast')
-            .withArgs(
-              this.voter2,
-              this.helper.id,
-              VoteType.For,
-              ethers.parseEther('19'),
-              '',
-            ) // 10 + 7 + 2
+            .withArgs(this.voter2, this.helper.id, VoteType.For, ethers.parseEther('19'), '') // 10 + 7 + 2
 
           expect(await this.mock.proposalVotes(this.helper.id)).to.deep.eq(
-            [0, 19, 0].map((x) => ethers.parseEther(x.toString())),
+            [0, 19, 0].map(x => ethers.parseEther(x.toString())),
           )
-          expect(await this.mock.hasVoted(this.helper.id, this.voter2)).to.be
-            .true
-          expect(await this.mock.hasVotedOverride(this.helper.id, this.voter2))
-            .to.be.false
+          expect(await this.mock.hasVoted(this.helper.id, this.voter2)).to.be.true
+          expect(await this.mock.hasVotedOverride(this.helper.id, this.voter2)).to.be.false
 
           // user 1 overrides after user 2 votes
 
@@ -210,39 +163,24 @@ describe('GovernorCountingOverridable', () => {
               reason,
             )
             .to.emit(this.mock, 'VoteReduced')
-            .withArgs(
-              this.voter2,
-              this.helper.id,
-              VoteType.For,
-              ethers.parseEther('10'),
-            )
+            .withArgs(this.voter2, this.helper.id, VoteType.For, ethers.parseEther('10'))
 
           expect(await this.mock.proposalVotes(this.helper.id)).to.deep.eq(
-            [10, 9, 0].map((x) => ethers.parseEther(x.toString())),
+            [10, 9, 0].map(x => ethers.parseEther(x.toString())),
           )
-          expect(await this.mock.hasVoted(this.helper.id, this.voter1)).to.be
-            .false
-          expect(await this.mock.hasVotedOverride(this.helper.id, this.voter1))
-            .to.be.true
+          expect(await this.mock.hasVoted(this.helper.id, this.voter1)).to.be.false
+          expect(await this.mock.hasVotedOverride(this.helper.id, this.voter1)).to.be.true
         })
 
         it('override before delegate vote', async function () {
-          expect(await this.mock.hasVoted(this.helper.id, this.voter1)).to.be
-            .false
-          expect(await this.mock.hasVoted(this.helper.id, this.voter2)).to.be
-            .false
-          expect(await this.mock.hasVoted(this.helper.id, this.voter3)).to.be
-            .false
-          expect(await this.mock.hasVoted(this.helper.id, this.voter4)).to.be
-            .false
-          expect(await this.mock.hasVotedOverride(this.helper.id, this.voter1))
-            .to.be.false
-          expect(await this.mock.hasVotedOverride(this.helper.id, this.voter2))
-            .to.be.false
-          expect(await this.mock.hasVotedOverride(this.helper.id, this.voter3))
-            .to.be.false
-          expect(await this.mock.hasVotedOverride(this.helper.id, this.voter4))
-            .to.be.false
+          expect(await this.mock.hasVoted(this.helper.id, this.voter1)).to.be.false
+          expect(await this.mock.hasVoted(this.helper.id, this.voter2)).to.be.false
+          expect(await this.mock.hasVoted(this.helper.id, this.voter3)).to.be.false
+          expect(await this.mock.hasVoted(this.helper.id, this.voter4)).to.be.false
+          expect(await this.mock.hasVotedOverride(this.helper.id, this.voter1)).to.be.false
+          expect(await this.mock.hasVotedOverride(this.helper.id, this.voter2)).to.be.false
+          expect(await this.mock.hasVotedOverride(this.helper.id, this.voter3)).to.be.false
+          expect(await this.mock.hasVotedOverride(this.helper.id, this.voter4)).to.be.false
 
           // user 1 overrides before user 2 votes
 
@@ -263,53 +201,33 @@ describe('GovernorCountingOverridable', () => {
             .to.not.emit(this.mock, 'VoteReduced')
 
           expect(await this.mock.proposalVotes(this.helper.id)).to.deep.eq(
-            [10, 0, 0].map((x) => ethers.parseEther(x.toString())),
+            [10, 0, 0].map(x => ethers.parseEther(x.toString())),
           )
-          expect(await this.mock.hasVoted(this.helper.id, this.voter1)).to.be
-            .false
-          expect(await this.mock.hasVotedOverride(this.helper.id, this.voter1))
-            .to.be.true
+          expect(await this.mock.hasVoted(this.helper.id, this.voter1)).to.be.false
+          expect(await this.mock.hasVotedOverride(this.helper.id, this.voter1)).to.be.true
 
           // user 2 votes
 
-          await expect(
-            this.helper.connect(this.voter2).vote({ support: VoteType.For }),
-          )
+          await expect(this.helper.connect(this.voter2).vote({ support: VoteType.For }))
             .to.emit(this.mock, 'VoteCast')
-            .withArgs(
-              this.voter2,
-              this.helper.id,
-              VoteType.For,
-              ethers.parseEther('9'),
-              '',
-            ) // 7 + 2
+            .withArgs(this.voter2, this.helper.id, VoteType.For, ethers.parseEther('9'), '') // 7 + 2
 
           expect(await this.mock.proposalVotes(this.helper.id)).to.deep.eq(
-            [10, 9, 0].map((x) => ethers.parseEther(x.toString())),
+            [10, 9, 0].map(x => ethers.parseEther(x.toString())),
           )
-          expect(await this.mock.hasVoted(this.helper.id, this.voter2)).to.be
-            .true
-          expect(await this.mock.hasVotedOverride(this.helper.id, this.voter2))
-            .to.be.false
+          expect(await this.mock.hasVoted(this.helper.id, this.voter2)).to.be.true
+          expect(await this.mock.hasVotedOverride(this.helper.id, this.voter2)).to.be.false
         })
 
         it('override before and after delegate vote', async function () {
-          expect(await this.mock.hasVoted(this.helper.id, this.voter1)).to.be
-            .false
-          expect(await this.mock.hasVoted(this.helper.id, this.voter2)).to.be
-            .false
-          expect(await this.mock.hasVoted(this.helper.id, this.voter3)).to.be
-            .false
-          expect(await this.mock.hasVoted(this.helper.id, this.voter4)).to.be
-            .false
-          expect(await this.mock.hasVotedOverride(this.helper.id, this.voter1))
-            .to.be.false
-          expect(await this.mock.hasVotedOverride(this.helper.id, this.voter2))
-            .to.be.false
-          expect(await this.mock.hasVotedOverride(this.helper.id, this.voter3))
-            .to.be.false
-          expect(await this.mock.hasVotedOverride(this.helper.id, this.voter4))
-            .to.be.false
+          expect(await this.mock.hasVoted(this.helper.id, this.voter1)).to.be.false
+          expect(await this.mock.hasVoted(this.helper.id, this.voter2)).to.be.false
+          expect(await this.mock.hasVoted(this.helper.id, this.voter3)).to.be.false
+          expect(await this.mock.hasVoted(this.helper.id, this.voter4)).to.be.false
+          expect(await this.mock.hasVotedOverride(this.helper.id, this.voter1)).to.be.false
+          expect(await this.mock.hasVotedOverride(this.helper.id, this.voter2)).to.be.false
+          expect(await this.mock.hasVotedOverride(this.helper.id, this.voter3)).to.be.false
+          expect(await this.mock.hasVotedOverride(this.helper.id, this.voter4)).to.be.false
 
           // user 1 overrides before user 2 votes
 
@@ -330,34 +248,22 @@ describe('GovernorCountingOverridable', () => {
             .to.not.emit(this.mock, 'VoteReduced')
 
           expect(await this.mock.proposalVotes(this.helper.id)).to.deep.eq(
-            [10, 0, 0].map((x) => ethers.parseEther(x.toString())),
+            [10, 0, 0].map(x => ethers.parseEther(x.toString())),
           )
-          expect(await this.mock.hasVoted(this.helper.id, this.voter1)).to.be
-            .false
-          expect(await this.mock.hasVotedOverride(this.helper.id, this.voter1))
-            .to.be.true
+          expect(await this.mock.hasVoted(this.helper.id, this.voter1)).to.be.false
+          expect(await this.mock.hasVotedOverride(this.helper.id, this.voter1)).to.be.true
 
           // user 2 votes
 
-          await expect(
-            this.helper.connect(this.voter2).vote({ support: VoteType.For }),
-          )
+          await expect(this.helper.connect(this.voter2).vote({ support: VoteType.For }))
             .to.emit(this.mock, 'VoteCast')
-            .withArgs(
-              this.voter2,
-              this.helper.id,
-              VoteType.For,
-              ethers.parseEther('9'),
-              '',
-            ) // 7 + 2
+            .withArgs(this.voter2, this.helper.id, VoteType.For, ethers.parseEther('9'), '') // 7 + 2
 
           expect(await this.mock.proposalVotes(this.helper.id)).to.deep.eq(
-            [10, 9, 0].map((x) => ethers.parseEther(x.toString())),
+            [10, 9, 0].map(x => ethers.parseEther(x.toString())),
           )
-          expect(await this.mock.hasVoted(this.helper.id, this.voter2)).to.be
-            .true
-          expect(await this.mock.hasVotedOverride(this.helper.id, this.voter2))
-            .to.be.false
+          expect(await this.mock.hasVoted(this.helper.id, this.voter2)).to.be.true
+          expect(await this.mock.hasVotedOverride(this.helper.id, this.voter2)).to.be.false
 
           // User 4 overrides after user 2 votes
 
@@ -376,115 +282,59 @@ describe('GovernorCountingOverridable', () => {
               reason2,
             )
             .to.emit(this.mock, 'VoteReduced')
-            .withArgs(
-              this.voter2,
-              this.helper.id,
-              VoteType.For,
-              ethers.parseEther('2'),
-            )
+            .withArgs(this.voter2, this.helper.id, VoteType.For, ethers.parseEther('2'))
 
           expect(await this.mock.proposalVotes(this.helper.id)).to.deep.eq(
-            [10, 7, 2].map((x) => ethers.parseEther(x.toString())),
+            [10, 7, 2].map(x => ethers.parseEther(x.toString())),
           )
-          expect(await this.mock.hasVoted(this.helper.id, this.voter4)).to.be
-            .false
-          expect(await this.mock.hasVotedOverride(this.helper.id, this.voter4))
-            .to.be.true
+          expect(await this.mock.hasVoted(this.helper.id, this.voter4)).to.be.false
+          expect(await this.mock.hasVotedOverride(this.helper.id, this.voter4)).to.be.true
         })
 
         it('vote (with delegated balance) and override (with self balance) are independent', async function () {
           expect(await this.mock.proposalVotes(this.helper.id)).to.deep.eq(
-            [0, 0, 0].map((x) => ethers.parseEther(x.toString())),
+            [0, 0, 0].map(x => ethers.parseEther(x.toString())),
           )
-          expect(await this.mock.hasVoted(this.helper.id, this.voter1)).to.be
-            .false
-          expect(await this.mock.hasVotedOverride(this.helper.id, this.voter1))
-            .to.be.false
+          expect(await this.mock.hasVoted(this.helper.id, this.voter1)).to.be.false
+          expect(await this.mock.hasVotedOverride(this.helper.id, this.voter1)).to.be.false
 
           // user 1 votes with delegated weight from user 3
-          await expect(
-            this.mock
-              .connect(this.voter1)
-              .castVote(this.helper.id, VoteType.For),
-          )
+          await expect(this.mock.connect(this.voter1).castVote(this.helper.id, VoteType.For))
             .to.emit(this.mock, 'VoteCast')
-            .withArgs(
-              this.voter1,
-              this.helper.id,
-              VoteType.For,
-              ethers.parseEther('5'),
-              '',
-            )
+            .withArgs(this.voter1, this.helper.id, VoteType.For, ethers.parseEther('5'), '')
 
           // user 1 cast an override vote with its own balance (delegated to user 2)
           await expect(
-            this.mock
-              .connect(this.voter1)
-              .castOverrideVote(this.helper.id, VoteType.Against, ''),
+            this.mock.connect(this.voter1).castOverrideVote(this.helper.id, VoteType.Against, ''),
           )
             .to.emit(this.mock, 'OverrideVoteCast')
-            .withArgs(
-              this.voter1,
-              this.helper.id,
-              VoteType.Against,
-              ethers.parseEther('10'),
-              '',
-            )
+            .withArgs(this.voter1, this.helper.id, VoteType.Against, ethers.parseEther('10'), '')
 
           expect(await this.mock.proposalVotes(this.helper.id)).to.deep.eq(
-            [10, 5, 0].map((x) => ethers.parseEther(x.toString())),
+            [10, 5, 0].map(x => ethers.parseEther(x.toString())),
           )
-          expect(await this.mock.hasVoted(this.helper.id, this.voter1)).to.be
-            .true
-          expect(await this.mock.hasVotedOverride(this.helper.id, this.voter1))
-            .to.be.true
+          expect(await this.mock.hasVoted(this.helper.id, this.voter1)).to.be.true
+          expect(await this.mock.hasVotedOverride(this.helper.id, this.voter1)).to.be.true
         })
 
         it('can not override vote twice', async function () {
           await expect(
-            this.mock
-              .connect(this.voter1)
-              .castOverrideVote(this.helper.id, VoteType.Against, ''),
+            this.mock.connect(this.voter1).castOverrideVote(this.helper.id, VoteType.Against, ''),
           )
             .to.emit(this.mock, 'OverrideVoteCast')
-            .withArgs(
-              this.voter1,
-              this.helper.id,
-              VoteType.Against,
-              ethers.parseEther('10'),
-              '',
-            )
+            .withArgs(this.voter1, this.helper.id, VoteType.Against, ethers.parseEther('10'), '')
           await expect(
-            this.mock
-              .connect(this.voter1)
-              .castOverrideVote(this.helper.id, VoteType.Abstain, ''),
+            this.mock.connect(this.voter1).castOverrideVote(this.helper.id, VoteType.Abstain, ''),
           )
-            .to.be.revertedWithCustomError(
-              this.mock,
-              'GovernorAlreadyOverridenVote',
-            )
+            .to.be.revertedWithCustomError(this.mock, 'GovernorAlreadyOverridenVote')
             .withArgs(this.voter1.address)
         })
 
         it('can not vote twice', async function () {
-          await expect(
-            this.mock
-              .connect(this.voter1)
-              .castVote(this.helper.id, VoteType.Against),
-          )
+          await expect(this.mock.connect(this.voter1).castVote(this.helper.id, VoteType.Against))
             .to.emit(this.mock, 'VoteCast')
-            .withArgs(
-              this.voter1,
-              this.helper.id,
-              VoteType.Against,
-              ethers.parseEther('5'),
-              '',
-            )
-          await expect(
-            this.mock
-              .connect(this.voter1)
-              .castVote(this.helper.id, VoteType.Abstain),
-          )
+            .withArgs(this.voter1, this.helper.id, VoteType.Against, ethers.parseEther('5'), '')
+          await expect(this.mock.connect(this.voter1).castVote(this.helper.id, VoteType.Abstain))
             .to.be.revertedWithCustomError(this.mock, 'GovernorAlreadyCastVote')
             .withArgs(this.voter1.address)
         })
@@ -492,22 +342,14 @@ describe('GovernorCountingOverridable', () => {
         describe('invalid vote type', () => {
           it('override vote', async function () {
             await expect(
-              this.mock
-                .connect(this.voter1)
-                .castOverrideVote(this.helper.id, 3, ''),
-            ).to.be.revertedWithCustomError(
-              this.mock,
-              'GovernorInvalidVoteType',
-            )
+              this.mock.connect(this.voter1).castOverrideVote(this.helper.id, 3, ''),
+            ).to.be.revertedWithCustomError(this.mock, 'GovernorInvalidVoteType')
           })
 
           it('traditional vote', async function () {
             await expect(
               this.mock.connect(this.voter1).castVote(this.helper.id, 3),
-            ).to.be.revertedWithCustomError(
-              this.mock,
-              'GovernorInvalidVoteType',
-            )
+            ).to.be.revertedWithCustomError(this.mock, 'GovernorInvalidVoteType')
           })
         })
 
@@ -524,17 +366,9 @@ describe('GovernorCountingOverridable', () => {
               }),
             )
               .to.emit(this.mock, 'OverrideVoteCast')
-              .withArgs(
-                this.voter1,
-                this.helper.id,
-                VoteType.For,
-                ethers.parseEther('10'),
-                '',
-              )
+              .withArgs(this.voter1, this.helper.id, VoteType.For, ethers.parseEther('10'), '')
 
-            expect(
-              await this.mock.hasVotedOverride(this.proposal.id, this.voter1),
-            ).to.be.true
+            expect(await this.mock.hasVotedOverride(this.proposal.id, this.voter1)).to.be.true
           })
 
           it('revert if signature does not match signer', async function () {
@@ -548,10 +382,7 @@ describe('GovernorCountingOverridable', () => {
             }
 
             await expect(this.helper.overrideVote(voteParams))
-              .to.be.revertedWithCustomError(
-                this.mock,
-                'GovernorInvalidSignature',
-              )
+              .to.be.revertedWithCustomError(this.mock, 'GovernorInvalidSignature')
               .withArgs(voteParams.voter)
           })
 
@@ -566,10 +397,7 @@ describe('GovernorCountingOverridable', () => {
             }
 
             await expect(this.helper.overrideVote(voteParams))
-              .to.be.revertedWithCustomError(
-                this.mock,
-                'GovernorInvalidSignature',
-              )
+              .to.be.revertedWithCustomError(this.mock, 'GovernorInvalidSignature')
               .withArgs(voteParams.voter)
           })
         })

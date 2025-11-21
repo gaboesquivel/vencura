@@ -50,10 +50,7 @@ const SIGNATURES = {
     'revokeRole(bytes32,address)',
     'renounceRole(bytes32,address)',
   ],
-  AccessControlEnumerable: [
-    'getRoleMember(bytes32,uint256)',
-    'getRoleMemberCount(bytes32)',
-  ],
+  AccessControlEnumerable: ['getRoleMember(bytes32,uint256)', 'getRoleMemberCount(bytes32)'],
   AccessControlDefaultAdminRules: [
     'defaultAdminDelay()',
     'pendingDefaultAdminDelay()',
@@ -111,11 +108,9 @@ function shouldSupportInterfaces(interfaces = []) {
       it('uses less than 30k gas', async function () {
         for (const k of interfaces) {
           const interfaceId = INTERFACE_IDS[k] ?? k
-          expect(
-            await this.contractUnderTest.supportsInterface.estimateGas(
-              interfaceId,
-            ),
-          ).to.lte(30_000n)
+          expect(await this.contractUnderTest.supportsInterface.estimateGas(interfaceId)).to.lte(
+            30_000n,
+          )
         }
       })
 
@@ -132,18 +127,14 @@ function shouldSupportInterfaces(interfaces = []) {
 
     describe('when the interfaceId is not supported', () => {
       it('uses less than 30k', async function () {
-        expect(
-          await this.contractUnderTest.supportsInterface.estimateGas(
-            INVALID_ID,
-          ),
-        ).to.lte(30_000n)
+        expect(await this.contractUnderTest.supportsInterface.estimateGas(INVALID_ID)).to.lte(
+          30_000n,
+        )
       })
 
       it('returns false', async function () {
-        expect(
-          await this.contractUnderTest.supportsInterface(INVALID_ID),
-          `supports ${INVALID_ID}`,
-        ).to.be.false
+        expect(await this.contractUnderTest.supportsInterface(INVALID_ID), `supports ${INVALID_ID}`)
+          .to.be.false
       })
     })
 
@@ -154,10 +145,8 @@ function shouldSupportInterfaces(interfaces = []) {
 
         // Check the presence of each function in the contract's interface
         for (const fnSig of SIGNATURES[k]) {
-          expect(
-            this.contractUnderTest.interface.hasFunction(fnSig),
-            `did not find ${fnSig}`,
-          ).to.be.true
+          expect(this.contractUnderTest.interface.hasFunction(fnSig), `did not find ${fnSig}`).to.be
+            .true
         }
       }
     })

@@ -25,33 +25,18 @@ describe('SignatureChecker (ERC1271)', () => {
 
   describe('EOA account', () => {
     it('with matching signer and signature', async function () {
-      expect(
-        await this.mock.$isValidSignatureNow(
-          this.signer,
-          TEST_MESSAGE_HASH,
-          this.signature,
-        ),
-      ).to.be.true
+      expect(await this.mock.$isValidSignatureNow(this.signer, TEST_MESSAGE_HASH, this.signature))
+        .to.be.true
     })
 
     it('with invalid signer', async function () {
-      expect(
-        await this.mock.$isValidSignatureNow(
-          this.other,
-          TEST_MESSAGE_HASH,
-          this.signature,
-        ),
-      ).to.be.false
+      expect(await this.mock.$isValidSignatureNow(this.other, TEST_MESSAGE_HASH, this.signature)).to
+        .be.false
     })
 
     it('with invalid signature', async function () {
-      expect(
-        await this.mock.$isValidSignatureNow(
-          this.signer,
-          WRONG_MESSAGE_HASH,
-          this.signature,
-        ),
-      ).to.be.false
+      expect(await this.mock.$isValidSignatureNow(this.signer, WRONG_MESSAGE_HASH, this.signature))
+        .to.be.false
     })
   })
 
@@ -60,31 +45,19 @@ describe('SignatureChecker (ERC1271)', () => {
       describe(fn, () => {
         it('with matching signer and signature', async function () {
           expect(
-            await this.mock.getFunction(`$${fn}`)(
-              this.wallet,
-              TEST_MESSAGE_HASH,
-              this.signature,
-            ),
+            await this.mock.getFunction(`$${fn}`)(this.wallet, TEST_MESSAGE_HASH, this.signature),
           ).to.be.true
         })
 
         it('with invalid signer', async function () {
           expect(
-            await this.mock.getFunction(`$${fn}`)(
-              this.mock,
-              TEST_MESSAGE_HASH,
-              this.signature,
-            ),
+            await this.mock.getFunction(`$${fn}`)(this.mock, TEST_MESSAGE_HASH, this.signature),
           ).to.be.false
         })
 
         it('with invalid signature', async function () {
           expect(
-            await this.mock.getFunction(`$${fn}`)(
-              this.wallet,
-              WRONG_MESSAGE_HASH,
-              this.signature,
-            ),
+            await this.mock.getFunction(`$${fn}`)(this.wallet, WRONG_MESSAGE_HASH, this.signature),
           ).to.be.false
         })
 

@@ -12,10 +12,7 @@ const {
 async function fixture() {
   const delay = time.duration.hours(10)
   const [defaultAdmin, ...accounts] = await ethers.getSigners()
-  const mock = await ethers.deployContract('$AccessControlDefaultAdminRules', [
-    delay,
-    defaultAdmin,
-  ])
+  const mock = await ethers.deployContract('$AccessControlDefaultAdminRules', [delay, defaultAdmin])
   return { mock, defaultAdmin, delay, accounts }
 }
 
@@ -26,15 +23,9 @@ describe('AccessControlDefaultAdminRules', () => {
 
   it('initial admin not zero', async function () {
     await expect(
-      ethers.deployContract('$AccessControlDefaultAdminRules', [
-        this.delay,
-        ethers.ZeroAddress,
-      ]),
+      ethers.deployContract('$AccessControlDefaultAdminRules', [this.delay, ethers.ZeroAddress]),
     )
-      .to.be.revertedWithCustomError(
-        this.mock,
-        'AccessControlInvalidDefaultAdmin',
-      )
+      .to.be.revertedWithCustomError(this.mock, 'AccessControlInvalidDefaultAdmin')
       .withArgs(ethers.ZeroAddress)
   })
 

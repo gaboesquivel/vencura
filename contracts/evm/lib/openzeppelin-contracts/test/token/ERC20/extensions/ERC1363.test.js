@@ -39,9 +39,8 @@ async function fixture() {
       onTransferReceived: receiver.interface.getFunction(
         'onTransferReceived(address,address,uint256,bytes)',
       ).selector,
-      onApprovalReceived: spender.interface.getFunction(
-        'onApprovalReceived(address,uint256,bytes)',
-      ).selector,
+      onApprovalReceived: spender.interface.getFunction('onApprovalReceived(address,uint256,bytes)')
+        .selector,
     },
   }
 }
@@ -59,9 +58,7 @@ describe('ERC1363', () => {
       beforeEach(async function () {
         this.recipient = this.receiver
         this.transfer = (holder, ...rest) =>
-          this.token
-            .connect(holder)
-            .getFunction('transferAndCall(address,uint256)')(...rest)
+          this.token.connect(holder).getFunction('transferAndCall(address,uint256)')(...rest)
       })
 
       shouldBehaveLikeERC20Transfer(value)
@@ -69,9 +66,10 @@ describe('ERC1363', () => {
 
     it('reverts transferring to an EOA', async function () {
       await expect(
-        this.token
-          .connect(this.holder)
-          .getFunction('transferAndCall(address,uint256)')(this.other, value),
+        this.token.connect(this.holder).getFunction('transferAndCall(address,uint256)')(
+          this.other,
+          value,
+        ),
       )
         .to.be.revertedWithCustomError(this.token, 'ERC1363InvalidReceiver')
         .withArgs(this.other.address)
@@ -79,9 +77,7 @@ describe('ERC1363', () => {
 
     it('succeeds without data', async function () {
       await expect(
-        this.token
-          .connect(this.holder)
-          .getFunction('transferAndCall(address,uint256)')(
+        this.token.connect(this.holder).getFunction('transferAndCall(address,uint256)')(
           this.receiver,
           value,
         ),
@@ -94,9 +90,7 @@ describe('ERC1363', () => {
 
     it('succeeds with data', async function () {
       await expect(
-        this.token
-          .connect(this.holder)
-          .getFunction('transferAndCall(address,uint256,bytes)')(
+        this.token.connect(this.holder).getFunction('transferAndCall(address,uint256,bytes)')(
           this.receiver,
           value,
           data,
@@ -109,15 +103,10 @@ describe('ERC1363', () => {
     })
 
     it('reverts with reverting hook (without reason)', async function () {
-      await this.receiver.setUp(
-        this.selectors.onTransferReceived,
-        RevertType.RevertWithoutMessage,
-      )
+      await this.receiver.setUp(this.selectors.onTransferReceived, RevertType.RevertWithoutMessage)
 
       await expect(
-        this.token
-          .connect(this.holder)
-          .getFunction('transferAndCall(address,uint256,bytes)')(
+        this.token.connect(this.holder).getFunction('transferAndCall(address,uint256,bytes)')(
           this.receiver,
           value,
           data,
@@ -128,15 +117,10 @@ describe('ERC1363', () => {
     })
 
     it('reverts with reverting hook (with reason)', async function () {
-      await this.receiver.setUp(
-        this.selectors.onTransferReceived,
-        RevertType.RevertWithMessage,
-      )
+      await this.receiver.setUp(this.selectors.onTransferReceived, RevertType.RevertWithMessage)
 
       await expect(
-        this.token
-          .connect(this.holder)
-          .getFunction('transferAndCall(address,uint256,bytes)')(
+        this.token.connect(this.holder).getFunction('transferAndCall(address,uint256,bytes)')(
           this.receiver,
           value,
           data,
@@ -149,9 +133,7 @@ describe('ERC1363', () => {
       await this.receiver.setUp(reason, RevertType.RevertWithCustomError)
 
       await expect(
-        this.token
-          .connect(this.holder)
-          .getFunction('transferAndCall(address,uint256,bytes)')(
+        this.token.connect(this.holder).getFunction('transferAndCall(address,uint256,bytes)')(
           this.receiver,
           value,
           data,
@@ -162,15 +144,10 @@ describe('ERC1363', () => {
     })
 
     it('panics with reverting hook (with panic)', async function () {
-      await this.receiver.setUp(
-        this.selectors.onTransferReceived,
-        RevertType.Panic,
-      )
+      await this.receiver.setUp(this.selectors.onTransferReceived, RevertType.Panic)
 
       await expect(
-        this.token
-          .connect(this.holder)
-          .getFunction('transferAndCall(address,uint256,bytes)')(
+        this.token.connect(this.holder).getFunction('transferAndCall(address,uint256,bytes)')(
           this.receiver,
           value,
           data,
@@ -182,9 +159,7 @@ describe('ERC1363', () => {
       await this.receiver.setUp('0x12345678', RevertType.None)
 
       await expect(
-        this.token
-          .connect(this.holder)
-          .getFunction('transferAndCall(address,uint256,bytes)')(
+        this.token.connect(this.holder).getFunction('transferAndCall(address,uint256,bytes)')(
           this.receiver,
           value,
           data,
@@ -197,9 +172,7 @@ describe('ERC1363', () => {
 
   describe('transferFromAndCall', () => {
     beforeEach(async function () {
-      await this.token
-        .connect(this.holder)
-        .approve(this.other, ethers.MaxUint256)
+      await this.token.connect(this.holder).approve(this.other, ethers.MaxUint256)
     })
 
     describe('as a transfer', () => {
@@ -215,9 +188,7 @@ describe('ERC1363', () => {
 
     it('reverts transferring to an EOA', async function () {
       await expect(
-        this.token
-          .connect(this.other)
-          .getFunction('transferFromAndCall(address,address,uint256)')(
+        this.token.connect(this.other).getFunction('transferFromAndCall(address,address,uint256)')(
           this.holder,
           this.other,
           value,
@@ -229,9 +200,7 @@ describe('ERC1363', () => {
 
     it('succeeds without data', async function () {
       await expect(
-        this.token
-          .connect(this.other)
-          .getFunction('transferFromAndCall(address,address,uint256)')(
+        this.token.connect(this.other).getFunction('transferFromAndCall(address,address,uint256)')(
           this.holder,
           this.receiver,
           value,
@@ -261,10 +230,7 @@ describe('ERC1363', () => {
     })
 
     it('reverts with reverting hook (without reason)', async function () {
-      await this.receiver.setUp(
-        this.selectors.onTransferReceived,
-        RevertType.RevertWithoutMessage,
-      )
+      await this.receiver.setUp(this.selectors.onTransferReceived, RevertType.RevertWithoutMessage)
 
       await expect(
         this.token
@@ -281,10 +247,7 @@ describe('ERC1363', () => {
     })
 
     it('reverts with reverting hook (with reason)', async function () {
-      await this.receiver.setUp(
-        this.selectors.onTransferReceived,
-        RevertType.RevertWithMessage,
-      )
+      await this.receiver.setUp(this.selectors.onTransferReceived, RevertType.RevertWithMessage)
 
       await expect(
         this.token
@@ -317,10 +280,7 @@ describe('ERC1363', () => {
     })
 
     it('panics with reverting hook (with panic)', async function () {
-      await this.receiver.setUp(
-        this.selectors.onTransferReceived,
-        RevertType.Panic,
-      )
+      await this.receiver.setUp(this.selectors.onTransferReceived, RevertType.Panic)
 
       await expect(
         this.token
@@ -357,9 +317,7 @@ describe('ERC1363', () => {
       beforeEach(async function () {
         this.recipient = this.spender
         this.approve = (holder, ...rest) =>
-          this.token
-            .connect(holder)
-            .getFunction('approveAndCall(address,uint256)')(...rest)
+          this.token.connect(holder).getFunction('approveAndCall(address,uint256)')(...rest)
       })
 
       shouldBehaveLikeERC20Approve(value)
@@ -367,9 +325,10 @@ describe('ERC1363', () => {
 
     it('reverts approving an EOA', async function () {
       await expect(
-        this.token
-          .connect(this.holder)
-          .getFunction('approveAndCall(address,uint256)')(this.other, value),
+        this.token.connect(this.holder).getFunction('approveAndCall(address,uint256)')(
+          this.other,
+          value,
+        ),
       )
         .to.be.revertedWithCustomError(this.token, 'ERC1363InvalidSpender')
         .withArgs(this.other.address)
@@ -377,9 +336,10 @@ describe('ERC1363', () => {
 
     it('succeeds without data', async function () {
       await expect(
-        this.token
-          .connect(this.holder)
-          .getFunction('approveAndCall(address,uint256)')(this.spender, value),
+        this.token.connect(this.holder).getFunction('approveAndCall(address,uint256)')(
+          this.spender,
+          value,
+        ),
       )
         .to.emit(this.token, 'Approval')
         .withArgs(this.holder.address, this.spender.target, value)
@@ -389,9 +349,7 @@ describe('ERC1363', () => {
 
     it('succeeds with data', async function () {
       await expect(
-        this.token
-          .connect(this.holder)
-          .getFunction('approveAndCall(address,uint256,bytes)')(
+        this.token.connect(this.holder).getFunction('approveAndCall(address,uint256,bytes)')(
           this.spender,
           value,
           data,
@@ -404,15 +362,10 @@ describe('ERC1363', () => {
     })
 
     it('with reverting hook (without reason)', async function () {
-      await this.spender.setUp(
-        this.selectors.onApprovalReceived,
-        RevertType.RevertWithoutMessage,
-      )
+      await this.spender.setUp(this.selectors.onApprovalReceived, RevertType.RevertWithoutMessage)
 
       await expect(
-        this.token
-          .connect(this.holder)
-          .getFunction('approveAndCall(address,uint256,bytes)')(
+        this.token.connect(this.holder).getFunction('approveAndCall(address,uint256,bytes)')(
           this.spender,
           value,
           data,
@@ -423,15 +376,10 @@ describe('ERC1363', () => {
     })
 
     it('reverts with reverting hook (with reason)', async function () {
-      await this.spender.setUp(
-        this.selectors.onApprovalReceived,
-        RevertType.RevertWithMessage,
-      )
+      await this.spender.setUp(this.selectors.onApprovalReceived, RevertType.RevertWithMessage)
 
       await expect(
-        this.token
-          .connect(this.holder)
-          .getFunction('approveAndCall(address,uint256,bytes)')(
+        this.token.connect(this.holder).getFunction('approveAndCall(address,uint256,bytes)')(
           this.spender,
           value,
           data,
@@ -444,9 +392,7 @@ describe('ERC1363', () => {
       await this.spender.setUp(reason, RevertType.RevertWithCustomError)
 
       await expect(
-        this.token
-          .connect(this.holder)
-          .getFunction('approveAndCall(address,uint256,bytes)')(
+        this.token.connect(this.holder).getFunction('approveAndCall(address,uint256,bytes)')(
           this.spender,
           value,
           data,
@@ -457,15 +403,10 @@ describe('ERC1363', () => {
     })
 
     it('panics with reverting hook (with panic)', async function () {
-      await this.spender.setUp(
-        this.selectors.onApprovalReceived,
-        RevertType.Panic,
-      )
+      await this.spender.setUp(this.selectors.onApprovalReceived, RevertType.Panic)
 
       await expect(
-        this.token
-          .connect(this.holder)
-          .getFunction('approveAndCall(address,uint256,bytes)')(
+        this.token.connect(this.holder).getFunction('approveAndCall(address,uint256,bytes)')(
           this.spender,
           value,
           data,
@@ -477,9 +418,7 @@ describe('ERC1363', () => {
       await this.spender.setUp('0x12345678', RevertType.None)
 
       await expect(
-        this.token
-          .connect(this.holder)
-          .getFunction('approveAndCall(address,uint256,bytes)')(
+        this.token.connect(this.holder).getFunction('approveAndCall(address,uint256,bytes)')(
           this.spender,
           value,
           data,

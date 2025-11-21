@@ -85,10 +85,7 @@ module.exports = format(
         .map(([left, right]) => pack(left, right)),
       product(SIZES, SIZES)
         .filter(([outer, inner]) => outer > inner)
-        .flatMap(([outer, inner]) => [
-          extract(outer, inner),
-          replace(outer, inner),
-        ]),
+        .flatMap(([outer, inner]) => [extract(outer, inner), replace(outer, inner)]),
     ),
   ).trimEnd(),
   '}',

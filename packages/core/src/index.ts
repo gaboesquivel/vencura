@@ -1,14 +1,11 @@
-// Export ts-rest client as primary API
-export { createVencuraClient, type VencuraClient, type VencuraClientConfig } from './client'
+/**
+ * @vencura/core
+ *
+ * TypeScript SDK for the Vencura API.
+ * Provides a typed HTTP client that consumes contracts from @vencura/types.
+ *
+ * @packageDocumentation
+ */
 
-// Re-export types from API contracts for convenience
-export type {
-  Wallet,
-  CreateWalletInput,
-  WalletBalance,
-  SignMessageInput,
-  SignMessageResult,
-  SendTransactionInput,
-  SendTransactionResult,
-  ChainType,
-} from '@vencura/types'
+export * from './client'
+export * from '@vencura/types'

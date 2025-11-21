@@ -24,15 +24,10 @@ const value = ethers.parseEther('1')
 describe('GovernorCountingFractional', () => {
   for (const { Token, mode } of TOKENS) {
     const fixture = async () => {
-      const [owner, proposer, voter1, voter2, voter3, voter4, other] =
-        await ethers.getSigners()
+      const [owner, proposer, voter1, voter2, voter3, voter4, other] = await ethers.getSigners()
       const receiver = await ethers.deployContract('CallReceiverMock')
 
-      const token = await ethers.deployContract(Token, [
-        tokenName,
-        tokenSymbol,
-        version,
-      ])
+      const token = await ethers.deployContract(Token, [tokenName, tokenSymbol, version])
       const mock = await ethers.deployContract('$GovernorFractionalMock', [
         name, // name
         votingDelay, // initialVotingDelay
@@ -46,18 +41,10 @@ describe('GovernorCountingFractional', () => {
       await token.$_mint(owner, tokenSupply)
 
       const helper = new GovernorHelper(mock, mode)
-      await helper
-        .connect(owner)
-        .delegate({ token, to: voter1, value: ethers.parseEther('10') })
-      await helper
-        .connect(owner)
-        .delegate({ token, to: voter2, value: ethers.parseEther('7') })
-      await helper
-        .connect(owner)
-        .delegate({ token, to: voter3, value: ethers.parseEther('5') })
-      await helper
-        .connect(owner)
-        .delegate({ token, to: voter4, value: ethers.parseEther('2') })
+      await helper.connect(owner).delegate({ token, to: voter1, value: ethers.parseEther('10') })
+      await helper.connect(owner).delegate({ token, to: voter2, value: ethers.parseEther('7') })
+      await helper.connect(owner).delegate({ token, to: voter3, value: ethers.parseEther('5') })
+      await helper.connect(owner).delegate({ token, to: voter4, value: ethers.parseEther('2') })
 
       return {
         owner,
@@ -108,21 +95,14 @@ describe('GovernorCountingFractional', () => {
           .connect(this.voter1)
           .vote({ support: VoteType.For, reason: 'This is nice' })
         await this.helper.connect(this.voter2).vote({ support: VoteType.For })
-        await this.helper
-          .connect(this.voter3)
-          .vote({ support: VoteType.Against })
-        await this.helper
-          .connect(this.voter4)
-          .vote({ support: VoteType.Abstain })
+        await this.helper.connect(this.voter3).vote({ support: VoteType.Against })
+        await this.helper.connect(this.voter4).vote({ support: VoteType.Abstain })
         await this.helper.waitForDeadline()
         await this.helper.execute()
 
-        expect(await this.mock.hasVoted(this.proposal.id, this.owner)).to.be
-          .false
-        expect(await this.mock.hasVoted(this.proposal.id, this.voter1)).to.be
-          .true
-        expect(await this.mock.hasVoted(this.proposal.id, this.voter2)).to.be
-          .true
+        expect(await this.mock.hasVoted(this.proposal.id, this.owner)).to.be.false
+        expect(await this.mock.hasVoted(this.proposal.id, this.voter1)).to.be.true
+        expect(await this.mock.hasVoted(this.proposal.id, this.voter2)).to.be.true
         expect(await ethers.provider.getBalance(this.mock)).to.equal(0n)
         expect(await ethers.provider.getBalance(this.receiver)).to.equal(value)
       })
@@ -132,26 +112,17 @@ describe('GovernorCountingFractional', () => {
           await this.helper.connect(this.proposer).propose()
           await this.helper.waitForSnapshot()
 
-          expect(await this.mock.proposalVotes(this.proposal.id)).to.deep.equal(
-            [0n, 0n, 0n],
-          )
-          expect(
-            await this.mock.hasVoted(this.proposal.id, this.voter2),
-          ).to.equal(false)
-          expect(
-            await this.mock.usedVotes(this.proposal.id, this.voter2),
-          ).to.equal(0n)
+          expect(await this.mock.proposalVotes(this.proposal.id)).to.deep.equal([0n, 0n, 0n])
+          expect(await this.mock.hasVoted(this.proposal.id, this.voter2)).to.equal(false)
+          expect(await this.mock.usedVotes(this.proposal.id, this.voter2)).to.equal(0n)
 
           const steps = [
             ['0', '2', '1'],
             ['1', '0', '1'],
-          ].map((votes) => votes.map((vote) => ethers.parseEther(vote)))
+          ].map(votes => votes.map(vote => ethers.parseEther(vote)))
 
           for (const votes of steps) {
-            const params = ethers.solidityPacked(
-              ['uint128', 'uint128', 'uint128'],
-              votes,
-            )
+            const params = ethers.solidityPacked(['uint128', 'uint128', 'uint128'], votes)
             await expect(
               this.helper.connect(this.voter2).vote({
                 support: VoteType.Parameters,
@@ -171,37 +142,26 @@ describe('GovernorCountingFractional', () => {
           }
 
           expect(await this.mock.proposalVotes(this.proposal.id)).to.deep.equal(
-            zip(...steps).map((v) => sum(...v)),
+            zip(...steps).map(v => sum(...v)),
           )
-          expect(
-            await this.mock.hasVoted(this.proposal.id, this.voter2),
-          ).to.equal(true)
-          expect(
-            await this.mock.usedVotes(this.proposal.id, this.voter2),
-          ).to.equal(sum(...[].concat(...steps)))
+          expect(await this.mock.hasVoted(this.proposal.id, this.voter2)).to.equal(true)
+          expect(await this.mock.usedVotes(this.proposal.id, this.voter2)).to.equal(
+            sum(...[].concat(...steps)),
+          )
         })
 
         it('fractional then nominal', async function () {
           await this.helper.connect(this.proposer).propose()
           await this.helper.waitForSnapshot()
 
-          expect(await this.mock.proposalVotes(this.proposal.id)).to.deep.equal(
-            [0n, 0n, 0n],
-          )
-          expect(
-            await this.mock.hasVoted(this.proposal.id, this.voter2),
-          ).to.equal(false)
-          expect(
-            await this.mock.usedVotes(this.proposal.id, this.voter2),
-          ).to.equal(0n)
+          expect(await this.mock.proposalVotes(this.proposal.id)).to.deep.equal([0n, 0n, 0n])
+          expect(await this.mock.hasVoted(this.proposal.id, this.voter2)).to.equal(false)
+          expect(await this.mock.usedVotes(this.proposal.id, this.voter2)).to.equal(0n)
 
           const weight = ethers.parseEther('7')
           const fractional = ['1', '2', '1'].map(ethers.parseEther)
 
-          const params = ethers.solidityPacked(
-            ['uint128', 'uint128', 'uint128'],
-            fractional,
-          )
+          const params = ethers.solidityPacked(['uint128', 'uint128', 'uint128'], fractional)
           await expect(
             this.helper.connect(this.voter2).vote({
               support: VoteType.Parameters,
@@ -219,11 +179,7 @@ describe('GovernorCountingFractional', () => {
               params,
             )
 
-          await expect(
-            this.helper
-              .connect(this.voter2)
-              .vote({ support: VoteType.Against }),
-          )
+          await expect(this.helper.connect(this.voter2).vote({ support: VoteType.Against }))
             .to.emit(this.mock, 'VoteCast')
             .withArgs(
               this.voter2,
@@ -233,15 +189,12 @@ describe('GovernorCountingFractional', () => {
               '',
             )
 
-          expect(await this.mock.proposalVotes(this.proposal.id)).to.deep.equal(
-            [weight - sum(...fractional.slice(1)), ...fractional.slice(1)],
-          )
-          expect(
-            await this.mock.hasVoted(this.proposal.id, this.voter2),
-          ).to.equal(true)
-          expect(
-            await this.mock.usedVotes(this.proposal.id, this.voter2),
-          ).to.equal(weight)
+          expect(await this.mock.proposalVotes(this.proposal.id)).to.deep.equal([
+            weight - sum(...fractional.slice(1)),
+            ...fractional.slice(1),
+          ])
+          expect(await this.mock.hasVoted(this.proposal.id, this.voter2)).to.equal(true)
+          expect(await this.mock.usedVotes(this.proposal.id, this.voter2)).to.equal(weight)
         })
 
         it('revert if params spend more than available', async function () {
@@ -255,16 +208,10 @@ describe('GovernorCountingFractional', () => {
             this.helper.connect(this.voter2).vote({
               support: VoteType.Parameters,
               reason: 'no particular reason',
-              params: ethers.solidityPacked(
-                ['uint128', 'uint128', 'uint128'],
-                fractional,
-              ),
+              params: ethers.solidityPacked(['uint128', 'uint128', 'uint128'], fractional),
             }),
           )
-            .to.be.revertedWithCustomError(
-              this.mock,
-              'GovernorExceedRemainingWeight',
-            )
+            .to.be.revertedWithCustomError(this.mock, 'GovernorExceedRemainingWeight')
             .withArgs(this.voter2, sum(...fractional), weight)
         })
 
@@ -277,10 +224,7 @@ describe('GovernorCountingFractional', () => {
             this.helper.connect(this.voter2).vote({
               support: VoteType.Parameters,
               reason: 'no particular reason',
-              params: ethers.solidityPacked(
-                ['uint128', 'uint128', 'uint128'],
-                [0n, 1n, 0n],
-              ),
+              params: ethers.solidityPacked(['uint128', 'uint128', 'uint128'], [0n, 1n, 0n]),
             }),
           )
             .to.be.revertedWithCustomError(this.mock, 'GovernorAlreadyCastVote')
@@ -297,10 +241,7 @@ describe('GovernorCountingFractional', () => {
               reason: 'no particular reason',
               params: ethers.solidityPacked(['uint128', 'uint128'], [0n, 1n]),
             }),
-          ).to.be.revertedWithCustomError(
-            this.mock,
-            'GovernorInvalidVoteParams',
-          )
+          ).to.be.revertedWithCustomError(this.mock, 'GovernorInvalidVoteParams')
         })
 
         it('revert if params are not properly formatted #2', async function () {
@@ -311,15 +252,9 @@ describe('GovernorCountingFractional', () => {
             this.helper.connect(this.voter2).vote({
               support: VoteType.Against,
               reason: 'no particular reason',
-              params: ethers.solidityPacked(
-                ['uint128', 'uint128', 'uint128'],
-                [0n, 1n, 0n],
-              ),
+              params: ethers.solidityPacked(['uint128', 'uint128', 'uint128'], [0n, 1n, 0n]),
             }),
-          ).to.be.revertedWithCustomError(
-            this.mock,
-            'GovernorInvalidVoteParams',
-          )
+          ).to.be.revertedWithCustomError(this.mock, 'GovernorInvalidVoteParams')
         })
 
         it('revert if vote type is invalid', async function () {

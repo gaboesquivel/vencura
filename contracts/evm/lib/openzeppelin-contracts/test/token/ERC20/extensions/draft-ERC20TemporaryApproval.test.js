@@ -14,10 +14,7 @@ async function fixture() {
   const accounts = await ethers.getSigners()
   const [holder, recipient, other] = accounts
 
-  const token = await ethers.deployContract('$ERC20TemporaryApproval', [
-    name,
-    symbol,
-  ])
+  const token = await ethers.deployContract('$ERC20TemporaryApproval', [name, symbol])
   await token.$_mint(holder, initialSupply)
 
   const spender = await ethers.deployContract('$Address')
@@ -49,8 +46,7 @@ describe('ERC20TemporaryApproval', () => {
     } of [
       { description: 'can set temporary allowance', temporaryAllowance: 42n },
       {
-        description:
-          'can set temporary allowance on top of persistent allowance',
+        description: 'can set temporary allowance on top of persistent allowance',
         temporaryAllowance: 42n,
         persistentAllowance: 17n,
       },
@@ -65,8 +61,7 @@ describe('ERC20TemporaryApproval', () => {
         amount: 2n,
       },
       {
-        description:
-          'fallback to persistent allowance if temporary allowance is not sufficient',
+        description: 'fallback to persistent allowance if temporary allowance is not sufficient',
         temporaryAllowance: 42n,
         persistentAllowance: 17n,
         amount: 50n,
@@ -93,8 +88,7 @@ describe('ERC20TemporaryApproval', () => {
         persistentAllowance + temporaryAllowance - amount,
         ethers.MaxUint256,
       )
-      persistentExpected ??=
-        persistentAllowance - max(amount - temporaryAllowance, 0n)
+      persistentExpected ??= persistentAllowance - max(amount - temporaryAllowance, 0n)
 
       it(description, async function () {
         await expect(
@@ -111,25 +105,22 @@ describe('ERC20TemporaryApproval', () => {
               temporaryAllowance && {
                 target: this.token,
                 value: 0n,
-                data: this.token.interface.encodeFunctionData(
-                  'temporaryApprove',
-                  [this.spender.target, temporaryAllowance],
-                ),
+                data: this.token.interface.encodeFunctionData('temporaryApprove', [
+                  this.spender.target,
+                  temporaryAllowance,
+                ]),
               },
               amount && {
                 target: this.spender,
                 value: 0n,
-                data: this.spender.interface.encodeFunctionData(
-                  '$functionCall',
-                  [
-                    this.token.target,
-                    this.token.interface.encodeFunctionData('transferFrom', [
-                      this.batch.target,
-                      this.recipient.address,
-                      amount,
-                    ]),
-                  ],
-                ),
+                data: this.spender.interface.encodeFunctionData('$functionCall', [
+                  this.token.target,
+                  this.token.interface.encodeFunctionData('transferFrom', [
+                    this.batch.target,
+                    this.recipient.address,
+                    amount,
+                  ]),
+                ]),
               },
               {
                 target: this.getter,
@@ -146,26 +137,18 @@ describe('ERC20TemporaryApproval', () => {
           .to.emit(this.getter, 'ERC20Allowance')
           .withArgs(this.token, this.batch, this.spender, temporaryExpected)
 
-        expect(await this.token.allowance(this.batch, this.spender)).to.equal(
-          persistentExpected,
-        )
+        expect(await this.token.allowance(this.batch, this.spender)).to.equal(persistentExpected)
       })
     }
 
     it('reverts when the recipient is the zero address', async function () {
-      await expect(
-        this.token
-          .connect(this.holder)
-          .temporaryApprove(ethers.ZeroAddress, 1n),
-      )
+      await expect(this.token.connect(this.holder).temporaryApprove(ethers.ZeroAddress, 1n))
         .to.be.revertedWithCustomError(this.token, 'ERC20InvalidSpender')
         .withArgs(ethers.ZeroAddress)
     })
 
     it('reverts when the token owner is the zero address', async function () {
-      await expect(
-        this.token.$_temporaryApprove(ethers.ZeroAddress, this.recipient, 1n),
-      )
+      await expect(this.token.$_temporaryApprove(ethers.ZeroAddress, this.recipient, 1n))
         .to.be.revertedWithCustomError(this.token, 'ERC20InvalidApprover')
         .withArgs(ethers.ZeroAddress)
     })

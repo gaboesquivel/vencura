@@ -1,36 +1,29 @@
 {
+  "extends": "@workspace/typescript-config/nextjs.json",
   "compilerOptions": {
     "baseUrl": ".",
-    "target": "ESNext",
-    "lib": ["dom", "dom.iterable", "esnext"],
-    "allowJs": true,
-    "skipLibCheck": true,
-    "strict": true,
-    "forceConsistentCasingInFileNames": true,
-    "noEmit": true,
-    "esModuleInterop": true,
-    "module": "esnext",
-    "moduleResolution": "bundler",
-    "resolveJsonModule": true,
-    "isolatedModules": true,
-    "jsx": "react-jsx",
-    "incremental": true,
     "paths": {
       "@/*": ["./*"],
+      "@vencura/ui/*": ["../../packages/ui/src/*"],
+      "@vencura/types": ["../../packages/types/src/index.ts"],
+      "@vencura/types/*": ["../../packages/types/src/*"],
       "fumadocs-mdx:collections/*": [".source/*"]
     },
     "plugins": [
       {
         "name": "next"
       }
-    ]
+    ],
+    "skipLibCheck": true
   },
   "include": [
     "next-env.d.ts",
+    "next.config.ts",
     "**/*.ts",
     "**/*.tsx",
     ".next/types/**/*.ts",
-    ".next/dev/types/**/*.ts"
+    "types/**/*.d.ts",
+    "../../config/typescript/reset.d.ts"
   ],
   "exclude": ["node_modules"]
 }

@@ -39,9 +39,10 @@ for (const variant of ['', 'Transient']) {
     // I put them here as documentation, and to monitor any changes
     // in the side-effects.
     it('does not allow local recursion', async function () {
-      await expect(
-        this.mock.countLocalRecursive(10n),
-      ).to.be.revertedWithCustomError(this.mock, 'ReentrancyGuardReentrantCall')
+      await expect(this.mock.countLocalRecursive(10n)).to.be.revertedWithCustomError(
+        this.mock,
+        'ReentrancyGuardReentrantCall',
+      )
     })
 
     it('does not allow indirect local recursion', async function () {

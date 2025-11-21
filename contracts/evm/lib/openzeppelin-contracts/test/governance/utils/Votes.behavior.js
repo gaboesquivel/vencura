@@ -7,19 +7,15 @@ const time = require('../../helpers/time')
 
 const { shouldBehaveLikeERC6372 } = require('./ERC6372.behavior')
 
-function shouldBehaveLikeVotes(
-  tokens,
-  { mode = 'blocknumber', fungible = true },
-) {
+function shouldBehaveLikeVotes(tokens, { mode = 'blocknumber', fungible = true }) {
   beforeEach(async function () {
-    ;[this.delegator, this.delegatee, this.alice, this.bob, this.other] =
-      this.accounts
+    ;[this.delegator, this.delegatee, this.alice, this.bob, this.other] = this.accounts
     this.domain = await getDomain(this.votes)
   })
 
   shouldBehaveLikeERC6372(mode)
 
-  const getWeight = (token) => (fungible ? token : 1n)
+  const getWeight = token => (fungible ? token : 1n)
 
   describe('run votes workflow', () => {
     it('initial nonce is 0', async function () {
@@ -30,9 +26,7 @@ function shouldBehaveLikeVotes(
       const token = tokens[0]
 
       it('delegation without tokens', async function () {
-        expect(await this.votes.delegates(this.alice)).to.equal(
-          ethers.ZeroAddress,
-        )
+        expect(await this.votes.delegates(this.alice)).to.equal(ethers.ZeroAddress)
 
         await expect(this.votes.connect(this.alice).delegate(this.alice))
           .to.emit(this.votes, 'DelegateChanged')
@@ -46,9 +40,7 @@ function shouldBehaveLikeVotes(
         await this.votes.$_mint(this.alice, token)
         const weight = getWeight(token)
 
-        expect(await this.votes.delegates(this.alice)).to.equal(
-          ethers.ZeroAddress,
-        )
+        expect(await this.votes.delegates(this.alice)).to.equal(ethers.ZeroAddress)
 
         const tx = await this.votes.connect(this.alice).delegate(this.alice)
         const timepoint = await time.clockFromReceipt[mode](tx)
@@ -61,13 +53,9 @@ function shouldBehaveLikeVotes(
 
         expect(await this.votes.delegates(this.alice)).to.equal(this.alice)
         expect(await this.votes.getVotes(this.alice)).to.equal(weight)
-        expect(
-          await this.votes.getPastVotes(this.alice, timepoint - 1n),
-        ).to.equal(0n)
+        expect(await this.votes.getPastVotes(this.alice, timepoint - 1n)).to.equal(0n)
         await mine()
-        expect(await this.votes.getPastVotes(this.alice, timepoint)).to.equal(
-          weight,
-        )
+        expect(await this.votes.getPastVotes(this.alice, timepoint)).to.equal(weight)
       })
 
       it('delegation update', async function () {
@@ -94,19 +82,11 @@ function shouldBehaveLikeVotes(
         expect(await this.votes.getVotes(this.alice)).to.equal(0n)
         expect(await this.votes.getVotes(this.bob)).to.equal(weight)
 
-        expect(
-          await this.votes.getPastVotes(this.alice, timepoint - 1n),
-        ).to.equal(weight)
-        expect(
-          await this.votes.getPastVotes(this.bob, timepoint - 1n),
-        ).to.equal(0n)
+        expect(await this.votes.getPastVotes(this.alice, timepoint - 1n)).to.equal(weight)
+        expect(await this.votes.getPastVotes(this.bob, timepoint - 1n)).to.equal(0n)
         await mine()
-        expect(await this.votes.getPastVotes(this.alice, timepoint)).to.equal(
-          0n,
-        )
-        expect(await this.votes.getPastVotes(this.bob, timepoint)).to.equal(
-          weight,
-        )
+        expect(await this.votes.getPastVotes(this.alice, timepoint)).to.equal(0n)
+        expect(await this.votes.getPastVotes(this.bob, timepoint)).to.equal(weight)
       })
 
       describe('with signature', () => {
@@ -128,9 +108,7 @@ function shouldBehaveLikeVotes(
             )
             .then(ethers.Signature.from)
 
-          expect(await this.votes.delegates(this.delegator)).to.equal(
-            ethers.ZeroAddress,
-          )
+          expect(await this.votes.delegates(this.delegator)).to.equal(ethers.ZeroAddress)
 
           const tx = await this.votes.delegateBySig(
             this.delegatee,
@@ -148,18 +126,12 @@ function shouldBehaveLikeVotes(
             .to.emit(this.votes, 'DelegateVotesChanged')
             .withArgs(this.delegatee, 0, weight)
 
-          expect(await this.votes.delegates(this.delegator.address)).to.equal(
-            this.delegatee,
-          )
+          expect(await this.votes.delegates(this.delegator.address)).to.equal(this.delegatee)
           expect(await this.votes.getVotes(this.delegator.address)).to.equal(0n)
           expect(await this.votes.getVotes(this.delegatee)).to.equal(weight)
-          expect(
-            await this.votes.getPastVotes(this.delegatee, timepoint - 1n),
-          ).to.equal(0n)
+          expect(await this.votes.getPastVotes(this.delegatee, timepoint - 1n)).to.equal(0n)
           await mine()
-          expect(
-            await this.votes.getPastVotes(this.delegatee, timepoint),
-          ).to.equal(weight)
+          expect(await this.votes.getPastVotes(this.delegatee, timepoint)).to.equal(weight)
         })
 
         it('rejects reused signature', async function () {
@@ -175,25 +147,9 @@ function shouldBehaveLikeVotes(
             )
             .then(ethers.Signature.from)
 
-          await this.votes.delegateBySig(
-            this.delegatee,
-            nonce,
-            ethers.MaxUint256,
-            v,
-            r,
-            s,
-          )
+          await this.votes.delegateBySig(this.delegatee, nonce, ethers.MaxUint256, v, r, s)
 
-          await expect(
-            this.votes.delegateBySig(
-              this.delegatee,
-              nonce,
-              ethers.MaxUint256,
-              v,
-              r,
-              s,
-            ),
-          )
+          await expect(this.votes.delegateBySig(this.delegatee, nonce, ethers.MaxUint256, v, r, s))
             .to.be.revertedWithCustomError(this.votes, 'InvalidAccountNonce')
             .withArgs(this.delegator, nonce + 1n)
         })
@@ -211,19 +167,11 @@ function shouldBehaveLikeVotes(
             )
             .then(ethers.Signature.from)
 
-          const tx = await this.votes.delegateBySig(
-            this.other,
-            nonce,
-            ethers.MaxUint256,
-            v,
-            r,
-            s,
-          )
+          const tx = await this.votes.delegateBySig(this.other, nonce, ethers.MaxUint256, v, r, s)
           const receipt = await tx.wait()
 
           const [delegateChanged] = receipt.logs.filter(
-            (log) =>
-              this.votes.interface.parseLog(log)?.name === 'DelegateChanged',
+            log => this.votes.interface.parseLog(log)?.name === 'DelegateChanged',
           )
           const { args } = this.votes.interface.parseLog(delegateChanged)
           expect(args.delegator).to.not.be.equal(this.delegator)
@@ -245,14 +193,7 @@ function shouldBehaveLikeVotes(
             .then(ethers.Signature.from)
 
           await expect(
-            this.votes.delegateBySig(
-              this.delegatee,
-              nonce + 1n,
-              ethers.MaxUint256,
-              v,
-              r,
-              s,
-            ),
+            this.votes.delegateBySig(this.delegatee, nonce + 1n, ethers.MaxUint256, v, r, s),
           )
             .to.be.revertedWithCustomError(this.votes, 'InvalidAccountNonce')
             .withArgs(this.delegator, 0)
@@ -272,9 +213,7 @@ function shouldBehaveLikeVotes(
             )
             .then(ethers.Signature.from)
 
-          await expect(
-            this.votes.delegateBySig(this.delegatee, nonce, expiry, v, r, s),
-          )
+          await expect(this.votes.delegateBySig(this.delegatee, nonce, expiry, v, r, s))
             .to.be.revertedWithCustomError(this.votes, 'VotesExpiredSignature')
             .withArgs(expiry)
         })
@@ -299,7 +238,7 @@ function shouldBehaveLikeVotes(
       })
 
       it('returns the correct checkpointed total supply', async function () {
-        const weight = tokens.map((token) => getWeight(token))
+        const weight = tokens.map(token => getWeight(token))
 
         // t0 = mint #0
         const t0 = await this.votes.$_mint(this.alice, tokens[0])
@@ -308,25 +247,16 @@ function shouldBehaveLikeVotes(
         const t1 = await this.votes.$_mint(this.alice, tokens[1])
         await mine()
         // t2 = burn #1
-        const t2 = await this.votes.$_burn(
-          ...(fungible ? [this.alice] : []),
-          tokens[1],
-        )
+        const t2 = await this.votes.$_burn(...(fungible ? [this.alice] : []), tokens[1])
         await mine()
         // t3 = mint #2
         const t3 = await this.votes.$_mint(this.alice, tokens[2])
         await mine()
         // t4 = burn #0
-        const t4 = await this.votes.$_burn(
-          ...(fungible ? [this.alice] : []),
-          tokens[0],
-        )
+        const t4 = await this.votes.$_burn(...(fungible ? [this.alice] : []), tokens[0])
         await mine()
         // t5 = burn #2
-        const t5 = await this.votes.$_burn(
-          ...(fungible ? [this.alice] : []),
-          tokens[2],
-        )
+        const t5 = await this.votes.$_burn(...(fungible ? [this.alice] : []), tokens[2])
         await mine()
 
         t0.timepoint = await time.clockFromReceipt[mode](t0)
@@ -336,39 +266,21 @@ function shouldBehaveLikeVotes(
         t4.timepoint = await time.clockFromReceipt[mode](t4)
         t5.timepoint = await time.clockFromReceipt[mode](t5)
 
-        expect(await this.votes.getPastTotalSupply(t0.timepoint - 1n)).to.equal(
-          0,
-        )
-        expect(await this.votes.getPastTotalSupply(t0.timepoint)).to.equal(
-          weight[0],
-        )
-        expect(await this.votes.getPastTotalSupply(t0.timepoint + 1n)).to.equal(
-          weight[0],
-        )
-        expect(await this.votes.getPastTotalSupply(t1.timepoint)).to.equal(
-          weight[0] + weight[1],
-        )
+        expect(await this.votes.getPastTotalSupply(t0.timepoint - 1n)).to.equal(0)
+        expect(await this.votes.getPastTotalSupply(t0.timepoint)).to.equal(weight[0])
+        expect(await this.votes.getPastTotalSupply(t0.timepoint + 1n)).to.equal(weight[0])
+        expect(await this.votes.getPastTotalSupply(t1.timepoint)).to.equal(weight[0] + weight[1])
         expect(await this.votes.getPastTotalSupply(t1.timepoint + 1n)).to.equal(
           weight[0] + weight[1],
         )
-        expect(await this.votes.getPastTotalSupply(t2.timepoint)).to.equal(
-          weight[0],
-        )
-        expect(await this.votes.getPastTotalSupply(t2.timepoint + 1n)).to.equal(
-          weight[0],
-        )
-        expect(await this.votes.getPastTotalSupply(t3.timepoint)).to.equal(
-          weight[0] + weight[2],
-        )
+        expect(await this.votes.getPastTotalSupply(t2.timepoint)).to.equal(weight[0])
+        expect(await this.votes.getPastTotalSupply(t2.timepoint + 1n)).to.equal(weight[0])
+        expect(await this.votes.getPastTotalSupply(t3.timepoint)).to.equal(weight[0] + weight[2])
         expect(await this.votes.getPastTotalSupply(t3.timepoint + 1n)).to.equal(
           weight[0] + weight[2],
         )
-        expect(await this.votes.getPastTotalSupply(t4.timepoint)).to.equal(
-          weight[2],
-        )
-        expect(await this.votes.getPastTotalSupply(t4.timepoint + 1n)).to.equal(
-          weight[2],
-        )
+        expect(await this.votes.getPastTotalSupply(t4.timepoint)).to.equal(weight[2])
+        expect(await this.votes.getPastTotalSupply(t4.timepoint + 1n)).to.equal(weight[2])
         expect(await this.votes.getPastTotalSupply(t5.timepoint)).to.equal(0)
         await expect(this.votes.getPastTotalSupply(t5.timepoint + 1n))
           .to.be.revertedWithCustomError(this.votes, 'ERC5805FutureLookup')
@@ -399,32 +311,22 @@ function shouldBehaveLikeVotes(
         })
 
         it('returns the latest block if >= last checkpoint block', async function () {
-          const delegate = await this.votes
-            .connect(this.alice)
-            .delegate(this.bob)
+          const delegate = await this.votes.connect(this.alice).delegate(this.bob)
           const timepoint = await time.clockFromReceipt[mode](delegate)
           await mine(2)
 
           const latest = await this.votes.getVotes(this.bob)
-          expect(await this.votes.getPastVotes(this.bob, timepoint)).to.equal(
-            latest,
-          )
-          expect(
-            await this.votes.getPastVotes(this.bob, timepoint + 1n),
-          ).to.equal(latest)
+          expect(await this.votes.getPastVotes(this.bob, timepoint)).to.equal(latest)
+          expect(await this.votes.getPastVotes(this.bob, timepoint + 1n)).to.equal(latest)
         })
 
         it('returns zero if < first checkpoint block', async function () {
           await mine()
-          const delegate = await this.votes
-            .connect(this.alice)
-            .delegate(this.bob)
+          const delegate = await this.votes.connect(this.alice).delegate(this.bob)
           const timepoint = await time.clockFromReceipt[mode](delegate)
           await mine(2)
 
-          expect(
-            await this.votes.getPastVotes(this.bob, timepoint - 1n),
-          ).to.equal(0n)
+          expect(await this.votes.getPastVotes(this.bob, timepoint - 1n)).to.equal(0n)
         })
       })
     })

@@ -6,12 +6,7 @@
       "contractName": "TestToken",
       "contractAddress": "0x5f036f0b6948d4593364f975b81cabb3206ad994",
       "function": null,
-      "arguments": [
-        "Tether USD",
-        "USDT",
-        "0x51903a1964eC6b96f5eaE3bBF1a5AA86e4a93294",
-        "6"
-      ],
+      "arguments": ["Tether USD", "USDT", "0x51903a1964eC6b96f5eaE3bBF1a5AA86e4a93294", "6"],
       "transaction": {
         "from": "0x51903a1964ec6b96f5eae3bbf1a5aa86e4a93294",
         "gas": "0xbd91e",

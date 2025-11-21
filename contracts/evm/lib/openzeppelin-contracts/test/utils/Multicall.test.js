@@ -7,10 +7,7 @@ async function fixture() {
 
   const amount = 12_000n
   const helper = await ethers.deployContract('MulticallHelper')
-  const mock = await ethers.deployContract('$ERC20MulticallMock', [
-    'name',
-    'symbol',
-  ])
+  const mock = await ethers.deployContract('$ERC20MulticallMock', ['name', 'symbol'])
   await mock.$_mint(holder, amount)
 
   return { holder, alice, bruce, amount, mock, helper }
@@ -27,14 +24,8 @@ describe('Multicall', () => {
 
     await expect(
       this.mock.multicall([
-        this.mock.interface.encodeFunctionData('transfer', [
-          this.alice.address,
-          this.amount / 2n,
-        ]),
-        this.mock.interface.encodeFunctionData('transfer', [
-          this.bruce.address,
-          this.amount / 3n,
-        ]),
+        this.mock.interface.encodeFunctionData('transfer', [this.alice.address, this.amount / 2n]),
+        this.mock.interface.encodeFunctionData('transfer', [this.bruce.address, this.amount / 3n]),
       ]),
     )
       .to.emit(this.mock, 'Transfer')
@@ -62,14 +53,8 @@ describe('Multicall', () => {
 
     await expect(
       this.mock.multicall([
-        this.mock.interface.encodeFunctionData('transfer', [
-          this.alice.address,
-          this.amount,
-        ]),
-        this.mock.interface.encodeFunctionData('transfer', [
-          this.bruce.address,
-          this.amount,
-        ]),
+        this.mock.interface.encodeFunctionData('transfer', [this.alice.address, this.amount]),
+        this.mock.interface.encodeFunctionData('transfer', [this.bruce.address, this.amount]),
       ]),
     )
       .to.be.revertedWithCustomError(this.mock, 'ERC20InsufficientBalance')
@@ -81,14 +66,8 @@ describe('Multicall', () => {
   it('bubbles up revert reasons', async function () {
     await expect(
       this.mock.multicall([
-        this.mock.interface.encodeFunctionData('transfer', [
-          this.alice.address,
-          this.amount,
-        ]),
-        this.mock.interface.encodeFunctionData('transfer', [
-          this.bruce.address,
-          this.amount,
-        ]),
+        this.mock.interface.encodeFunctionData('transfer', [this.alice.address, this.amount]),
+        this.mock.interface.encodeFunctionData('transfer', [this.bruce.address, this.amount]),
       ]),
     )
       .to.be.revertedWithCustomError(this.mock, 'ERC20InsufficientBalance')

@@ -7,9 +7,7 @@ async function fixture() {
 
   const mock = await ethers.deployContract('$AuthorityUtils')
   const notAuthorityMock = await ethers.deployContract('NotAuthorityMock')
-  const authorityNoDelayMock = await ethers.deployContract(
-    'AuthorityNoDelayMock',
-  )
+  const authorityNoDelayMock = await ethers.deployContract('AuthorityNoDelayMock')
   const authorityDelayMock = await ethers.deployContract('AuthorityDelayMock')
   const authorityNoResponse = await ethers.deployContract('AuthorityNoResponse')
 

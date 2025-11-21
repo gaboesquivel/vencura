@@ -6,12 +6,7 @@
       "contractName": "TestToken",
       "contractAddress": "0x6a2fe04d877439a44938d38709698d524bcf5c40",
       "function": null,
-      "arguments": [
-        "USD Coin",
-        "USDC",
-        "0x51903a1964eC6b96f5eaE3bBF1a5AA86e4a93294",
-        "6"
-      ],
+      "arguments": ["USD Coin", "USDC", "0x51903a1964eC6b96f5eaE3bBF1a5AA86e4a93294", "6"],
       "transaction": {
         "from": "0x51903a1964ec6b96f5eae3bbf1a5aa86e4a93294",
         "gas": "0xbd8ff",

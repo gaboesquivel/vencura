@@ -17,10 +17,10 @@ const rules = [
   'use-forbidden-name',
   'var-name-mixedcase',
   'visibility-modifier-order',
-  ...customRules.map((r) => `openzeppelin/${r.ruleId}`),
+  ...customRules.map(r => `openzeppelin/${r.ruleId}`),
 ]
 
 module.exports = {
   plugins: ['openzeppelin'],
-  rules: Object.fromEntries(rules.map((r) => [r, 'error'])),
+  rules: Object.fromEntries(rules.map(r => [r, 'error'])),
 }

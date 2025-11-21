@@ -4,10 +4,7 @@ const { expect } = require('chai')
 module.exports = function shouldBehaveLikeClone() {
   const assertProxyInitialization = ({ value, balance }) => {
     it('initializes the proxy', async function () {
-      const dummy = await ethers.getContractAt(
-        'DummyImplementation',
-        this.proxy,
-      )
+      const dummy = await ethers.getContractAt('DummyImplementation', this.proxy)
       expect(await dummy.value()).to.equal(value)
     })
 
@@ -44,9 +41,7 @@ module.exports = function shouldBehaveLikeClone() {
 
       beforeEach(async function () {
         this.initializeData =
-          await this.implementation.interface.encodeFunctionData(
-            'initializeNonPayable',
-          )
+          await this.implementation.interface.encodeFunctionData('initializeNonPayable')
       })
 
       describe('when not sending balance', () => {
@@ -79,9 +74,7 @@ module.exports = function shouldBehaveLikeClone() {
 
       beforeEach(async function () {
         this.initializeData =
-          await this.implementation.interface.encodeFunctionData(
-            'initializePayable',
-          )
+          await this.implementation.interface.encodeFunctionData('initializePayable')
       })
 
       describe('when not sending balance', () => {
@@ -118,11 +111,10 @@ module.exports = function shouldBehaveLikeClone() {
       const expectedInitializedValue = 10n
 
       beforeEach(async function () {
-        this.initializeData =
-          await this.implementation.interface.encodeFunctionData(
-            'initializeNonPayableWithValue',
-            [expectedInitializedValue],
-          )
+        this.initializeData = await this.implementation.interface.encodeFunctionData(
+          'initializeNonPayableWithValue',
+          [expectedInitializedValue],
+        )
       })
 
       describe('when not sending balance', () => {

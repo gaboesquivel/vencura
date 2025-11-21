@@ -31,36 +31,20 @@ const params = {
 describe('GovernorWithParams', () => {
   for (const { Token, mode } of TOKENS) {
     const fixture = async () => {
-      const [owner, proposer, voter1, voter2, voter3, voter4, other] =
-        await ethers.getSigners()
+      const [owner, proposer, voter1, voter2, voter3, voter4, other] = await ethers.getSigners()
       const receiver = await ethers.deployContract('CallReceiverMock')
 
-      const token = await ethers.deployContract(Token, [
-        tokenName,
-        tokenSymbol,
-        version,
-      ])
-      const mock = await ethers.deployContract('$GovernorWithParamsMock', [
-        name,
-        token,
-      ])
+      const token = await ethers.deployContract(Token, [tokenName, tokenSymbol, version])
+      const mock = await ethers.deployContract('$GovernorWithParamsMock', [name, token])
 
       await owner.sendTransaction({ to: mock, value })
       await token.$_mint(owner, tokenSupply)
 
       const helper = new GovernorHelper(mock, mode)
-      await helper
-        .connect(owner)
-        .delegate({ token, to: voter1, value: ethers.parseEther('10') })
-      await helper
-        .connect(owner)
-        .delegate({ token, to: voter2, value: ethers.parseEther('7') })
-      await helper
-        .connect(owner)
-        .delegate({ token, to: voter3, value: ethers.parseEther('5') })
-      await helper
-        .connect(owner)
-        .delegate({ token, to: voter4, value: ethers.parseEther('2') })
+      await helper.connect(owner).delegate({ token, to: voter1, value: ethers.parseEther('10') })
+      await helper.connect(owner).delegate({ token, to: voter2, value: ethers.parseEther('7') })
+      await helper.connect(owner).delegate({ token, to: voter3, value: ethers.parseEther('5') })
+      await helper.connect(owner).delegate({ token, to: voter4, value: ethers.parseEther('2') })
 
       return {
         owner,
@@ -108,21 +92,14 @@ describe('GovernorWithParams', () => {
           .connect(this.voter1)
           .vote({ support: VoteType.For, reason: 'This is nice' })
         await this.helper.connect(this.voter2).vote({ support: VoteType.For })
-        await this.helper
-          .connect(this.voter3)
-          .vote({ support: VoteType.Against })
-        await this.helper
-          .connect(this.voter4)
-          .vote({ support: VoteType.Abstain })
+        await this.helper.connect(this.voter3).vote({ support: VoteType.Against })
+        await this.helper.connect(this.voter4).vote({ support: VoteType.Abstain })
         await this.helper.waitForDeadline()
         await this.helper.execute()
 
-        expect(await this.mock.hasVoted(this.proposal.id, this.owner)).to.be
-          .false
-        expect(await this.mock.hasVoted(this.proposal.id, this.voter1)).to.be
-          .true
-        expect(await this.mock.hasVoted(this.proposal.id, this.voter2)).to.be
-          .true
+        expect(await this.mock.hasVoted(this.proposal.id, this.owner)).to.be.false
+        expect(await this.mock.hasVoted(this.proposal.id, this.voter1)).to.be.true
+        expect(await this.mock.hasVoted(this.proposal.id, this.voter2)).to.be.true
         expect(await ethers.provider.getBalance(this.mock)).to.equal(0n)
         expect(await ethers.provider.getBalance(this.receiver)).to.equal(value)
       })
@@ -152,11 +129,7 @@ describe('GovernorWithParams', () => {
             params.encoded,
           )
 
-        expect(await this.mock.proposalVotes(this.proposal.id)).to.deep.equal([
-          0n,
-          weight,
-          0n,
-        ])
+        expect(await this.mock.proposalVotes(this.proposal.id)).to.deep.equal([0n, weight, 0n])
       })
 
       describe('voting by signature', () => {
@@ -178,7 +151,7 @@ describe('GovernorWithParams', () => {
             reason: 'no particular reason',
             params: params.encoded,
             signature: (contract, message) =>
-              getDomain(contract).then((domain) =>
+              getDomain(contract).then(domain =>
                 this.other.signTypedData(domain, { ExtendedBallot }, message),
               ),
           }
@@ -188,25 +161,14 @@ describe('GovernorWithParams', () => {
             .to.emit(this.mock, 'CountParams')
             .withArgs(...params.decoded)
             .to.emit(this.mock, 'VoteCastWithParams')
-            .withArgs(
-              data.voter,
-              data.proposalId,
-              data.support,
-              weight,
-              data.reason,
-              data.params,
-            )
+            .withArgs(data.voter, data.proposalId, data.support, weight, data.reason, data.params)
 
-          expect(await this.mock.proposalVotes(this.proposal.id)).to.deep.equal(
-            [0n, weight, 0n],
-          )
+          expect(await this.mock.proposalVotes(this.proposal.id)).to.deep.equal([0n, weight, 0n])
           expect(await this.mock.nonces(this.other)).to.equal(nonce + 1n)
         })
 
         it('supports EIP-1271 signature signatures', async function () {
-          const wallet = await ethers.deployContract('ERC1271WalletMock', [
-            this.other,
-          ])
+          const wallet = await ethers.deployContract('ERC1271WalletMock', [this.other])
           await this.token.connect(this.voter2).delegate(wallet)
 
           // Run proposal
@@ -224,7 +186,7 @@ describe('GovernorWithParams', () => {
             reason: 'no particular reason',
             params: params.encoded,
             signature: (contract, message) =>
-              getDomain(contract).then((domain) =>
+              getDomain(contract).then(domain =>
                 this.other.signTypedData(domain, { ExtendedBallot }, message),
               ),
           }
@@ -234,18 +196,9 @@ describe('GovernorWithParams', () => {
             .to.emit(this.mock, 'CountParams')
             .withArgs(...params.decoded)
             .to.emit(this.mock, 'VoteCastWithParams')
-            .withArgs(
-              data.voter,
-              data.proposalId,
-              data.support,
-              weight,
-              data.reason,
-              data.params,
-            )
+            .withArgs(data.voter, data.proposalId, data.support, weight, data.reason, data.params)
 
-          expect(await this.mock.proposalVotes(this.proposal.id)).to.deep.equal(
-            [0n, weight, 0n],
-          )
+          expect(await this.mock.proposalVotes(this.proposal.id)).to.deep.equal([0n, weight, 0n])
           expect(await this.mock.nonces(wallet)).to.equal(nonce + 1n)
         })
 
@@ -268,10 +221,8 @@ describe('GovernorWithParams', () => {
             // tampered signature
             signature: (contract, message) =>
               getDomain(contract)
-                .then((domain) =>
-                  this.other.signTypedData(domain, { ExtendedBallot }, message),
-                )
-                .then((signature) => {
+                .then(domain => this.other.signTypedData(domain, { ExtendedBallot }, message))
+                .then(signature => {
                   const tamperedSig = ethers.toBeArray(signature)
                   tamperedSig[42] ^= 0xff
                   return ethers.hexlify(tamperedSig)
@@ -280,10 +231,7 @@ describe('GovernorWithParams', () => {
 
           // Vote
           await expect(this.helper.vote(data))
-            .to.be.revertedWithCustomError(
-              this.mock,
-              'GovernorInvalidSignature',
-            )
+            .to.be.revertedWithCustomError(this.mock, 'GovernorInvalidSignature')
             .withArgs(data.voter)
         })
 
@@ -304,17 +252,14 @@ describe('GovernorWithParams', () => {
             reason: 'no particular reason',
             params: params.encoded,
             signature: (contract, message) =>
-              getDomain(contract).then((domain) =>
+              getDomain(contract).then(domain =>
                 this.other.signTypedData(domain, { ExtendedBallot }, message),
               ),
           }
 
           // Vote
           await expect(this.helper.vote(data))
-            .to.be.revertedWithCustomError(
-              this.mock,
-              'GovernorInvalidSignature',
-            )
+            .to.be.revertedWithCustomError(this.mock, 'GovernorInvalidSignature')
             .withArgs(data.voter)
         })
       })

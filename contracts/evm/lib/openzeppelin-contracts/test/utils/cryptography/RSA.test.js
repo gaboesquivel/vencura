@@ -35,16 +35,9 @@ describe('RSA', () => {
           const mod = '0x' + test.n
 
           expect(
-            await this.mock.$pkcs1Sha256(
-              bytes32(ethers.sha256(data)),
-              sig,
-              exp,
-              mod,
-            ),
+            await this.mock.$pkcs1Sha256(bytes32(ethers.sha256(data)), sig, exp, mod),
           ).to.equal(result)
-          expect(
-            await this.mock.$pkcs1Sha256(bytes(data), sig, exp, mod),
-          ).to.equal(result)
+          expect(await this.mock.$pkcs1Sha256(bytes(data), sig, exp, mod)).to.equal(result)
         })
       }
     }
@@ -98,9 +91,7 @@ describe('RSA', () => {
     const sTooLarge = {
       ...openssl,
       descr: 'returns false if s >= n',
-      sig: ethers.toBeHex(
-        ethers.toBigInt(openssl.sig) + ethers.toBigInt(openssl.mod),
-      ),
+      sig: ethers.toBeHex(ethers.toBigInt(openssl.sig) + ethers.toBigInt(openssl.mod)),
       result: false,
     }
 
@@ -112,9 +103,7 @@ describe('RSA', () => {
       sTooLarge,
     ]) {
       it(descr, async function () {
-        expect(
-          await this.mock.$pkcs1Sha256(bytes(data), sig, exp, mod),
-        ).to.equal(result)
+        expect(await this.mock.$pkcs1Sha256(bytes(data), sig, exp, mod)).to.equal(result)
       })
     }
   })

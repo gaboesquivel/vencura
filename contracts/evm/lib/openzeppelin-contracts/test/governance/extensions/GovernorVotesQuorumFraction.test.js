@@ -1,9 +1,6 @@
 const { ethers } = require('hardhat')
 const { expect } = require('chai')
-const {
-  loadFixture,
-  mine,
-} = require('@nomicfoundation/hardhat-network-helpers')
+const { loadFixture, mine } = require('@nomicfoundation/hardhat-network-helpers')
 
 const { GovernorHelper } = require('../../helpers/governance')
 const { ProposalState, VoteType } = require('../../helpers/enums')
@@ -32,11 +29,7 @@ describe('GovernorVotesQuorumFraction', () => {
 
       const receiver = await ethers.deployContract('CallReceiverMock')
 
-      const token = await ethers.deployContract(Token, [
-        tokenName,
-        tokenSymbol,
-        version,
-      ])
+      const token = await ethers.deployContract(Token, [tokenName, tokenSymbol, version])
       const mock = await ethers.deployContract('$GovernorMock', [
         name,
         votingDelay,
@@ -50,18 +43,10 @@ describe('GovernorVotesQuorumFraction', () => {
       await token.$_mint(owner, tokenSupply)
 
       const helper = new GovernorHelper(mock, mode)
-      await helper
-        .connect(owner)
-        .delegate({ token, to: voter1, value: ethers.parseEther('10') })
-      await helper
-        .connect(owner)
-        .delegate({ token, to: voter2, value: ethers.parseEther('7') })
-      await helper
-        .connect(owner)
-        .delegate({ token, to: voter3, value: ethers.parseEther('5') })
-      await helper
-        .connect(owner)
-        .delegate({ token, to: voter4, value: ethers.parseEther('2') })
+      await helper.connect(owner).delegate({ token, to: voter1, value: ethers.parseEther('10') })
+      await helper.connect(owner).delegate({ token, to: voter2, value: ethers.parseEther('7') })
+      await helper.connect(owner).delegate({ token, to: voter3, value: ethers.parseEther('5') })
+      await helper.connect(owner).delegate({ token, to: voter4, value: ethers.parseEther('2') })
 
       return {
         owner,
@@ -101,11 +86,9 @@ describe('GovernorVotesQuorumFraction', () => {
         expect(await this.mock.quorum(0)).to.equal(0n)
         expect(await this.mock.quorumNumerator()).to.equal(ratio)
         expect(await this.mock.quorumDenominator()).to.equal(100n)
-        expect(
-          await time.clock[mode]().then((clock) =>
-            this.mock.quorum(clock - 1n),
-          ),
-        ).to.equal((tokenSupply * ratio) / 100n)
+        expect(await time.clock[mode]().then(clock => this.mock.quorum(clock - 1n))).to.equal(
+          (tokenSupply * ratio) / 100n,
+        )
       })
 
       it('quorum reached', async function () {
@@ -122,25 +105,17 @@ describe('GovernorVotesQuorumFraction', () => {
         await this.helper.connect(this.voter2).vote({ support: VoteType.For })
         await this.helper.waitForDeadline()
         await expect(this.helper.execute())
-          .to.be.revertedWithCustomError(
-            this.mock,
-            'GovernorUnexpectedProposalState',
-          )
+          .to.be.revertedWithCustomError(this.mock, 'GovernorUnexpectedProposalState')
           .withArgs(
             this.proposal.id,
             ProposalState.Defeated,
-            GovernorHelper.proposalStatesToBitMap([
-              ProposalState.Succeeded,
-              ProposalState.Queued,
-            ]),
+            GovernorHelper.proposalStatesToBitMap([ProposalState.Succeeded, ProposalState.Queued]),
           )
       })
 
       describe('onlyGovernance updates', () => {
         it('updateQuorumNumerator is protected', async function () {
-          await expect(
-            this.mock.connect(this.owner).updateQuorumNumerator(newRatio),
-          )
+          await expect(this.mock.connect(this.owner).updateQuorumNumerator(newRatio))
             .to.be.revertedWithCustomError(this.mock, 'GovernorOnlyExecutor')
             .withArgs(this.owner)
         })
@@ -150,10 +125,7 @@ describe('GovernorVotesQuorumFraction', () => {
             [
               {
                 target: this.mock.target,
-                data: this.mock.interface.encodeFunctionData(
-                  'updateQuorumNumerator',
-                  [newRatio],
-                ),
+                data: this.mock.interface.encodeFunctionData('updateQuorumNumerator', [newRatio]),
               },
             ],
             '<proposal description>',
@@ -173,17 +145,13 @@ describe('GovernorVotesQuorumFraction', () => {
 
           // it takes one block for the new quorum to take effect
           expect(
-            await time.clock[mode]().then((blockNumber) =>
-              this.mock.quorum(blockNumber - 1n),
-            ),
+            await time.clock[mode]().then(blockNumber => this.mock.quorum(blockNumber - 1n)),
           ).to.equal((tokenSupply * ratio) / 100n)
 
           await mine()
 
           expect(
-            await time.clock[mode]().then((blockNumber) =>
-              this.mock.quorum(blockNumber - 1n),
-            ),
+            await time.clock[mode]().then(blockNumber => this.mock.quorum(blockNumber - 1n)),
           ).to.equal((tokenSupply * newRatio) / 100n)
         })
 
@@ -193,10 +161,9 @@ describe('GovernorVotesQuorumFraction', () => {
             [
               {
                 target: this.mock.target,
-                data: this.mock.interface.encodeFunctionData(
-                  'updateQuorumNumerator',
-                  [quorumNumerator],
-                ),
+                data: this.mock.interface.encodeFunctionData('updateQuorumNumerator', [
+                  quorumNumerator,
+                ]),
               },
             ],
             '<proposal description>',
@@ -210,10 +177,7 @@ describe('GovernorVotesQuorumFraction', () => {
           const quorumDenominator = await this.mock.quorumDenominator()
 
           await expect(this.helper.execute())
-            .to.be.revertedWithCustomError(
-              this.mock,
-              'GovernorInvalidQuorumFraction',
-            )
+            .to.be.revertedWithCustomError(this.mock, 'GovernorInvalidQuorumFraction')
             .withArgs(quorumNumerator, quorumDenominator)
         })
       })

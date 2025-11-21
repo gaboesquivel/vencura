@@ -51,16 +51,12 @@ describe('TransientSlot', () => {
       const event = `${name}Value`
 
       it('load', async function () {
-        await expect(this.mock[load](slot))
-          .to.emit(this.mock, event)
-          .withArgs(slot, zero)
+        await expect(this.mock[load](slot)).to.emit(this.mock, event).withArgs(slot, zero)
       })
 
       it('store and load (2 txs)', async function () {
         await this.mock[store](slot, value)
-        await expect(this.mock[load](slot))
-          .to.emit(this.mock, event)
-          .withArgs(slot, zero)
+        await expect(this.mock[load](slot)).to.emit(this.mock, event).withArgs(slot, zero)
       })
 
       it('store and load (batched)', async function () {
@@ -76,9 +72,7 @@ describe('TransientSlot', () => {
           .to.emit(this.mock, event)
           .withArgs(otherSlot, zero)
 
-        await expect(this.mock[load](slot))
-          .to.emit(this.mock, event)
-          .withArgs(slot, zero)
+        await expect(this.mock[load](slot)).to.emit(this.mock, event).withArgs(slot, zero)
       })
     })
   }

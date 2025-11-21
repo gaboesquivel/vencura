@@ -17,11 +17,7 @@ const deployReceiver = (
   returnValueSingle = RECEIVER_SINGLE_MAGIC_VALUE,
   returnValueBatched = RECEIVER_BATCH_MAGIC_VALUE,
 ) =>
-  ethers.deployContract('$ERC1155ReceiverMock', [
-    returnValueSingle,
-    returnValueBatched,
-    revertType,
-  ])
+  ethers.deployContract('$ERC1155ReceiverMock', [returnValueSingle, returnValueBatched, revertType])
 
 const fixture = async () => {
   const [eoa, operator, owner] = await ethers.getSigners()
@@ -141,10 +137,7 @@ describe('ERC1155Utils', () => {
           '0x',
         ),
       )
-        .to.be.revertedWithCustomError(
-          this.receivers.customError,
-          'CustomError',
-        )
+        .to.be.revertedWithCustomError(this.receivers.customError, 'CustomError')
         .withArgs(RECEIVER_SINGLE_MAGIC_VALUE)
     })
 
@@ -272,10 +265,7 @@ describe('ERC1155Utils', () => {
           '0x',
         ),
       )
-        .to.be.revertedWithCustomError(
-          this.receivers.customError,
-          'CustomError',
-        )
+        .to.be.revertedWithCustomError(this.receivers.customError, 'CustomError')
         .withArgs(RECEIVER_SINGLE_MAGIC_VALUE)
     })
 

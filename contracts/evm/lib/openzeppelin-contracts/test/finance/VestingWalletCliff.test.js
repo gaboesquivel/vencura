@@ -5,10 +5,7 @@ const { loadFixture } = require('@nomicfoundation/hardhat-network-helpers')
 const { min } = require('../helpers/math')
 const time = require('../helpers/time')
 
-const {
-  envSetup,
-  shouldBehaveLikeVesting,
-} = require('./VestingWallet.behavior')
+const { envSetup, shouldBehaveLikeVesting } = require('./VestingWallet.behavior')
 
 async function fixture() {
   const amount = ethers.parseEther('100')
@@ -31,15 +28,9 @@ async function fixture() {
 
   const env = await envSetup(mock, beneficiary, token)
 
-  const schedule = Array.from(
-    { length: 64 },
-    (_, i) => (BigInt(i) * duration) / 60n + start,
-  )
-  const vestingFn = (timestamp) =>
-    min(
-      amount,
-      timestamp < cliff ? 0n : (amount * (timestamp - start)) / duration,
-    )
+  const schedule = Array.from({ length: 64 }, (_, i) => (BigInt(i) * duration) / 60n + start)
+  const vestingFn = timestamp =>
+    min(amount, timestamp < cliff ? 0n : (amount * (timestamp - start)) / duration)
 
   return { mock, duration, start, beneficiary, cliff, schedule, vestingFn, env }
 }

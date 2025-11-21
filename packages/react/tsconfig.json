@@ -1,12 +1,12 @@
 {
-  "extends": "@workspace/typescript-config/react-library.json",
+  "extends": "@workspace/typescript-config/base.json",
   "compilerOptions": {
     "baseUrl": ".",
     "paths": {
       "@vencura/react/*": ["./src/*"]
-    }
+    },
+    "jsx": "react-jsx"
   },
   "include": [".", "../../config/typescript/reset.d.ts"],
   "exclude": ["node_modules", "dist"]
 }
-

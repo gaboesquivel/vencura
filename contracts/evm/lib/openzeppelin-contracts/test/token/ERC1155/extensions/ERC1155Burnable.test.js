@@ -24,34 +24,21 @@ describe('ERC1155Burnable', () => {
 
   describe('burn', () => {
     it('holder can burn their tokens', async function () {
-      await this.token
-        .connect(this.holder)
-        .burn(this.holder, ids[0], values[0] - 1n)
+      await this.token.connect(this.holder).burn(this.holder, ids[0], values[0] - 1n)
 
       expect(await this.token.balanceOf(this.holder, ids[0])).to.equal(1n)
     })
 
     it("approved operators can burn the holder's tokens", async function () {
-      await this.token
-        .connect(this.holder)
-        .setApprovalForAll(this.operator, true)
-      await this.token
-        .connect(this.operator)
-        .burn(this.holder, ids[0], values[0] - 1n)
+      await this.token.connect(this.holder).setApprovalForAll(this.operator, true)
+      await this.token.connect(this.operator).burn(this.holder, ids[0], values[0] - 1n)
 
       expect(await this.token.balanceOf(this.holder, ids[0])).to.equal(1n)
     })
 
     it("unapproved accounts cannot burn the holder's tokens", async function () {
-      await expect(
-        this.token
-          .connect(this.other)
-          .burn(this.holder, ids[0], values[0] - 1n),
-      )
-        .to.be.revertedWithCustomError(
-          this.token,
-          'ERC1155MissingApprovalForAll',
-        )
+      await expect(this.token.connect(this.other).burn(this.holder, ids[0], values[0] - 1n))
+        .to.be.revertedWithCustomError(this.token, 'ERC1155MissingApprovalForAll')
         .withArgs(this.other, this.holder)
     })
   })
@@ -67,9 +54,7 @@ describe('ERC1155Burnable', () => {
     })
 
     it("approved operators can burn the holder's tokens", async function () {
-      await this.token
-        .connect(this.holder)
-        .setApprovalForAll(this.operator, true)
+      await this.token.connect(this.holder).setApprovalForAll(this.operator, true)
       await this.token
         .connect(this.operator)
         .burnBatch(this.holder, ids, [values[0] - 1n, values[1] - 2n])
@@ -84,10 +69,7 @@ describe('ERC1155Burnable', () => {
           .connect(this.other)
           .burnBatch(this.holder, ids, [values[0] - 1n, values[1] - 2n]),
       )
-        .to.be.revertedWithCustomError(
-          this.token,
-          'ERC1155MissingApprovalForAll',
-        )
+        .to.be.revertedWithCustomError(this.token, 'ERC1155MissingApprovalForAll')
         .withArgs(this.other, this.holder)
     })
   })

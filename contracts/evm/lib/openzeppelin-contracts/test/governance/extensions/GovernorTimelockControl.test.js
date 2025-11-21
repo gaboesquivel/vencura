@@ -5,11 +5,7 @@ const { anyValue } = require('@nomicfoundation/hardhat-chai-matchers/withArgs')
 const { PANIC_CODES } = require('@nomicfoundation/hardhat-chai-matchers/panic')
 
 const { GovernorHelper, timelockSalt } = require('../../helpers/governance')
-const {
-  OperationState,
-  ProposalState,
-  VoteType,
-} = require('../../helpers/enums')
+const { OperationState, ProposalState, VoteType } = require('../../helpers/enums')
 const time = require('../../helpers/time')
 
 const TOKENS = [
@@ -35,21 +31,11 @@ const delay = time.duration.hours(1n)
 describe('GovernorTimelockControl', () => {
   for (const { Token, mode } of TOKENS) {
     const fixture = async () => {
-      const [deployer, owner, voter1, voter2, voter3, voter4, other] =
-        await ethers.getSigners()
+      const [deployer, owner, voter1, voter2, voter3, voter4, other] = await ethers.getSigners()
       const receiver = await ethers.deployContract('CallReceiverMock')
 
-      const token = await ethers.deployContract(Token, [
-        tokenName,
-        tokenSymbol,
-        version,
-      ])
-      const timelock = await ethers.deployContract('TimelockController', [
-        delay,
-        [],
-        [],
-        deployer,
-      ])
+      const token = await ethers.deployContract(Token, [tokenName, tokenSymbol, version])
+      const timelock = await ethers.deployContract('TimelockController', [delay, [], [], deployer])
       const mock = await ethers.deployContract('$GovernorTimelockControlMock', [
         name,
         votingDelay,
@@ -70,18 +56,10 @@ describe('GovernorTimelockControl', () => {
       await timelock.revokeRole(DEFAULT_ADMIN_ROLE, deployer)
 
       const helper = new GovernorHelper(mock, mode)
-      await helper
-        .connect(owner)
-        .delegate({ token, to: voter1, value: ethers.parseEther('10') })
-      await helper
-        .connect(owner)
-        .delegate({ token, to: voter2, value: ethers.parseEther('7') })
-      await helper
-        .connect(owner)
-        .delegate({ token, to: voter3, value: ethers.parseEther('5') })
-      await helper
-        .connect(owner)
-        .delegate({ token, to: voter4, value: ethers.parseEther('2') })
+      await helper.connect(owner).delegate({ token, to: voter1, value: ethers.parseEther('10') })
+      await helper.connect(owner).delegate({ token, to: voter2, value: ethers.parseEther('7') })
+      await helper.connect(owner).delegate({ token, to: voter3, value: ethers.parseEther('5') })
+      await helper.connect(owner).delegate({ token, to: voter4, value: ethers.parseEther('2') })
 
       return {
         deployer,
@@ -140,23 +118,17 @@ describe('GovernorTimelockControl', () => {
 
       it('nominal', async function () {
         expect(await this.mock.proposalEta(this.proposal.id)).to.equal(0n)
-        expect(await this.mock.proposalNeedsQueuing(this.proposal.id)).to.be
-          .true
+        expect(await this.mock.proposalNeedsQueuing(this.proposal.id)).to.be.true
 
         await this.helper.propose()
         await this.helper.waitForSnapshot()
         await this.helper.connect(this.voter1).vote({ support: VoteType.For })
         await this.helper.connect(this.voter2).vote({ support: VoteType.For })
-        await this.helper
-          .connect(this.voter3)
-          .vote({ support: VoteType.Against })
-        await this.helper
-          .connect(this.voter4)
-          .vote({ support: VoteType.Abstain })
+        await this.helper.connect(this.voter3).vote({ support: VoteType.Against })
+        await this.helper.connect(this.voter4).vote({ support: VoteType.Abstain })
         await this.helper.waitForDeadline()
 
-        expect(await this.mock.proposalNeedsQueuing(this.proposal.id)).to.be
-          .true
+        expect(await this.mock.proposalNeedsQueuing(this.proposal.id)).to.be.true
         const txQueue = await this.helper.queue()
 
         const eta = (await time.clockFromReceipt.timestamp(txQueue)) + delay
@@ -186,22 +158,15 @@ describe('GovernorTimelockControl', () => {
           it('if already queued', async function () {
             await this.helper.propose()
             await this.helper.waitForSnapshot()
-            await this.helper
-              .connect(this.voter1)
-              .vote({ support: VoteType.For })
+            await this.helper.connect(this.voter1).vote({ support: VoteType.For })
             await this.helper.waitForDeadline()
             await this.helper.queue()
             await expect(this.helper.queue())
-              .to.be.revertedWithCustomError(
-                this.mock,
-                'GovernorUnexpectedProposalState',
-              )
+              .to.be.revertedWithCustomError(this.mock, 'GovernorUnexpectedProposalState')
               .withArgs(
                 this.proposal.id,
                 ProposalState.Queued,
-                GovernorHelper.proposalStatesToBitMap([
-                  ProposalState.Succeeded,
-                ]),
+                GovernorHelper.proposalStatesToBitMap([ProposalState.Succeeded]),
               )
           })
         })
@@ -210,20 +175,13 @@ describe('GovernorTimelockControl', () => {
           it('if not queued', async function () {
             await this.helper.propose()
             await this.helper.waitForSnapshot()
-            await this.helper
-              .connect(this.voter1)
-              .vote({ support: VoteType.For })
+            await this.helper.connect(this.voter1).vote({ support: VoteType.For })
             await this.helper.waitForDeadline(1n)
 
-            expect(await this.mock.state(this.proposal.id)).to.equal(
-              ProposalState.Succeeded,
-            )
+            expect(await this.mock.state(this.proposal.id)).to.equal(ProposalState.Succeeded)
 
             await expect(this.helper.execute())
-              .to.be.revertedWithCustomError(
-                this.timelock,
-                'TimelockUnexpectedOperationState',
-              )
+              .to.be.revertedWithCustomError(this.timelock, 'TimelockUnexpectedOperationState')
               .withArgs(
                 this.proposal.timelockid,
                 GovernorHelper.proposalStatesToBitMap(OperationState.Ready),
@@ -233,21 +191,14 @@ describe('GovernorTimelockControl', () => {
           it('if too early', async function () {
             await this.helper.propose()
             await this.helper.waitForSnapshot()
-            await this.helper
-              .connect(this.voter1)
-              .vote({ support: VoteType.For })
+            await this.helper.connect(this.voter1).vote({ support: VoteType.For })
             await this.helper.waitForDeadline()
             await this.helper.queue()
 
-            expect(await this.mock.state(this.proposal.id)).to.equal(
-              ProposalState.Queued,
-            )
+            expect(await this.mock.state(this.proposal.id)).to.equal(ProposalState.Queued)
 
             await expect(this.helper.execute())
-              .to.be.revertedWithCustomError(
-                this.timelock,
-                'TimelockUnexpectedOperationState',
-              )
+              .to.be.revertedWithCustomError(this.timelock, 'TimelockUnexpectedOperationState')
               .withArgs(
                 this.proposal.timelockid,
                 GovernorHelper.proposalStatesToBitMap(OperationState.Ready),
@@ -257,19 +208,14 @@ describe('GovernorTimelockControl', () => {
           it('if already executed', async function () {
             await this.helper.propose()
             await this.helper.waitForSnapshot()
-            await this.helper
-              .connect(this.voter1)
-              .vote({ support: VoteType.For })
+            await this.helper.connect(this.voter1).vote({ support: VoteType.For })
             await this.helper.waitForDeadline()
             await this.helper.queue()
             await this.helper.waitForEta()
             await this.helper.execute()
 
             await expect(this.helper.execute())
-              .to.be.revertedWithCustomError(
-                this.mock,
-                'GovernorUnexpectedProposalState',
-              )
+              .to.be.revertedWithCustomError(this.mock, 'GovernorUnexpectedProposalState')
               .withArgs(
                 this.proposal.id,
                 ProposalState.Executed,
@@ -283,9 +229,7 @@ describe('GovernorTimelockControl', () => {
           it('if already executed by another proposer', async function () {
             await this.helper.propose()
             await this.helper.waitForSnapshot()
-            await this.helper
-              .connect(this.voter1)
-              .vote({ support: VoteType.For })
+            await this.helper.connect(this.voter1).vote({ support: VoteType.For })
             await this.helper.waitForDeadline()
             await this.helper.queue()
             await this.helper.waitForEta()
@@ -297,10 +241,7 @@ describe('GovernorTimelockControl', () => {
             )
 
             await expect(this.helper.execute())
-              .to.be.revertedWithCustomError(
-                this.mock,
-                'GovernorUnexpectedProposalState',
-              )
+              .to.be.revertedWithCustomError(this.mock, 'GovernorUnexpectedProposalState')
               .withArgs(
                 this.proposal.id,
                 ProposalState.Executed,
@@ -324,15 +265,10 @@ describe('GovernorTimelockControl', () => {
             .to.emit(this.mock, 'ProposalCanceled')
             .withArgs(this.proposal.id)
 
-          expect(await this.mock.state(this.proposal.id)).to.equal(
-            ProposalState.Canceled,
-          )
+          expect(await this.mock.state(this.proposal.id)).to.equal(ProposalState.Canceled)
 
           await expect(this.helper.queue())
-            .to.be.revertedWithCustomError(
-              this.mock,
-              'GovernorUnexpectedProposalState',
-            )
+            .to.be.revertedWithCustomError(this.mock, 'GovernorUnexpectedProposalState')
             .withArgs(
               this.proposal.id,
               ProposalState.Canceled,
@@ -351,15 +287,10 @@ describe('GovernorTimelockControl', () => {
             .to.emit(this.mock, 'ProposalCanceled')
             .withArgs(this.proposal.id)
 
-          expect(await this.mock.state(this.proposal.id)).to.equal(
-            ProposalState.Canceled,
-          )
+          expect(await this.mock.state(this.proposal.id)).to.equal(ProposalState.Canceled)
 
           await expect(this.helper.execute())
-            .to.be.revertedWithCustomError(
-              this.mock,
-              'GovernorUnexpectedProposalState',
-            )
+            .to.be.revertedWithCustomError(this.mock, 'GovernorUnexpectedProposalState')
             .withArgs(
               this.proposal.id,
               ProposalState.Canceled,
@@ -377,19 +308,13 @@ describe('GovernorTimelockControl', () => {
           await this.helper.waitForDeadline()
           await this.helper.queue()
 
-          expect(await this.mock.state(this.proposal.id)).to.equal(
-            ProposalState.Queued,
-          )
+          expect(await this.mock.state(this.proposal.id)).to.equal(ProposalState.Queued)
 
-          await expect(
-            this.timelock.connect(this.owner).cancel(this.proposal.timelockid),
-          )
+          await expect(this.timelock.connect(this.owner).cancel(this.proposal.timelockid))
             .to.emit(this.timelock, 'Cancelled')
             .withArgs(this.proposal.timelockid)
 
-          expect(await this.mock.state(this.proposal.id)).to.equal(
-            ProposalState.Canceled,
-          )
+          expect(await this.mock.state(this.proposal.id)).to.equal(ProposalState.Canceled)
         })
       })
 
@@ -406,10 +331,7 @@ describe('GovernorTimelockControl', () => {
                 .relay(
                   this.token,
                   0n,
-                  this.token.interface.encodeFunctionData('transfer', [
-                    this.other.address,
-                    1n,
-                  ]),
+                  this.token.interface.encodeFunctionData('transfer', [this.other.address, 1n]),
                 ),
             )
               .to.be.revertedWithCustomError(this.mock, 'GovernorOnlyExecutor')
@@ -424,10 +346,7 @@ describe('GovernorTimelockControl', () => {
                   data: this.mock.interface.encodeFunctionData('relay', [
                     this.token.target,
                     0n,
-                    this.token.interface.encodeFunctionData('transfer', [
-                      this.other.address,
-                      1n,
-                    ]),
+                    this.token.interface.encodeFunctionData('transfer', [this.other.address, 1n]),
                   ]),
                 },
               ],
@@ -436,9 +355,7 @@ describe('GovernorTimelockControl', () => {
 
             await this.helper.propose()
             await this.helper.waitForSnapshot()
-            await this.helper
-              .connect(this.voter1)
-              .vote({ support: VoteType.For })
+            await this.helper.connect(this.voter1).vote({ support: VoteType.For })
             await this.helper.waitForDeadline()
             await this.helper.queue()
             await this.helper.waitForEta()
@@ -477,9 +394,7 @@ describe('GovernorTimelockControl', () => {
 
             await this.helper.propose()
             await this.helper.waitForSnapshot()
-            await this.helper
-              .connect(this.voter1)
-              .vote({ support: VoteType.For })
+            await this.helper.connect(this.voter1).vote({ support: VoteType.For })
             await this.helper.waitForDeadline()
             await this.helper.queue()
             await this.helper.waitForEta()
@@ -494,11 +409,7 @@ describe('GovernorTimelockControl', () => {
             const call = [
               this.mock,
               0n,
-              this.mock.interface.encodeFunctionData('relay', [
-                ethers.ZeroAddress,
-                0n,
-                '0x',
-              ]),
+              this.mock.interface.encodeFunctionData('relay', [ethers.ZeroAddress, 0n, '0x']),
               ethers.ZeroHash,
               ethers.ZeroHash,
             ]
@@ -516,16 +427,16 @@ describe('GovernorTimelockControl', () => {
 
         describe('updateTimelock', () => {
           beforeEach(async function () {
-            this.newTimelock = await ethers.deployContract(
-              'TimelockController',
-              [delay, [this.mock], [this.mock], ethers.ZeroAddress],
-            )
+            this.newTimelock = await ethers.deployContract('TimelockController', [
+              delay,
+              [this.mock],
+              [this.mock],
+              ethers.ZeroAddress,
+            ])
           })
 
           it('is protected', async function () {
-            await expect(
-              this.mock.connect(this.owner).updateTimelock(this.newTimelock),
-            )
+            await expect(this.mock.connect(this.owner).updateTimelock(this.newTimelock))
               .to.be.revertedWithCustomError(this.mock, 'GovernorOnlyExecutor')
               .withArgs(this.owner)
           })
@@ -535,10 +446,9 @@ describe('GovernorTimelockControl', () => {
               [
                 {
                   target: this.mock.target,
-                  data: this.mock.interface.encodeFunctionData(
-                    'updateTimelock',
-                    [this.newTimelock.target],
-                  ),
+                  data: this.mock.interface.encodeFunctionData('updateTimelock', [
+                    this.newTimelock.target,
+                  ]),
                 },
               ],
               '<proposal description>',
@@ -546,9 +456,7 @@ describe('GovernorTimelockControl', () => {
 
             await this.helper.propose()
             await this.helper.waitForSnapshot()
-            await this.helper
-              .connect(this.voter1)
-              .vote({ support: VoteType.For })
+            await this.helper.connect(this.voter1).vote({ support: VoteType.For })
             await this.helper.waitForDeadline()
             await this.helper.queue()
             await this.helper.waitForEta()
@@ -566,22 +474,14 @@ describe('GovernorTimelockControl', () => {
             const tokenId = 1n
 
             beforeEach(async function () {
-              this.token = await ethers.deployContract('$ERC721', [
-                'Non Fungible Token',
-                'NFT',
-              ])
+              this.token = await ethers.deployContract('$ERC721', ['Non Fungible Token', 'NFT'])
               await this.token.$_mint(this.owner, tokenId)
             })
 
             it("can't receive an ERC721 safeTransfer", async function () {
               await expect(
-                this.token
-                  .connect(this.owner)
-                  .safeTransferFrom(this.owner, this.mock, tokenId),
-              ).to.be.revertedWithCustomError(
-                this.mock,
-                'GovernorDisabledDeposit',
-              )
+                this.token.connect(this.owner).safeTransferFrom(this.owner, this.mock, tokenId),
+              ).to.be.revertedWithCustomError(this.mock, 'GovernorDisabledDeposit')
             })
           })
 
@@ -612,10 +512,7 @@ describe('GovernorTimelockControl', () => {
                   ...Object.entries(tokenIds)[0], // id + amount
                   '0x',
                 ),
-              ).to.be.revertedWithCustomError(
-                this.mock,
-                'GovernorDisabledDeposit',
-              )
+              ).to.be.revertedWithCustomError(this.mock, 'GovernorDisabledDeposit')
             })
 
             it("can't receive ERC1155 safeBatchTransfer", async function () {
@@ -629,10 +526,7 @@ describe('GovernorTimelockControl', () => {
                     Object.values(tokenIds),
                     '0x',
                   ),
-              ).to.be.revertedWithCustomError(
-                this.mock,
-                'GovernorDisabledDeposit',
-              )
+              ).to.be.revertedWithCustomError(this.mock, 'GovernorDisabledDeposit')
             })
           })
         })
@@ -643,9 +537,7 @@ describe('GovernorTimelockControl', () => {
           [
             {
               target: this.mock.target,
-              data: this.mock.interface.encodeFunctionData(
-                'nonGovernanceFunction',
-              ),
+              data: this.mock.interface.encodeFunctionData('nonGovernanceFunction'),
             },
           ],
           '<proposal description>',

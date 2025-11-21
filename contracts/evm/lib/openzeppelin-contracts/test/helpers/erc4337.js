@@ -27,10 +27,7 @@ function packValidationData(validAfter, validUntil, authorizer) {
 }
 
 function packInitCode(factory, factoryData) {
-  return ethers.solidityPacked(
-    ['address', 'bytes'],
-    [getAddress(factory), factoryData],
-  )
+  return ethers.solidityPacked(['address', 'bytes'], [getAddress(factory), factoryData])
 }
 
 function packPaymasterAndData(
@@ -41,12 +38,7 @@ function packPaymasterAndData(
 ) {
   return ethers.solidityPacked(
     ['address', 'uint128', 'uint128', 'bytes'],
-    [
-      getAddress(paymaster),
-      paymasterVerificationGasLimit,
-      paymasterPostOpGasLimit,
-      paymasterData,
-    ],
+    [getAddress(paymaster), paymasterVerificationGasLimit, paymasterPostOpGasLimit, paymasterData],
   )
 }
 
@@ -64,8 +56,7 @@ class UserOperation {
     this.maxPriorityFee = params.maxPriorityFee ?? 100_000n
     this.maxFeePerGas = params.maxFeePerGas ?? 100_000n
     this.paymaster = params.paymaster ?? undefined
-    this.paymasterVerificationGasLimit =
-      params.paymasterVerificationGasLimit ?? 0n
+    this.paymasterVerificationGasLimit = params.paymasterVerificationGasLimit ?? 0n
     this.paymasterPostOpGasLimit = params.paymasterPostOpGasLimit ?? 0n
     this.paymasterData = params.paymasterData ?? '0x'
     this.signature = params.signature ?? '0x'
@@ -75,9 +66,7 @@ class UserOperation {
     return {
       sender: this.sender,
       nonce: this.nonce,
-      initCode: this.factory
-        ? packInitCode(this.factory, this.factoryData)
-        : '0x',
+      initCode: this.factory ? packInitCode(this.factory, this.factoryData) : '0x',
       callData: this.callData,
       accountGasLimits: pack(this.verificationGas, this.callGas),
       preVerificationGas: this.preVerificationGas,
@@ -98,16 +87,7 @@ class UserOperation {
     const p = this.packed
     const h = ethers.keccak256(
       ethers.AbiCoder.defaultAbiCoder().encode(
-        [
-          'address',
-          'uint256',
-          'bytes32',
-          'bytes32',
-          'uint256',
-          'uint256',
-          'uint256',
-          'uint256',
-        ],
+        ['address', 'uint256', 'bytes32', 'bytes32', 'uint256', 'uint256', 'uint256', 'uint256'],
         [
           p.sender,
           p.nonce,

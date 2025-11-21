@@ -18,9 +18,7 @@ describe('UpgradeableBeacon', () => {
   })
 
   it('cannot be created with non-contract implementation', async function () {
-    await expect(
-      ethers.deployContract('UpgradeableBeacon', [this.other, this.admin]),
-    )
+    await expect(ethers.deployContract('UpgradeableBeacon', [this.other, this.admin]))
       .to.be.revertedWithCustomError(this.beacon, 'BeaconInvalidImplementation')
       .withArgs(this.other)
   })
@@ -46,19 +44,13 @@ describe('UpgradeableBeacon', () => {
 
     it('cannot be upgraded to a non-contract', async function () {
       await expect(this.beacon.connect(this.admin).upgradeTo(this.other))
-        .to.be.revertedWithCustomError(
-          this.beacon,
-          'BeaconInvalidImplementation',
-        )
+        .to.be.revertedWithCustomError(this.beacon, 'BeaconInvalidImplementation')
         .withArgs(this.other)
     })
 
     it('cannot be upgraded by other account', async function () {
       await expect(this.beacon.connect(this.other).upgradeTo(this.v2))
-        .to.be.revertedWithCustomError(
-          this.beacon,
-          'OwnableUnauthorizedAccount',
-        )
+        .to.be.revertedWithCustomError(this.beacon, 'OwnableUnauthorizedAccount')
         .withArgs(this.other)
     })
   })

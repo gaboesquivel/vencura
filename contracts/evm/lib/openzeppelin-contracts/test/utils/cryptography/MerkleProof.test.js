@@ -5,7 +5,7 @@ const { SimpleMerkleTree } = require('@openzeppelin/merkle-tree')
 
 // generate bytes32 leaves from a string
 const toLeaves = (str, separator = '') =>
-  str.split(separator).map((e) => ethers.keccak256(ethers.toUtf8Bytes(e)))
+  str.split(separator).map(e => ethers.keccak256(ethers.toUtf8Bytes(e)))
 // internal node hashes
 const concatSorted = (...elements) =>
   Buffer.concat(elements.map(ethers.getBytes).sort(Buffer.compare))
@@ -29,8 +29,7 @@ describe('MerkleProof', () => {
       // stateless: no need for a fixture, just use before
       before(async function () {
         this.mock = await ethers.deployContract(contractName)
-        this.makeTree = (str) =>
-          SimpleMerkleTree.of(toLeaves(str), { nodeHash })
+        this.makeTree = str => SimpleMerkleTree.of(toLeaves(str), { nodeHash })
       })
 
       describe('verify', () => {
@@ -44,26 +43,17 @@ describe('MerkleProof', () => {
           const proof = merkleTree.getProof(0)
 
           expect(await this.mock.$processProof(proof, hash)).to.equal(root)
-          expect(await this.mock.$processProofCalldata(proof, hash)).to.equal(
-            root,
-          )
+          expect(await this.mock.$processProofCalldata(proof, hash)).to.equal(root)
           expect(await this.mock.$verify(proof, root, hash)).to.be.true
           expect(await this.mock.$verifyCalldata(proof, root, hash)).to.be.true
 
           // For demonstration, it is also possible to create valid proofs for certain 64-byte values *not* in elements:
           const noSuchLeaf = nodeHash(hash, proof.at(0))
 
-          expect(
-            await this.mock.$processProof(proof.slice(1), noSuchLeaf),
-          ).to.equal(root)
-          expect(
-            await this.mock.$processProofCalldata(proof.slice(1), noSuchLeaf),
-          ).to.equal(root)
-          expect(await this.mock.$verify(proof.slice(1), root, noSuchLeaf)).to
-            .be.true
-          expect(
-            await this.mock.$verifyCalldata(proof.slice(1), root, noSuchLeaf),
-          ).to.be.true
+          expect(await this.mock.$processProof(proof.slice(1), noSuchLeaf)).to.equal(root)
+          expect(await this.mock.$processProofCalldata(proof.slice(1), noSuchLeaf)).to.equal(root)
+          expect(await this.mock.$verify(proof.slice(1), root, noSuchLeaf)).to.be.true
+          expect(await this.mock.$verifyCalldata(proof.slice(1), root, noSuchLeaf)).to.be.true
         })
 
         it('returns false for an invalid Merkle proof', async function () {
@@ -75,9 +65,7 @@ describe('MerkleProof', () => {
           const proof = otherMerkleTree.getProof(0)
 
           expect(await this.mock.$processProof(proof, hash)).to.not.equal(root)
-          expect(
-            await this.mock.$processProofCalldata(proof, hash),
-          ).to.not.equal(root)
+          expect(await this.mock.$processProofCalldata(proof, hash)).to.not.equal(root)
           expect(await this.mock.$verify(proof, root, hash)).to.be.false
           expect(await this.mock.$verifyCalldata(proof, root, hash)).to.be.false
         })
@@ -90,15 +78,10 @@ describe('MerkleProof', () => {
           const proof = merkleTree.getProof(0)
           const badProof = proof.slice(0, -1)
 
-          expect(await this.mock.$processProof(badProof, hash)).to.not.equal(
-            root,
-          )
-          expect(
-            await this.mock.$processProofCalldata(badProof, hash),
-          ).to.not.equal(root)
+          expect(await this.mock.$processProof(badProof, hash)).to.not.equal(root)
+          expect(await this.mock.$processProofCalldata(badProof, hash)).to.not.equal(root)
           expect(await this.mock.$verify(badProof, root, hash)).to.be.false
-          expect(await this.mock.$verifyCalldata(badProof, root, hash)).to.be
-            .false
+          expect(await this.mock.$verifyCalldata(badProof, root, hash)).to.be.false
         })
       })
 
@@ -107,32 +90,16 @@ describe('MerkleProof', () => {
           const merkleTree = this.makeTree('abcdef')
 
           const root = merkleTree.root
-          const { proof, proofFlags, leaves } = merkleTree.getMultiProof(
-            toLeaves('bdf'),
-          )
-          const hashes = leaves.map((e) => merkleTree.leafHash(e))
+          const { proof, proofFlags, leaves } = merkleTree.getMultiProof(toLeaves('bdf'))
+          const hashes = leaves.map(e => merkleTree.leafHash(e))
 
-          expect(
-            await this.mock.$processMultiProof(proof, proofFlags, hashes),
-          ).to.equal(root)
-          expect(
-            await this.mock.$processMultiProofCalldata(
-              proof,
-              proofFlags,
-              hashes,
-            ),
-          ).to.equal(root)
-          expect(
-            await this.mock.$multiProofVerify(proof, proofFlags, root, hashes),
-          ).to.be.true
-          expect(
-            await this.mock.$multiProofVerifyCalldata(
-              proof,
-              proofFlags,
-              root,
-              hashes,
-            ),
-          ).to.be.true
+          expect(await this.mock.$processMultiProof(proof, proofFlags, hashes)).to.equal(root)
+          expect(await this.mock.$processMultiProofCalldata(proof, proofFlags, hashes)).to.equal(
+            root,
+          )
+          expect(await this.mock.$multiProofVerify(proof, proofFlags, root, hashes)).to.be.true
+          expect(await this.mock.$multiProofVerifyCalldata(proof, proofFlags, root, hashes)).to.be
+            .true
         })
 
         it('returns false for an invalid Merkle multi proof', async function () {
@@ -140,32 +107,16 @@ describe('MerkleProof', () => {
           const otherMerkleTree = this.makeTree('ghi')
 
           const root = merkleTree.root
-          const { proof, proofFlags, leaves } = otherMerkleTree.getMultiProof(
-            toLeaves('ghi'),
-          )
-          const hashes = leaves.map((e) => merkleTree.leafHash(e))
+          const { proof, proofFlags, leaves } = otherMerkleTree.getMultiProof(toLeaves('ghi'))
+          const hashes = leaves.map(e => merkleTree.leafHash(e))
 
+          expect(await this.mock.$processMultiProof(proof, proofFlags, hashes)).to.not.equal(root)
           expect(
-            await this.mock.$processMultiProof(proof, proofFlags, hashes),
+            await this.mock.$processMultiProofCalldata(proof, proofFlags, hashes),
           ).to.not.equal(root)
-          expect(
-            await this.mock.$processMultiProofCalldata(
-              proof,
-              proofFlags,
-              hashes,
-            ),
-          ).to.not.equal(root)
-          expect(
-            await this.mock.$multiProofVerify(proof, proofFlags, root, hashes),
-          ).to.be.false
-          expect(
-            await this.mock.$multiProofVerifyCalldata(
-              proof,
-              proofFlags,
-              root,
-              hashes,
-            ),
-          ).to.be.false
+          expect(await this.mock.$multiProofVerify(proof, proofFlags, root, hashes)).to.be.false
+          expect(await this.mock.$multiProofVerifyCalldata(proof, proofFlags, root, hashes)).to.be
+            .false
         })
 
         it('revert with invalid multi proof #1', async function () {
@@ -184,10 +135,7 @@ describe('MerkleProof', () => {
               [false, false, false],
               [hashA, hashE],
             ),
-          ).to.be.revertedWithCustomError(
-            this.mock,
-            'MerkleProofInvalidMultiproof',
-          )
+          ).to.be.revertedWithCustomError(this.mock, 'MerkleProofInvalidMultiproof')
 
           await expect(
             this.mock.$processMultiProofCalldata(
@@ -195,22 +143,14 @@ describe('MerkleProof', () => {
               [false, false, false],
               [hashA, hashE],
             ),
-          ).to.be.revertedWithCustomError(
-            this.mock,
-            'MerkleProofInvalidMultiproof',
-          )
+          ).to.be.revertedWithCustomError(this.mock, 'MerkleProofInvalidMultiproof')
 
           await expect(
-            this.mock.$multiProofVerify(
-              [hashB, fill, hashCD],
-              [false, false, false],
-              root,
-              [hashA, hashE],
-            ),
-          ).to.be.revertedWithCustomError(
-            this.mock,
-            'MerkleProofInvalidMultiproof',
-          )
+            this.mock.$multiProofVerify([hashB, fill, hashCD], [false, false, false], root, [
+              hashA,
+              hashE,
+            ]),
+          ).to.be.revertedWithCustomError(this.mock, 'MerkleProofInvalidMultiproof')
 
           await expect(
             this.mock.$multiProofVerifyCalldata(
@@ -219,10 +159,7 @@ describe('MerkleProof', () => {
               root,
               [hashA, hashE],
             ),
-          ).to.be.revertedWithCustomError(
-            this.mock,
-            'MerkleProofInvalidMultiproof',
-          )
+          ).to.be.revertedWithCustomError(this.mock, 'MerkleProofInvalidMultiproof')
         })
 
         it('revert with invalid multi proof #2', async function () {
@@ -252,12 +189,10 @@ describe('MerkleProof', () => {
           ).to.be.revertedWithPanic(PANIC_CODES.ARRAY_ACCESS_OUT_OF_BOUNDS)
 
           await expect(
-            this.mock.$multiProofVerify(
-              [hashB, fill, hashCD],
-              [false, false, false, false],
-              root,
-              [hashE, hashA],
-            ),
+            this.mock.$multiProofVerify([hashB, fill, hashCD], [false, false, false, false], root, [
+              hashE,
+              hashA,
+            ]),
           ).to.be.revertedWithPanic(PANIC_CODES.ARRAY_ACCESS_OUT_OF_BOUNDS)
 
           await expect(
@@ -274,49 +209,26 @@ describe('MerkleProof', () => {
           const merkleTree = this.makeTree('a')
 
           const root = merkleTree.root
-          const { proof, proofFlags, leaves } = merkleTree.getMultiProof(
-            toLeaves('a'),
-          )
-          const hashes = leaves.map((e) => merkleTree.leafHash(e))
+          const { proof, proofFlags, leaves } = merkleTree.getMultiProof(toLeaves('a'))
+          const hashes = leaves.map(e => merkleTree.leafHash(e))
 
-          expect(
-            await this.mock.$processMultiProof(proof, proofFlags, hashes),
-          ).to.equal(root)
-          expect(
-            await this.mock.$processMultiProofCalldata(
-              proof,
-              proofFlags,
-              hashes,
-            ),
-          ).to.equal(root)
-          expect(
-            await this.mock.$multiProofVerify(proof, proofFlags, root, hashes),
-          ).to.be.true
-          expect(
-            await this.mock.$multiProofVerifyCalldata(
-              proof,
-              proofFlags,
-              root,
-              hashes,
-            ),
-          ).to.be.true
+          expect(await this.mock.$processMultiProof(proof, proofFlags, hashes)).to.equal(root)
+          expect(await this.mock.$processMultiProofCalldata(proof, proofFlags, hashes)).to.equal(
+            root,
+          )
+          expect(await this.mock.$multiProofVerify(proof, proofFlags, root, hashes)).to.be.true
+          expect(await this.mock.$multiProofVerifyCalldata(proof, proofFlags, root, hashes)).to.be
+            .true
         })
 
         it('limit case: can prove empty leaves', async function () {
           const merkleTree = this.makeTree('abcd')
 
           const root = merkleTree.root
-          expect(await this.mock.$processMultiProof([root], [], [])).to.equal(
-            root,
-          )
-          expect(
-            await this.mock.$processMultiProofCalldata([root], [], []),
-          ).to.equal(root)
-          expect(await this.mock.$multiProofVerify([root], [], root, [])).to.be
-            .true
-          expect(
-            await this.mock.$multiProofVerifyCalldata([root], [], root, []),
-          ).to.be.true
+          expect(await this.mock.$processMultiProof([root], [], [])).to.equal(root)
+          expect(await this.mock.$processMultiProofCalldata([root], [], [])).to.equal(root)
+          expect(await this.mock.$multiProofVerify([root], [], root, [])).to.be.true
+          expect(await this.mock.$multiProofVerifyCalldata([root], [], root, [])).to.be.true
         })
 
         it('reverts processing manipulated proofs with a zero-value node at depth 1', async function () {
@@ -333,15 +245,8 @@ describe('MerkleProof', () => {
           const maliciousProofFlags = [true, true, false]
 
           await expect(
-            this.mock.$processMultiProof(
-              maliciousProof,
-              maliciousProofFlags,
-              maliciousLeaves,
-            ),
-          ).to.be.revertedWithCustomError(
-            this.mock,
-            'MerkleProofInvalidMultiproof',
-          )
+            this.mock.$processMultiProof(maliciousProof, maliciousProofFlags, maliciousLeaves),
+          ).to.be.revertedWithCustomError(this.mock, 'MerkleProofInvalidMultiproof')
 
           await expect(
             this.mock.$processMultiProofCalldata(
@@ -349,22 +254,11 @@ describe('MerkleProof', () => {
               maliciousProofFlags,
               maliciousLeaves,
             ),
-          ).to.be.revertedWithCustomError(
-            this.mock,
-            'MerkleProofInvalidMultiproof',
-          )
+          ).to.be.revertedWithCustomError(this.mock, 'MerkleProofInvalidMultiproof')
 
           await expect(
-            this.mock.$multiProofVerify(
-              maliciousProof,
-              maliciousProofFlags,
-              root,
-              maliciousLeaves,
-            ),
-          ).to.be.revertedWithCustomError(
-            this.mock,
-            'MerkleProofInvalidMultiproof',
-          )
+            this.mock.$multiProofVerify(maliciousProof, maliciousProofFlags, root, maliciousLeaves),
+          ).to.be.revertedWithCustomError(this.mock, 'MerkleProofInvalidMultiproof')
 
           await expect(
             this.mock.$multiProofVerifyCalldata(
@@ -373,10 +267,7 @@ describe('MerkleProof', () => {
               root,
               maliciousLeaves,
             ),
-          ).to.be.revertedWithCustomError(
-            this.mock,
-            'MerkleProofInvalidMultiproof',
-          )
+          ).to.be.revertedWithCustomError(this.mock, 'MerkleProofInvalidMultiproof')
         })
       })
     })

@@ -4,40 +4,43 @@
   "private": true,
   "description": "Shared API contracts and types for Vencura",
   "license": "PROPRIETARY",
-  "main": "./dist/cjs/index.cjs",
-  "module": "./dist/esm/index.mjs",
-  "types": "./dist/types/index.d.ts",
+  "main": "./dist/index.js",
+  "module": "./dist/index.mjs",
+  "types": "./dist/index.d.ts",
   "exports": {
     ".": {
-      "types": "./dist/types/index.d.ts",
-      "require": "./dist/cjs/index.cjs",
-      "import": "./dist/esm/index.mjs"
+      "types": "./dist/index.d.ts",
+      "require": "./dist/index.js",
+      "import": "./dist/index.mjs"
     },
     "./schemas": {
-      "types": "./dist/types/schemas/index.d.ts",
-      "require": "./dist/cjs/schemas/index.cjs",
-      "import": "./dist/esm/schemas/index.mjs"
+      "types": "./dist/schemas/index.d.ts",
+      "require": "./dist/schemas/index.js",
+      "import": "./dist/schemas/index.mjs"
     },
-    "./api-contracts": {
-      "types": "./dist/types/api-contracts/index.d.ts",
-      "require": "./dist/cjs/api-contracts/index.cjs",
-      "import": "./dist/esm/api-contracts/index.mjs"
+    "./contracts": {
+      "types": "./dist/contracts/index.d.ts",
+      "require": "./dist/contracts/index.js",
+      "import": "./dist/contracts/index.mjs"
     }
   },
   "scripts": {
     "build": "tsup",
-    "lint": "eslint . --max-warnings 0"
+    "lint": "eslint . --max-warnings 0",
+    "test": "vitest run",
+    "test:watch": "vitest",
+    "test:cov": "vitest run --coverage"
   },
   "dependencies": {
-    "@ts-rest/core": "^3.40.0",
     "zod": "^3.25.76"
   },
   "devDependencies": {
+    "@vitest/coverage-v8": "^4.0.13",
     "@workspace/eslint-config": "workspace:*",
     "@workspace/typescript-config": "workspace:*",
     "eslint": "^9.32.0",
     "tsup": "^8.3.5",
-    "typescript": "^5.9.2"
+    "typescript": "^5.9.2",
+    "vitest": "^4.0.13"
   }
 }
-

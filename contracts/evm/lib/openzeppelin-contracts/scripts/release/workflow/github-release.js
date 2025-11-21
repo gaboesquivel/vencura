@@ -19,18 +19,13 @@ module.exports = async ({ github, context }) => {
 function makeWordRegExp(word) {
   const start = word.length > 0 && /\b/.test(word[0]) ? '\\b' : ''
   const end = word.length > 0 && /\b/.test(word[word.length - 1]) ? '\\b' : ''
-  return new RegExp(
-    start +
-      [...word].map((c) => (/[a-z0-9]/i.test(c) ? c : '\\' + c)).join('') +
-      end,
-  )
+  return new RegExp(start + [...word].map(c => (/[a-z0-9]/i.test(c) ? c : '\\' + c)).join('') + end)
 }
 
 // From https://github.com/frangio/extract-changelog/blob/master/src/core.ts
 function extractSection(document, wantedHeading) {
   // ATX Headings as defined in GitHub Flavored Markdown (https://github.github.com/gfm/#atx-headings)
-  const heading =
-    /^ {0,3}(?<lead>#{1,6})(?: [ \t\v\f]*(?<text>.*?)[ \t\v\f]*)?(?:[\n\r]+|$)/gm
+  const heading = /^ {0,3}(?<lead>#{1,6})(?: [ \t\v\f]*(?<text>.*?)[ \t\v\f]*)?(?:[\n\r]+|$)/gm
 
   const wantedHeadingRe = makeWordRegExp(wantedHeading)
 

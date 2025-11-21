@@ -30,4 +30,3 @@ const customJestConfig = {
 module.exports = createJestConfig(customJestConfig)
 /* eslint-enable @typescript-eslint/no-require-imports */
 /* eslint-enable no-undef */
-

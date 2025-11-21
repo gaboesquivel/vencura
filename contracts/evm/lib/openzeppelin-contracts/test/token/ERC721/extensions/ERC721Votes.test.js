@@ -1,15 +1,10 @@
 const { ethers } = require('hardhat')
 const { expect } = require('chai')
-const {
-  loadFixture,
-  mine,
-} = require('@nomicfoundation/hardhat-network-helpers')
+const { loadFixture, mine } = require('@nomicfoundation/hardhat-network-helpers')
 
 const time = require('../../../helpers/time')
 
-const {
-  shouldBehaveLikeVotes,
-} = require('../../../governance/utils/Votes.behavior')
+const { shouldBehaveLikeVotes } = require('../../../governance/utils/Votes.behavior')
 
 const TOKENS = [
   { Token: '$ERC721Votes', mode: 'blocknumber' },
@@ -28,12 +23,7 @@ describe('ERC721Votes', () => {
       const accounts = await ethers.getSigners()
       const [holder, recipient, other1, other2] = accounts
 
-      const token = await ethers.deployContract(Token, [
-        name,
-        symbol,
-        name,
-        version,
-      ])
+      const token = await ethers.deployContract(Token, [name, symbol, name, version])
 
       return { accounts, holder, recipient, other1, other2, token }
     }
@@ -67,9 +57,7 @@ describe('ERC721Votes', () => {
 
         it('no delegation', async function () {
           await expect(
-            this.votes
-              .connect(this.holder)
-              .transferFrom(this.holder, this.recipient, tokens[0]),
+            this.votes.connect(this.holder).transferFrom(this.holder, this.recipient, tokens[0]),
           )
             .to.emit(this.token, 'Transfer')
             .withArgs(this.holder, this.recipient, tokens[0])
@@ -92,12 +80,8 @@ describe('ERC721Votes', () => {
             .withArgs(this.holder, 1n, 0n)
 
           const { logs } = await tx.wait()
-          const { index } = logs.find(
-            (event) => event.fragment.name == 'DelegateVotesChanged',
-          )
-          for (const event of logs.filter(
-            (event) => event.fragment.name == 'Transfer',
-          )) {
+          const { index } = logs.find(event => event.fragment.name == 'DelegateVotesChanged')
+          for (const event of logs.filter(event => event.fragment.name == 'Transfer')) {
             expect(event.index).to.lt(index)
           }
 
@@ -118,12 +102,8 @@ describe('ERC721Votes', () => {
             .withArgs(this.recipient, 0n, 1n)
 
           const { logs } = await tx.wait()
-          const { index } = logs.find(
-            (event) => event.fragment.name == 'DelegateVotesChanged',
-          )
-          for (const event of logs.filter(
-            (event) => event.fragment.name == 'Transfer',
-          )) {
+          const { index } = logs.find(event => event.fragment.name == 'DelegateVotesChanged')
+          for (const event of logs.filter(event => event.fragment.name == 'Transfer')) {
             expect(event.index).to.lt(index)
           }
 
@@ -147,12 +127,8 @@ describe('ERC721Votes', () => {
             .withArgs(this.recipient, 0n, 1n)
 
           const { logs } = await tx.wait()
-          const { index } = logs.find(
-            (event) => event.fragment.name == 'DelegateVotesChanged',
-          )
-          for (const event of logs.filter(
-            (event) => event.fragment.name == 'Transfer',
-          )) {
+          const { index } = logs.find(event => event.fragment.name == 'DelegateVotesChanged')
+          for (const event of logs.filter(event => event.fragment.name == 'Transfer')) {
             expect(event.index).to.lt(index)
           }
 
@@ -170,12 +146,8 @@ describe('ERC721Votes', () => {
 
           await mine(2)
 
-          expect(await this.votes.getPastTotalSupply(timepoint - 1n)).to.equal(
-            1n,
-          )
-          expect(await this.votes.getPastTotalSupply(timepoint + 1n)).to.equal(
-            1n,
-          )
+          expect(await this.votes.getPastTotalSupply(timepoint - 1n)).to.equal(1n)
+          expect(await this.votes.getPastTotalSupply(timepoint + 1n)).to.equal(1n)
 
           this.holderVotes = 0n
           this.recipientVotes = 0n
@@ -208,55 +180,31 @@ describe('ERC721Votes', () => {
           t3.timepoint = await time.clockFromReceipt[mode](t3)
           t4.timepoint = await time.clockFromReceipt[mode](t4)
 
-          expect(
-            await this.votes.getPastVotes(this.other1, t1.timepoint - 1n),
-          ).to.equal(0n)
-          expect(
-            await this.votes.getPastVotes(this.other1, t1.timepoint),
-          ).to.equal(total)
-          expect(
-            await this.votes.getPastVotes(this.other1, t1.timepoint + 1n),
-          ).to.equal(total)
-          expect(
-            await this.votes.getPastVotes(this.other1, t2.timepoint),
-          ).to.equal(3n)
-          expect(
-            await this.votes.getPastVotes(this.other1, t2.timepoint + 1n),
-          ).to.equal(3n)
-          expect(
-            await this.votes.getPastVotes(this.other1, t3.timepoint),
-          ).to.equal(2n)
-          expect(
-            await this.votes.getPastVotes(this.other1, t3.timepoint + 1n),
-          ).to.equal(2n)
-          expect(
-            await this.votes.getPastVotes(this.other1, t4.timepoint),
-          ).to.equal('3')
-          expect(
-            await this.votes.getPastVotes(this.other1, t4.timepoint + 1n),
-          ).to.equal(3n)
+          expect(await this.votes.getPastVotes(this.other1, t1.timepoint - 1n)).to.equal(0n)
+          expect(await this.votes.getPastVotes(this.other1, t1.timepoint)).to.equal(total)
+          expect(await this.votes.getPastVotes(this.other1, t1.timepoint + 1n)).to.equal(total)
+          expect(await this.votes.getPastVotes(this.other1, t2.timepoint)).to.equal(3n)
+          expect(await this.votes.getPastVotes(this.other1, t2.timepoint + 1n)).to.equal(3n)
+          expect(await this.votes.getPastVotes(this.other1, t3.timepoint)).to.equal(2n)
+          expect(await this.votes.getPastVotes(this.other1, t3.timepoint + 1n)).to.equal(2n)
+          expect(await this.votes.getPastVotes(this.other1, t4.timepoint)).to.equal('3')
+          expect(await this.votes.getPastVotes(this.other1, t4.timepoint + 1n)).to.equal(3n)
 
           this.holderVotes = 0n
           this.recipientVotes = 0n
         })
 
         afterEach(async function () {
-          expect(await this.votes.getVotes(this.holder)).to.equal(
-            this.holderVotes,
-          )
-          expect(await this.votes.getVotes(this.recipient)).to.equal(
-            this.recipientVotes,
-          )
+          expect(await this.votes.getVotes(this.holder)).to.equal(this.holderVotes)
+          expect(await this.votes.getVotes(this.recipient)).to.equal(this.recipientVotes)
 
           // need to advance 2 blocks to see the effect of a transfer on "getPastVotes"
           const timepoint = await time.clock[mode]()
           await mine()
-          expect(
-            await this.votes.getPastVotes(this.holder, timepoint),
-          ).to.equal(this.holderVotes)
-          expect(
-            await this.votes.getPastVotes(this.recipient, timepoint),
-          ).to.equal(this.recipientVotes)
+          expect(await this.votes.getPastVotes(this.holder, timepoint)).to.equal(this.holderVotes)
+          expect(await this.votes.getPastVotes(this.recipient, timepoint)).to.equal(
+            this.recipientVotes,
+          )
         })
       })
     })

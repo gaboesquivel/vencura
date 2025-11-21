@@ -10,19 +10,14 @@ const { _: artifacts } = require('yargs').argv
 const skipPatterns = ['contracts-exposed/**', 'contracts/mocks/WithInit.sol']
 
 for (const artifact of artifacts) {
-  const { output: solcOutput } = require(
-    path.resolve(__dirname, '../..', artifact),
-  )
+  const { output: solcOutput } = require(path.resolve(__dirname, '../..', artifact))
 
   const pragma = {}
 
   // Extract pragma directive for all files
   for (const source in solcOutput.contracts) {
     if (match.any(source, skipPatterns)) continue
-    for (const { literals } of findAll(
-      'PragmaDirective',
-      solcOutput.sources[source].ast,
-    )) {
+    for (const { literals } of findAll('PragmaDirective', solcOutput.sources[source].ast)) {
       // There should only be one.
       const [first, ...rest] = literals
       if (first === 'solidity') pragma[source] = rest.join('')
@@ -35,10 +30,7 @@ for (const artifact of artifacts) {
     // minimum version of the compiler that matches source's pragma
     const minVersion = semver.minVersion(pragma[source])
     // loop over all imports in source
-    for (const { absolutePath } of findAll(
-      'ImportDirective',
-      solcOutput.sources[source].ast,
-    )) {
+    for (const { absolutePath } of findAll('ImportDirective', solcOutput.sources[source].ast)) {
       // So files that only import without declaring anything cause issues, because they don't shop in in "pragma"
       if (!pragma[absolutePath]) continue
       // Check that the minVersion for source satisfies the requirements of the imported files

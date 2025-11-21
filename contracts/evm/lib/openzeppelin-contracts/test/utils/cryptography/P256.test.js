@@ -26,7 +26,7 @@ const prepareSignature = (
   const { r, s, recovery } = ensureLowerOrderS(
     secp256r1.sign(messageHash.replace(/0x/, ''), privateKey),
   )
-  const signature = [r, s].map((v) => ethers.toBeHex(v, 0x20))
+  const signature = [r, s].map(v => ethers.toBeHex(v, 0x20))
 
   return { privateKey, publicKey, signature, recovery, messageHash }
 }
@@ -46,38 +46,19 @@ describe('P256', () => {
     })
 
     it('verify valid signature', async function () {
+      expect(await this.mock.$verify(this.messageHash, ...this.signature, ...this.publicKey)).to.be
+        .true
       expect(
-        await this.mock.$verify(
-          this.messageHash,
-          ...this.signature,
-          ...this.publicKey,
-        ),
+        await this.mock.$verifySolidity(this.messageHash, ...this.signature, ...this.publicKey),
       ).to.be.true
-      expect(
-        await this.mock.$verifySolidity(
-          this.messageHash,
-          ...this.signature,
-          ...this.publicKey,
-        ),
-      ).to.be.true
-      await expect(
-        this.mock.$verifyNative(
-          this.messageHash,
-          ...this.signature,
-          ...this.publicKey,
-        ),
-      )
+      await expect(this.mock.$verifyNative(this.messageHash, ...this.signature, ...this.publicKey))
         .to.be.revertedWithCustomError(this.mock, 'MissingPrecompile')
         .withArgs('0x0000000000000000000000000000000000000100')
     })
 
     it('recover public key', async function () {
       expect(
-        await this.mock.$recovery(
-          this.messageHash,
-          this.recovery,
-          ...this.signature,
-        ),
+        await this.mock.$recovery(this.messageHash, this.recovery, ...this.signature),
       ).to.deep.equal(this.publicKey)
     })
 
@@ -85,27 +66,13 @@ describe('P256', () => {
       // flip public key
       this.publicKey.reverse()
 
+      expect(await this.mock.$verify(this.messageHash, ...this.signature, ...this.publicKey)).to.be
+        .false
       expect(
-        await this.mock.$verify(
-          this.messageHash,
-          ...this.signature,
-          ...this.publicKey,
-        ),
+        await this.mock.$verifySolidity(this.messageHash, ...this.signature, ...this.publicKey),
       ).to.be.false
-      expect(
-        await this.mock.$verifySolidity(
-          this.messageHash,
-          ...this.signature,
-          ...this.publicKey,
-        ),
-      ).to.be.false
-      expect(
-        await this.mock.$verifyNative(
-          this.messageHash,
-          ...this.signature,
-          ...this.publicKey,
-        ),
-      ).to.be.false // Flipped public key is not in the curve
+      expect(await this.mock.$verifyNative(this.messageHash, ...this.signature, ...this.publicKey))
+        .to.be.false // Flipped public key is not in the curve
     })
 
     it('reject signature with flipped signature values ([r,s] >> [s,r])', async function () {
@@ -116,54 +83,29 @@ describe('P256', () => {
       ]
 
       // Corresponding hash and public key
-      this.messageHash =
-        '0x2ad1f900fe63745deeaedfdf396cb6f0f991c4338a9edf114d52f7d1812040a0'
+      this.messageHash = '0x2ad1f900fe63745deeaedfdf396cb6f0f991c4338a9edf114d52f7d1812040a0'
       this.publicKey = [
         '0x9e30de165e521257996425d9bf12a7d366925614bf204eabbb78172b48e52e59',
         '0x94bf0fe72f99654d7beae4780a520848e306d46a1275b965c4f4c2b8e9a2c08d',
       ]
 
       // Make sure it works
-      expect(
-        await this.mock.$verify(
-          this.messageHash,
-          ...this.signature,
-          ...this.publicKey,
-        ),
-      ).to.be.true
+      expect(await this.mock.$verify(this.messageHash, ...this.signature, ...this.publicKey)).to.be
+        .true
 
       // Flip signature
       this.signature.reverse()
 
+      expect(await this.mock.$verify(this.messageHash, ...this.signature, ...this.publicKey)).to.be
+        .false
       expect(
-        await this.mock.$verify(
-          this.messageHash,
-          ...this.signature,
-          ...this.publicKey,
-        ),
+        await this.mock.$verifySolidity(this.messageHash, ...this.signature, ...this.publicKey),
       ).to.be.false
-      expect(
-        await this.mock.$verifySolidity(
-          this.messageHash,
-          ...this.signature,
-          ...this.publicKey,
-        ),
-      ).to.be.false
-      await expect(
-        this.mock.$verifyNative(
-          this.messageHash,
-          ...this.signature,
-          ...this.publicKey,
-        ),
-      )
+      await expect(this.mock.$verifyNative(this.messageHash, ...this.signature, ...this.publicKey))
         .to.be.revertedWithCustomError(this.mock, 'MissingPrecompile')
         .withArgs('0x0000000000000000000000000000000000000100')
       expect(
-        await this.mock.$recovery(
-          this.messageHash,
-          this.recovery,
-          ...this.signature,
-        ),
+        await this.mock.$recovery(this.messageHash, this.recovery, ...this.signature),
       ).to.not.deep.equal(this.publicKey)
     })
 
@@ -171,35 +113,16 @@ describe('P256', () => {
       // random message hash
       this.messageHash = ethers.hexlify(ethers.randomBytes(32))
 
+      expect(await this.mock.$verify(this.messageHash, ...this.signature, ...this.publicKey)).to.be
+        .false
       expect(
-        await this.mock.$verify(
-          this.messageHash,
-          ...this.signature,
-          ...this.publicKey,
-        ),
+        await this.mock.$verifySolidity(this.messageHash, ...this.signature, ...this.publicKey),
       ).to.be.false
-      expect(
-        await this.mock.$verifySolidity(
-          this.messageHash,
-          ...this.signature,
-          ...this.publicKey,
-        ),
-      ).to.be.false
-      await expect(
-        this.mock.$verifyNative(
-          this.messageHash,
-          ...this.signature,
-          ...this.publicKey,
-        ),
-      )
+      await expect(this.mock.$verifyNative(this.messageHash, ...this.signature, ...this.publicKey))
         .to.be.revertedWithCustomError(this.mock, 'MissingPrecompile')
         .withArgs('0x0000000000000000000000000000000000000100')
       expect(
-        await this.mock.$recovery(
-          this.messageHash,
-          this.recovery,
-          ...this.signature,
-        ),
+        await this.mock.$recovery(this.messageHash, this.recovery, ...this.signature),
       ).to.not.deep.equal(this.publicKey)
     })
 
@@ -208,25 +131,16 @@ describe('P256', () => {
       this.recovery = 1 - this.recovery
 
       expect(
-        await this.mock.$recovery(
-          this.messageHash,
-          this.recovery,
-          ...this.signature,
-        ),
+        await this.mock.$recovery(this.messageHash, this.recovery, ...this.signature),
       ).to.not.deep.equal(this.publicKey)
     })
   })
 
   // test cases for https://github.com/C2SP/wycheproof/blob/4672ff74d68766e7785c2cac4c597effccef2c5c/testvectors/ecdsa_secp256r1_sha256_p1363_test.json
   describe('wycheproof tests', () => {
-    for (const {
-      key,
-      tests,
-    } of require('./ecdsa_secp256r1_sha256_p1363_test.json').testGroups) {
+    for (const { key, tests } of require('./ecdsa_secp256r1_sha256_p1363_test.json').testGroups) {
       // parse public key
-      let [x, y] = [key.wx, key.wy].map((v) =>
-        ethers.stripZerosLeft('0x' + v, 32),
-      )
+      let [x, y] = [key.wx, key.wy].map(v => ethers.stripZerosLeft('0x' + v, 32))
       if (x.length > 66 || y.length > 66) continue
       x = ethers.zeroPadValue(x, 32)
       y = ethers.zeroPadValue(y, 32)
@@ -240,9 +154,7 @@ describe('P256', () => {
           // split signature, and reduce modulo N
           let [r, s] = Array(2)
             .fill()
-            .map((_, i) =>
-              ethers.toBigInt('0x' + sig.substring(64 * i, 64 * (i + 1))),
-            )
+            .map((_, i) => ethers.toBigInt('0x' + sig.substring(64 * i, 64 * (i + 1))))
           // move s to lower part of the curve if needed
           if (s <= N && s > N / 2n) s = N - s
           // prepare signature
@@ -252,9 +164,7 @@ describe('P256', () => {
           const messageHash = ethers.sha256('0x' + msg)
 
           // check verify
-          expect(await this.mock.$verify(messageHash, r, s, x, y)).to.equal(
-            result == 'valid',
-          )
+          expect(await this.mock.$verify(messageHash, r, s, x, y)).to.equal(result == 'valid')
         })
       }
     }

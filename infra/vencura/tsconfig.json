@@ -12,4 +12,3 @@
   "include": ["**/*.ts", "../../config/typescript/reset.d.ts"],
   "exclude": ["node_modules", "bin"]
 }
-

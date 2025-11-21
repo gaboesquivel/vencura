@@ -4,10 +4,7 @@ const { unique } = require('./iterate')
 const time = require('./time')
 
 const timelockSalt = (address, descriptionHash) =>
-  ethers.toBeHex(
-    (ethers.toBigInt(address) << 96n) ^ ethers.toBigInt(descriptionHash),
-    32,
-  )
+  ethers.toBeHex((ethers.toBigInt(address) << 96n) ^ ethers.toBigInt(descriptionHash), 32)
 
 class GovernorHelper {
   constructor(governor, mode = 'blocknumber') {
@@ -28,15 +25,11 @@ class GovernorHelper {
    */
   setProposal(actions, description) {
     if (Array.isArray(actions)) {
-      this.targets = actions.map((a) => a.target)
-      this.values = actions.map((a) => a.value || 0n)
-      this.data = actions.map((a) => a.data || '0x')
+      this.targets = actions.map(a => a.target)
+      this.values = actions.map(a => a.value || 0n)
+      this.data = actions.map(a => a.data || '0x')
     } else {
-      ;({
-        targets: this.targets,
-        values: this.values,
-        data: this.data,
-      } = actions)
+      ;({ targets: this.targets, values: this.values, data: this.data } = actions)
     }
     this.description = description
     return this
@@ -79,13 +72,11 @@ class GovernorHelper {
     return Promise.all([
       delegation.token.connect(delegation.to).delegate(delegation.to),
       delegation.value === undefined ||
-        delegation.token
-          .connect(this.governor.runner)
-          .transfer(delegation.to, delegation.value),
+        delegation.token.connect(this.governor.runner).transfer(delegation.to, delegation.value),
       delegation.tokenId === undefined ||
         delegation.token
           .ownerOf(delegation.tokenId)
-          .then((owner) =>
+          .then(owner =>
             delegation.token
               .connect(this.governor.runner)
               .transferFrom(owner, delegation.to, delegation.tokenId),
@@ -213,9 +204,7 @@ class GovernorHelper {
 
     for (const state of unique(proposalStates)) {
       if (state < 0n || state >= statesCount) {
-        expect.fail(
-          `ProposalState ${state} out of possible states (0...${statesCount}-1)`,
-        )
+        expect.fail(`ProposalState ${state} out of possible states (0...${statesCount}-1)`)
       } else {
         result |= 1n << state
       }

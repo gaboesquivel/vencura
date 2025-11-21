@@ -21,13 +21,12 @@ function shouldBehaveLikeDelayedAdminOperation() {
   testAsDelayedOperation.mineDelay = true
   getAccessPath.requiredRoleIsGranted.roleGrantingIsDelayed.callerHasAnExecutionDelay.afterGrantDelay =
     testAsDelayedOperation
-  getAccessPath.requiredRoleIsGranted.roleGrantingIsNotDelayed.callerHasAnExecutionDelay =
-    () => {
-      beforeEach('set execution delay', async function () {
-        this.scheduleIn = this.executionDelay // For testAsDelayedOperation
-      })
-      testAsSchedulableOperation(LIKE_COMMON_SCHEDULABLE)
-    }
+  getAccessPath.requiredRoleIsGranted.roleGrantingIsNotDelayed.callerHasAnExecutionDelay = () => {
+    beforeEach('set execution delay', async function () {
+      this.scheduleIn = this.executionDelay // For testAsDelayedOperation
+    })
+    testAsSchedulableOperation(LIKE_COMMON_SCHEDULABLE)
+  }
 
   beforeEach('set target as manager', function () {
     this.target = this.manager
@@ -45,10 +44,7 @@ function shouldBehaveLikeDelayedAdminOperation() {
                 data: this.calldata,
               }),
             )
-              .to.be.revertedWithCustomError(
-                this.target,
-                'AccessManagerUnauthorizedAccount',
-              )
+              .to.be.revertedWithCustomError(this.target, 'AccessManagerUnauthorizedAccount')
               .withArgs(
                 this.caller,
                 this.roles.ADMIN.id, // Although PUBLIC is required, target function role doesn't apply to admin ops
@@ -98,10 +94,7 @@ function shouldBehaveLikeNotDelayedAdminOperation() {
                 data: this.calldata,
               }),
             )
-              .to.be.revertedWithCustomError(
-                this.target,
-                'AccessManagerUnauthorizedAccount',
-              )
+              .to.be.revertedWithCustomError(this.target, 'AccessManagerUnauthorizedAccount')
               .withArgs(
                 this.caller,
                 this.roles.ADMIN.id, // Although PUBLIC_ROLE is required, admin ops are not subject to target function roles
@@ -149,10 +142,7 @@ function shouldBehaveLikeRoleAdminOperation(roleAdmin) {
                 data: this.calldata,
               }),
             )
-              .to.be.revertedWithCustomError(
-                this.target,
-                'AccessManagerUnauthorizedAccount',
-              )
+              .to.be.revertedWithCustomError(this.target, 'AccessManagerUnauthorizedAccount')
               .withArgs(this.caller, roleAdmin)
           })
         },
@@ -170,9 +160,7 @@ function shouldBehaveLikeRoleAdminOperation(roleAdmin) {
 function shouldBehaveLikeAManagedRestrictedOperation() {
   function revertUnauthorized() {
     it('reverts as AccessManagedUnauthorized', async function () {
-      await expect(
-        this.caller.sendTransaction({ to: this.target, data: this.calldata }),
-      )
+      await expect(this.caller.sendTransaction({ to: this.target, data: this.calldata }))
         .to.be.revertedWithCustomError(this.target, 'AccessManagedUnauthorized')
         .withArgs(this.caller)
     })
@@ -218,9 +206,7 @@ function shouldBehaveLikeAManagedRestrictedOperation() {
           })
 
           it('succeeds via execute', async function () {
-            await this.manager
-              .connect(this.caller)
-              .execute(this.target, this.calldata)
+            await this.manager.connect(this.caller).execute(this.target, this.calldata)
           })
         },
         specificRoleIsRequired: getAccessPath,
@@ -235,13 +221,8 @@ function shouldBehaveLikeAManagedRestrictedOperation() {
 function shouldBehaveLikeASelfRestrictedOperation() {
   function revertUnauthorized() {
     it('reverts as AccessManagerUnauthorizedAccount', async function () {
-      await expect(
-        this.caller.sendTransaction({ to: this.target, data: this.calldata }),
-      )
-        .to.be.revertedWithCustomError(
-          this.manager,
-          'AccessManagerUnauthorizedAccount',
-        )
+      await expect(this.caller.sendTransaction({ to: this.target, data: this.calldata }))
+        .to.be.revertedWithCustomError(this.manager, 'AccessManagerUnauthorizedAccount')
         .withArgs(this.caller, this.role?.id ?? 0n)
     })
   }
@@ -284,9 +265,7 @@ function shouldBehaveLikeASelfRestrictedOperation() {
           })
 
           it('succeeds via execute', async function () {
-            await this.manager
-              .connect(this.caller)
-              .execute(this.target, this.calldata)
+            await this.manager.connect(this.caller).execute(this.target, this.calldata)
           })
         },
         specificRoleIsRequired: getAccessPath,

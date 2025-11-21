@@ -6,10 +6,7 @@ async function envSetup(mock, beneficiary, token) {
   return {
     eth: {
       checkRelease: async (tx, amount) => {
-        await expect(tx).to.changeEtherBalances(
-          [mock, beneficiary],
-          [-amount, amount],
-        )
+        await expect(tx).to.changeEtherBalances([mock, beneficiary], [-amount, amount])
       },
       setupFailure: async () => {
         const beneficiaryMock = await ethers.deployContract('EtherReceiverMock')
@@ -22,20 +19,11 @@ async function envSetup(mock, beneficiary, token) {
     },
     token: {
       checkRelease: async (tx, amount) => {
-        await expect(tx)
-          .to.emit(token, 'Transfer')
-          .withArgs(mock, beneficiary, amount)
-        await expect(tx).to.changeTokenBalances(
-          token,
-          [mock, beneficiary],
-          [-amount, amount],
-        )
+        await expect(tx).to.emit(token, 'Transfer').withArgs(mock, beneficiary, amount)
+        await expect(tx).to.changeTokenBalances(token, [mock, beneficiary], [-amount, amount])
       },
       setupFailure: async () => {
-        const pausableToken = await ethers.deployContract('$ERC20Pausable', [
-          'Name',
-          'Symbol',
-        ])
+        const pausableToken = await ethers.deployContract('$ERC20Pausable', ['Name', 'Symbol'])
         await pausableToken.$_pause()
         return {
           args: [ethers.Typed.address(pausableToken)],
@@ -54,9 +42,7 @@ function shouldBehaveLikeVesting() {
       await time.increaseTo.timestamp(timestamp)
       const vesting = this.vestingFn(timestamp)
 
-      expect(await this.mock.vestedAmount(...this.args, timestamp)).to.equal(
-        vesting,
-      )
+      expect(await this.mock.vestedAmount(...this.args, timestamp)).to.equal(vesting)
       expect(await this.mock.releasable(...this.args)).to.equal(vesting)
     }
   })
@@ -90,9 +76,7 @@ function shouldBehaveLikeVesting() {
     for (const timestamp of this.schedule) {
       await time.increaseTo.timestamp(timestamp)
 
-      await expect(this.mock.release(...args)).to.be.revertedWithCustomError(
-        ...error,
-      )
+      await expect(this.mock.release(...args)).to.be.revertedWithCustomError(...error)
     }
   })
 }

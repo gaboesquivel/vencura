@@ -19,30 +19,24 @@ describe('MessageHashUtils', () => {
       const message = ethers.randomBytes(32)
       const expectedHash = ethers.hashMessage(message)
 
-      expect(
-        await this.mock.getFunction('$toEthSignedMessageHash(bytes32)')(
-          message,
-        ),
-      ).to.equal(expectedHash)
+      expect(await this.mock.getFunction('$toEthSignedMessageHash(bytes32)')(message)).to.equal(
+        expectedHash,
+      )
     })
 
     it('prefixes dynamic length data correctly', async function () {
       const message = ethers.randomBytes(128)
       const expectedHash = ethers.hashMessage(message)
 
-      expect(
-        await this.mock.getFunction('$toEthSignedMessageHash(bytes)')(message),
-      ).to.equal(expectedHash)
+      expect(await this.mock.getFunction('$toEthSignedMessageHash(bytes)')(message)).to.equal(
+        expectedHash,
+      )
     })
 
     it('version match for bytes32', async function () {
       const message = ethers.randomBytes(32)
-      const fixed = await this.mock.getFunction(
-        '$toEthSignedMessageHash(bytes32)',
-      )(message)
-      const dynamic = await this.mock.getFunction(
-        '$toEthSignedMessageHash(bytes)',
-      )(message)
+      const fixed = await this.mock.getFunction('$toEthSignedMessageHash(bytes32)')(message)
+      const dynamic = await this.mock.getFunction('$toEthSignedMessageHash(bytes)')(message)
 
       expect(fixed).to.equal(dynamic)
     })
@@ -57,9 +51,9 @@ describe('MessageHashUtils', () => {
         ['\x19\x00', verifier, message],
       )
 
-      expect(
-        await this.mock.$toDataWithIntendedValidatorHash(verifier, message),
-      ).to.equal(expectedHash)
+      expect(await this.mock.$toDataWithIntendedValidatorHash(verifier, message)).to.equal(
+        expectedHash,
+      )
     })
   })
 
@@ -74,9 +68,9 @@ describe('MessageHashUtils', () => {
       const structhash = ethers.randomBytes(32)
       const expectedHash = hashTypedData(domain, structhash)
 
-      expect(
-        await this.mock.$toTypedDataHash(domainSeparator(domain), structhash),
-      ).to.equal(expectedHash)
+      expect(await this.mock.$toTypedDataHash(domainSeparator(domain), structhash)).to.equal(
+        expectedHash,
+      )
     })
   })
 })

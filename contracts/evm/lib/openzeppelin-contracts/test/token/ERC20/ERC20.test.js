@@ -9,10 +9,7 @@ const {
   shouldBehaveLikeERC20Approve,
 } = require('./ERC20.behavior')
 
-const TOKENS = [
-  { Token: '$ERC20' },
-  { Token: '$ERC20ApprovalMock', forcedApproval: true },
-]
+const TOKENS = [{ Token: '$ERC20' }, { Token: '$ERC20ApprovalMock', forcedApproval: true }]
 
 const name = 'My Token'
 const symbol = 'MTKN'
@@ -70,17 +67,11 @@ describe('ERC20', () => {
           })
 
           it('increments totalSupply', async function () {
-            await expect(await this.token.totalSupply()).to.equal(
-              initialSupply + value,
-            )
+            await expect(await this.token.totalSupply()).to.equal(initialSupply + value)
           })
 
           it('increments recipient balance', async function () {
-            await expect(this.tx).to.changeTokenBalance(
-              this.token,
-              this.recipient,
-              value,
-            )
+            await expect(this.tx).to.changeTokenBalance(this.token, this.recipient, value)
           })
 
           it('emits Transfer event', async function () {
@@ -101,10 +92,7 @@ describe('ERC20', () => {
         describe('for a non zero account', () => {
           it('rejects burning more than balance', async function () {
             await expect(this.token.$_burn(this.holder, initialSupply + 1n))
-              .to.be.revertedWithCustomError(
-                this.token,
-                'ERC20InsufficientBalance',
-              )
+              .to.be.revertedWithCustomError(this.token, 'ERC20InsufficientBalance')
               .withArgs(this.holder, initialSupply, initialSupply + 1n)
           })
 
@@ -115,17 +103,11 @@ describe('ERC20', () => {
               })
 
               it('decrements totalSupply', async function () {
-                expect(await this.token.totalSupply()).to.equal(
-                  initialSupply - value,
-                )
+                expect(await this.token.totalSupply()).to.equal(initialSupply - value)
               })
 
               it('decrements holder balance', async function () {
-                await expect(this.tx).to.changeTokenBalance(
-                  this.token,
-                  this.holder,
-                  -value,
-                )
+                await expect(this.tx).to.changeTokenBalance(this.token, this.holder, -value)
               })
 
               it('emits Transfer event', async function () {
@@ -149,83 +131,46 @@ describe('ERC20', () => {
         })
 
         it('from is the zero address', async function () {
-          const tx = await this.token.$_update(
-            ethers.ZeroAddress,
-            this.holder,
-            value,
-          )
+          const tx = await this.token.$_update(ethers.ZeroAddress, this.holder, value)
           await expect(tx)
             .to.emit(this.token, 'Transfer')
             .withArgs(ethers.ZeroAddress, this.holder, value)
 
-          expect(await this.token.totalSupply()).to.equal(
-            this.totalSupply + value,
-          )
+          expect(await this.token.totalSupply()).to.equal(this.totalSupply + value)
           await expect(tx).to.changeTokenBalance(this.token, this.holder, value)
         })
 
         it('to is the zero address', async function () {
-          const tx = await this.token.$_update(
-            this.holder,
-            ethers.ZeroAddress,
-            value,
-          )
+          const tx = await this.token.$_update(this.holder, ethers.ZeroAddress, value)
           await expect(tx)
             .to.emit(this.token, 'Transfer')
             .withArgs(this.holder, ethers.ZeroAddress, value)
 
-          expect(await this.token.totalSupply()).to.equal(
-            this.totalSupply - value,
-          )
-          await expect(tx).to.changeTokenBalance(
-            this.token,
-            this.holder,
-            -value,
-          )
+          expect(await this.token.totalSupply()).to.equal(this.totalSupply - value)
+          await expect(tx).to.changeTokenBalance(this.token, this.holder, -value)
         })
 
         describe('from and to are the same address', () => {
           it('zero address', async function () {
-            const tx = await this.token.$_update(
-              ethers.ZeroAddress,
-              ethers.ZeroAddress,
-              value,
-            )
+            const tx = await this.token.$_update(ethers.ZeroAddress, ethers.ZeroAddress, value)
             await expect(tx)
               .to.emit(this.token, 'Transfer')
               .withArgs(ethers.ZeroAddress, ethers.ZeroAddress, value)
 
             expect(await this.token.totalSupply()).to.equal(this.totalSupply)
-            await expect(tx).to.changeTokenBalance(
-              this.token,
-              ethers.ZeroAddress,
-              0n,
-            )
+            await expect(tx).to.changeTokenBalance(this.token, ethers.ZeroAddress, 0n)
           })
 
           describe('non zero address', () => {
             it('reverts without balance', async function () {
-              await expect(
-                this.token.$_update(this.recipient, this.recipient, value),
-              )
-                .to.be.revertedWithCustomError(
-                  this.token,
-                  'ERC20InsufficientBalance',
-                )
+              await expect(this.token.$_update(this.recipient, this.recipient, value))
+                .to.be.revertedWithCustomError(this.token, 'ERC20InsufficientBalance')
                 .withArgs(this.recipient, 0n, value)
             })
 
             it('executes with balance', async function () {
-              const tx = await this.token.$_update(
-                this.holder,
-                this.holder,
-                value,
-              )
-              await expect(tx).to.changeTokenBalance(
-                this.token,
-                this.holder,
-                0n,
-              )
+              const tx = await this.token.$_update(this.holder, this.holder, value)
+              await expect(tx).to.changeTokenBalance(this.token, this.holder, 0n)
               await expect(tx)
                 .to.emit(this.token, 'Transfer')
                 .withArgs(this.holder, this.holder, value)
@@ -242,13 +187,7 @@ describe('ERC20', () => {
         shouldBehaveLikeERC20Transfer(initialSupply)
 
         it('reverts when the sender is the zero address', async function () {
-          await expect(
-            this.token.$_transfer(
-              ethers.ZeroAddress,
-              this.recipient,
-              initialSupply,
-            ),
-          )
+          await expect(this.token.$_transfer(ethers.ZeroAddress, this.recipient, initialSupply))
             .to.be.revertedWithCustomError(this.token, 'ERC20InvalidSender')
             .withArgs(ethers.ZeroAddress)
         })
@@ -262,13 +201,7 @@ describe('ERC20', () => {
         shouldBehaveLikeERC20Approve(initialSupply)
 
         it('reverts when the owner is the zero address', async function () {
-          await expect(
-            this.token.$_approve(
-              ethers.ZeroAddress,
-              this.recipient,
-              initialSupply,
-            ),
-          )
+          await expect(this.token.$_approve(ethers.ZeroAddress, this.recipient, initialSupply))
             .to.be.revertedWithCustomError(this.token, 'ERC20InvalidApprover')
             .withArgs(ethers.ZeroAddress)
         })
