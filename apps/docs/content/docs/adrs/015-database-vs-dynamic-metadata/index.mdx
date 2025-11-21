@@ -1,9 +1,7 @@
 ---
 title: "ADR 015: Database Storage vs Dynamic SDK Metadata"
-description: "When building the Vencura API, we needed to decide where to store wallet and user data. Dynamic SDK provides some metadata capabilities, but we needed to understand what data should be stored in our own database versus what can be stored in Dynamic's infrastructure."
+description: "Decision to store all wallet and user data in our own PostgreSQL database rather than relying on Dynamic SDK metadata, ensuring full control and data portability."
 ---
-
-# ADR 015: Database Storage vs Dynamic SDK Metadata
 
 ## Status
 
