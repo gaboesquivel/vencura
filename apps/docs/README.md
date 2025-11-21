@@ -1,12 +1,13 @@
 # Vencura Docs
 
-A documentation site built with Next.js.
+A documentation site built with Next.js and Nextra.
 
 ## Tech Stack
 
 - Next.js 16.0.0
 - React 19.1.1
 - TypeScript
+- Nextra 4.0 (Docs Theme)
 - Dynamic SDK
 - Tailwind CSS
 - Shadcn/ui components (via `@vencura/ui`)
@@ -152,13 +153,33 @@ pnpm typecheck
 ```
 docs/
 ├── app/                    # Next.js app directory
-│   ├── page.tsx           # Main page component
-│   └── layout.tsx         # Root layout
+│   └── layout.tsx         # Root layout with Nextra integration
+├── content/                # Nextra documentation content (MDX files)
+│   ├── _meta.js           # Navigation structure configuration
+│   └── *.mdx              # Documentation pages
 ├── components/             # React components
 ├── lib/                    # Utilities
 ├── hooks/                  # React hooks
-└── types/                  # TypeScript type definitions
+├── types/                  # TypeScript type definitions
+└── mdx-components.tsx      # MDX component customization
 ```
+
+## Documentation Structure
+
+This site uses Nextra's content directory convention for organizing documentation:
+
+- **Content Directory**: All documentation pages are stored in the `content/` directory as MDX files
+- **Navigation**: Configured via `_meta.js` files in each directory
+- **Routing**: Nextra automatically creates routes based on file structure in the content directory
+- **MDX Support**: Full MDX support with React components, code blocks, and more
+
+### Adding Documentation Pages
+
+1. Create a new `.mdx` file in the `content/` directory
+2. Update `_meta.js` to include the new page in navigation
+3. Use standard Markdown syntax with MDX enhancements
+
+See [Nextra Documentation](https://nextra.site/docs/docs-theme/start) for more details on file conventions and features.
 
 ## License
 
