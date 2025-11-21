@@ -1,3 +1,8 @@
+---
+title: "ADR 001: Monorepo vs Standalone Repositories"
+description: "The project involves multiple front-end applications and backend services that share UI components, TypeScript types, and development tooling. Managing these pieces in separate repositories makes synchronization harder and slows down iteration."
+---
+
 # 0001. Monorepo vs Standalone Repositories
 
 ## Context
@@ -56,3 +61,4 @@ Shared components, utilities, and standards will live under `packages/`, while e
 - Unified tooling and consistent standards across all projects
 - Faster CI/CD via Turborepo caching
 - Simplified dependency management and easier developer onboarding
+

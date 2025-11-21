@@ -10,6 +10,7 @@
   "google-cloud": "Google Cloud",
   "dynamic-integration": "Dynamic Integration",
   "packages": "Packages",
-  "apps": "Applications"
+  "apps": "Applications",
+  "adrs": "Architecture Decisions"
 }
 

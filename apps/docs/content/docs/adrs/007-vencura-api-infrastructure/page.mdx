@@ -1,3 +1,8 @@
+---
+title: "ADR 007: Vencura API Infrastructure"
+description: "We need to select a deployment platform for the NestJS Vencura API that supports containerized deployments, handles WebSocket connections, and provides auto-scaling capabilities."
+---
+
 # ADR 007: Vencura API Infrastructure
 
 ## Context
@@ -285,7 +290,6 @@ We will deploy the NestJS Vencura API on **Google Cloud Run with Docker containe
 
 For comprehensive portability documentation, see:
 
-- [Vercel Portability Strategy](../../docs/vercel-portability-strategy.md) - Detailed guide on portable features, migration paths, and Vercel's shipping advantages
-- [Vercel Optimizations](../../docs/vercel-optimizations.md) - Vercel-specific features and portable alternatives
+- [Vercel Portability Strategy](/docs/vercel-portability) - Detailed guide on portable features, migration paths, and Vercel's shipping advantages
 
 The Vencura API is designed to run on any platform with minimal code changes. All core features are portable, and Vercel is used for convenience and developer experience, not as a requirement.
