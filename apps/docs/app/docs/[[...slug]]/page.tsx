@@ -15,11 +15,8 @@ export default async function Page(props: PageProps<'/docs/[[...slug]]'>) {
 
   return (
     <DocsPage toc={page.data.toc} full={page.data.full}>
-      {/* @ts-expect-error - React type version mismatch between fumadocs-ui and app React types */}
       <DocsTitle>{page.data.title}</DocsTitle>
-      {/* @ts-expect-error - React type version mismatch between fumadocs-ui and app React types */}
       <DocsDescription>{page.data.description}</DocsDescription>
-      {/* @ts-expect-error - React type version mismatch between fumadocs-ui and app React types */}
       <DocsBody>
         <MDX
           components={getMDXComponents({

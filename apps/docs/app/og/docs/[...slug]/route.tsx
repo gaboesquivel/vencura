@@ -11,7 +11,6 @@ export async function GET(_req: Request, { params }: RouteContext<'/og/docs/[...
   if (!page) notFound()
 
   return new ImageResponse(
-    // @ts-expect-error - React type version mismatch between fumadocs-ui and app React types
     <DefaultImage title={page.data.title} description={page.data.description} site="My App" />,
     {
       width: 1200,
