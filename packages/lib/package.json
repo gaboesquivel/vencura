@@ -33,6 +33,7 @@
     "@types/lodash": "^4.17.20",
     "@vencura/types": "workspace:*",
     "lodash": "^4.17.21",
+    "viem": "^2.21.45",
     "zod": "^3.25.76",
     "zod-validation-error": "^3.3.0"
   }
