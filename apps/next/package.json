@@ -34,7 +34,7 @@
     "react": "^19.2.0",
     "react-dom": "^19.2.0",
     "react-error-boundary": "^4.0.13",
-    "require-in-the-middle": "^8.0.1",
+    "require-in-the-middle": "^7.5.2",
     "tailwindcss-animate": "^1.0.7",
     "zod": "3.25.76"
   },

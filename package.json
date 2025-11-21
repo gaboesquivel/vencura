@@ -34,5 +34,8 @@
   ],
   "engines": {
     "node": ">=20"
+  },
+  "overrides": {
+    "require-in-the-middle": "7.5.2"
   }
 }

@@ -4,4 +4,3 @@ declare module 'fumadocs-ui/*' {
   import type { ComponentType, ReactNode } from 'react'
   export * from 'fumadocs-ui'
 }
-
