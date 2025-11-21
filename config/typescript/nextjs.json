@@ -5,10 +5,16 @@
   "compilerOptions": {
     "plugins": [{ "name": "next" }],
     "module": "ESNext",
-    "moduleResolution": "Bundler",
+    "moduleResolution": "bundler",
     "allowJs": true,
     "jsx": "preserve",
-    "noEmit": true
+    "noEmit": true,
+    "declaration": false,
+    "declarationMap": false,
+    "incremental": true,
+    "forceConsistentCasingInFileNames": true,
+    "lib": ["dom", "dom.iterable", "esnext"],
+    "target": "ESNext"
   },
   "include": ["reset.d.ts"]
 }

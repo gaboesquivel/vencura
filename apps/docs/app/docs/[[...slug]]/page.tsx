@@ -4,6 +4,7 @@ import { notFound } from 'next/navigation'
 import { getMDXComponents } from '@/mdx-components'
 import type { Metadata } from 'next'
 import { createRelativeLink } from 'fumadocs-ui/mdx'
+import type { MDXComponents } from 'mdx/types'
 
 export default async function Page(props: PageProps<'/docs/[[...slug]]'>) {
   const params = await props.params
@@ -14,14 +15,17 @@ export default async function Page(props: PageProps<'/docs/[[...slug]]'>) {
 
   return (
     <DocsPage toc={page.data.toc} full={page.data.full}>
+      {/* @ts-expect-error - React type version mismatch between fumadocs-ui and app React types */}
       <DocsTitle>{page.data.title}</DocsTitle>
+      {/* @ts-expect-error - React type version mismatch between fumadocs-ui and app React types */}
       <DocsDescription>{page.data.description}</DocsDescription>
+      {/* @ts-expect-error - React type version mismatch between fumadocs-ui and app React types */}
       <DocsBody>
         <MDX
           components={getMDXComponents({
             // this allows you to link to other pages with relative file paths
-            a: createRelativeLink(source, page),
-          })}
+            a: createRelativeLink(source, page) as any,
+          } as MDXComponents)}
         />
       </DocsBody>
     </DocsPage>

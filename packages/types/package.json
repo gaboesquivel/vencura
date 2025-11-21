@@ -4,24 +4,24 @@
   "private": true,
   "description": "Shared API contracts and types for Vencura",
   "license": "PROPRIETARY",
-  "main": "./dist/cjs/index.cjs",
-  "module": "./dist/esm/index.mjs",
-  "types": "./dist/types/index.d.ts",
+  "main": "./dist/index.js",
+  "module": "./dist/index.mjs",
+  "types": "./dist/index.d.ts",
   "exports": {
     ".": {
-      "types": "./dist/types/index.d.ts",
-      "require": "./dist/cjs/index.cjs",
-      "import": "./dist/esm/index.mjs"
+      "types": "./dist/index.d.ts",
+      "require": "./dist/index.js",
+      "import": "./dist/index.mjs"
     },
     "./schemas": {
-      "types": "./dist/types/schemas/index.d.ts",
-      "require": "./dist/cjs/schemas/index.cjs",
-      "import": "./dist/esm/schemas/index.mjs"
+      "types": "./dist/schemas/index.d.ts",
+      "require": "./dist/schemas/index.js",
+      "import": "./dist/schemas/index.mjs"
     },
     "./contracts": {
-      "types": "./dist/types/contracts/index.d.ts",
-      "require": "./dist/cjs/contracts/index.cjs",
-      "import": "./dist/esm/contracts/index.mjs"
+      "types": "./dist/contracts/index.d.ts",
+      "require": "./dist/contracts/index.js",
+      "import": "./dist/contracts/index.mjs"
     }
   },
   "scripts": {

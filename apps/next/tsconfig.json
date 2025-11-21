@@ -6,15 +6,13 @@
       "@/*": ["./*"],
       "@vencura/ui/*": ["../../packages/ui/src/*"],
       "@vencura/types": ["../../packages/types/src/index.ts"],
-      "@vencura/types/*": ["../../packages/types/src/*"],
-      "fumadocs-mdx:collections/*": [".source/*"]
+      "@vencura/types/*": ["../../packages/types/src/*"]
     },
     "plugins": [
       {
         "name": "next"
       }
-    ],
-    "skipLibCheck": true
+    ]
   },
   "include": [
     "next-env.d.ts",
@@ -22,7 +20,6 @@
     "**/*.ts",
     "**/*.tsx",
     ".next/types/**/*.ts",
-    "types/**/*.d.ts",
     "../../config/typescript/reset.d.ts"
   ],
   "exclude": ["node_modules"]
