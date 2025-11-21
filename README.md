@@ -98,6 +98,7 @@ Architectural decisions are documented in [Architecture Decision Records (ADRs)]
 - [013: Vencura API Test Gas Faucet](./.adrs/013-vencura-api-test-gas-faucet.md)
 - [014: Environment Strategy](./.adrs/014-environment-strategy.md)
 - [015: Database Storage vs Dynamic SDK Metadata](./.adrs/015-database-vs-dynamic-metadata.md)
+- [016: Documentation Framework Migration to Fumadocs](./.adrs/016-documentation-framework.md)
 
 ## AI-Assisted Development
 
