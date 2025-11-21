@@ -1,186 +1,45 @@
-# Vencura Docs
+# docs
 
-A documentation site built with Next.js and Nextra.
+This is a Next.js application generated with
+[Create Fumadocs](https://github.com/fuma-nama/fumadocs).
 
-## Tech Stack
-
-- Next.js 16.0.0
-- React 19.1.1
-- TypeScript
-- Nextra 4.0 (Docs Theme)
-- Dynamic SDK
-- Tailwind CSS
-- Shadcn/ui components (via `@vencura/ui`)
-
-## Design System & Dependencies
-
-This app uses `@vencura/ui` as the centralized design system:
-
-- **UI Components**: Import from `@vencura/ui/components/*`
-- **Radix Primitives**: Import from `@vencura/ui/radix`
-- **Utilities**: Import from `@vencura/ui/lib/utils`
-- **Icons**: Import from `lucide-react` via `@vencura/ui`
-
-**Do NOT install** these design system dependencies directly in this app - they are managed centrally in `@vencura/ui`:
-
-- Any `@radix-ui/react-*` packages
-- `class-variance-authority`, `clsx`, `tailwind-merge`
-
-**Do install** these app-level dependencies:
-
-- `next-themes` - Theme provider (configured per app)
-- `lucide-react` - If you need icons directly (UI components already include it)
-
-## Mobile-First Design
-
-This app follows **mobile-first responsive design**:
-
-- Base styles target mobile devices (default)
-- Enhancements added for larger screens using Tailwind breakpoints (`sm:`, `md:`, `lg:`, `xl:`, `2xl:`)
-- All components are designed mobile-first, then enhanced for desktop
-
-See [Mobile-First Rules](../../.cursor/rules/frontend/mobile-first.mdc) for detailed guidelines.
-
-## Getting Started
-
-### Prerequisites
-
-- Node.js >= 20.0.0
-- pnpm (package manager)
-- Dynamic SDK environment ID (see Environment Variables below)
-
-### Installation
+Run development server:
 
 ```bash
-# From monorepo root
-pnpm install
-
-# Or from this directory
-cd apps/docs
-pnpm install
-```
-
-### Running the Application
-
-```bash
-# From monorepo root
+npm run dev
+# or
 pnpm dev
-
-# Or from this directory
-cd apps/docs
-pnpm dev
+# or
+yarn dev
 ```
 
-The application will be available at `http://localhost:3002` (or the next available port).
+Open http://localhost:3000 with your browser to see the result.
 
-### Environment Variables
+## Explore
 
-This Next.js app uses environment-specific configuration files. Next.js automatically loads environment files in priority order:
+In the project, you can see:
 
-1. `.env` (highest priority, sensitive data, never committed, overrides everything)
-2. `.env.development` / `.env.staging` / `.env.production` (based on NODE_ENV, committed configs)
+- `lib/source.ts`: Code for content source adapter, [`loader()`](https://fumadocs.dev/docs/headless/source-api) provides the interface to access your content.
+- `lib/layout.shared.tsx`: Shared options for layouts, optional but preferred to keep.
 
-**File Structure:**
+| Route                     | Description                                            |
+| ------------------------- | ------------------------------------------------------ |
+| `app/(home)`              | The route group for your landing page and other pages. |
+| `app/docs`                | The documentation layout and pages.                    |
+| `app/api/search/route.ts` | The Route Handler for search.                          |
 
-- `.env` - Sensitive data (API keys, tokens, secrets) - **NEVER COMMIT**
-- `.env.development` - Development configuration (committed, non-sensitive)
-- `.env.staging` - Staging configuration (committed, non-sensitive)
-- `.env.production` - Production configuration (committed, non-sensitive)
-- `.env-example` - Template for `.env` file (shows required sensitive variables)
+### Fumadocs MDX
 
-**Setup for Local Development:**
+A `source.config.ts` config file has been included, you can customise different options like frontmatter schema.
 
-```bash
-# Copy the example file for sensitive data
-cp .env-example .env
+Read the [Introduction](https://fumadocs.dev/docs/mdx) for further details.
 
-# Fill in your actual sensitive values in .env
-# NEXT_PUBLIC_DYNAMIC_ENVIRONMENT_ID=your_dynamic_environment_id
+## Learn More
 
-# .env.development is already committed with non-sensitive configs
-```
+To learn more about Next.js and Fumadocs, take a look at the following
+resources:
 
-**Required Environment Variables:**
-
-- `NEXT_PUBLIC_DYNAMIC_ENVIRONMENT_ID`: Your Dynamic environment ID from the [Dynamic Dashboard](https://app.dynamic.xyz/). Required for authentication to work properly.
-
-**Optional Environment Variables:**
-
-- `NEXT_PUBLIC_SENTRY_DSN`: Sentry DSN URL for error tracking (optional, defaults to disabled)
-- `NEXT_PUBLIC_SENTRY_ENVIRONMENT`: Environment name for Sentry (optional, defaults to `NODE_ENV`)
-
-**Environment-Specific Configuration:**
-
-- **Development** (`.env.development` + `.env`): Local development
-- **Staging** (`.env.staging` + `.env`): Staging environment
-- **Production** (`.env.production` + `.env`): Production environment
-
-**Note**: `.env.development`, `.env.staging`, and `.env.production` are committed files with non-sensitive configuration. Sensitive data (like `NEXT_PUBLIC_DYNAMIC_ENVIRONMENT_ID`) should be in `.env` file (never committed).
-
-**Getting Your Dynamic Environment ID:**
-
-1. Go to [app.dynamic.xyz](https://app.dynamic.xyz/)
-2. Sign up for a free account (if you don't have one)
-3. Create a new project or select an existing one
-4. Copy the Environment ID from your project settings
-5. Add it to your `.env.local` file as `NEXT_PUBLIC_DYNAMIC_ENVIRONMENT_ID`
-
-**Note**: If `NEXT_PUBLIC_DYNAMIC_ENVIRONMENT_ID` is not set, the app will use a placeholder ID and show warnings in development mode. Authentication will not work properly without a valid environment ID.
-
-See [ADR 014: Environment Strategy](../../.adrs/014-environment-strategy.md) for the complete architecture decision and [Environment Rules](../../.cursor/rules/base/environment.mdc) for implementation patterns.
-
-## Development
-
-```bash
-# Development mode
-pnpm dev
-
-# Build for production
-pnpm build
-
-# Start production server
-pnpm start
-
-# Lint
-pnpm lint
-
-# Type check
-pnpm typecheck
-```
-
-## Project Structure
-
-```
-docs/
-├── app/                    # Next.js app directory
-│   └── layout.tsx         # Root layout with Nextra integration
-├── content/                # Nextra documentation content (MDX files)
-│   ├── _meta.js           # Navigation structure configuration
-│   └── *.mdx              # Documentation pages
-├── components/             # React components
-├── lib/                    # Utilities
-├── hooks/                  # React hooks
-├── types/                  # TypeScript type definitions
-└── mdx-components.tsx      # MDX component customization
-```
-
-## Documentation Structure
-
-This site uses Nextra's content directory convention for organizing documentation:
-
-- **Content Directory**: All documentation pages are stored in the `content/` directory as MDX files
-- **Navigation**: Configured via `_meta.js` files in each directory
-- **Routing**: Nextra automatically creates routes based on file structure in the content directory
-- **MDX Support**: Full MDX support with React components, code blocks, and more
-
-### Adding Documentation Pages
-
-1. Create a new `.mdx` file in the `content/` directory
-2. Update `_meta.js` to include the new page in navigation
-3. Use standard Markdown syntax with MDX enhancements
-
-See [Nextra Documentation](https://nextra.site/docs/docs-theme/start) for more details on file conventions and features.
-
-## License
-
-PROPRIETARY
+- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js
+  features and API.
+- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+- [Fumadocs](https://fumadocs.dev) - learn about Fumadocs

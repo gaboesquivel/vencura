@@ -1,58 +1,17 @@
-import { Geist, Geist_Mono } from 'next/font/google'
-import { Footer, Layout, Navbar } from 'nextra-theme-docs'
-import { Head } from 'nextra/components'
-import { getPageMap } from 'nextra/page-map'
+import { RootProvider } from 'fumadocs-ui/provider/next';
+import './global.css';
+import { Inter } from 'next/font/google';
 
-import '@vencura/ui/styles/globals.css'
-import 'nextra-theme-docs/style.css'
-import { Providers } from '@/components/providers'
-import { ErrorBoundary } from '@/components/error-boundary'
-
-const fontSans = Geist({
+const inter = Inter({
   subsets: ['latin'],
-  variable: '--font-sans',
-})
+});
 
-const fontMono = Geist_Mono({
-  subsets: ['latin'],
-  variable: '--font-mono',
-})
-
-export const dynamic = 'force-dynamic'
-
-const navbar = (
-  <Navbar
-    logo={<b>Vencura Docs</b>}
-  />
-)
-
-const footer = <Footer>MIT {new Date().getFullYear()} © Vencura.</Footer>
-
-export default async function RootLayout({
-  children,
-}: Readonly<{
-  children: React.ReactNode
-}>) {
-  const pageMap = await getPageMap()
-
+export default function Layout({ children }: LayoutProps<'/'>) {
   return (
-    <html lang="en" dir="ltr" suppressHydrationWarning>
-      <Head>
-        {/* Additional head tags can be added here */}
-      </Head>
-      <body className={`${fontSans.variable} ${fontMono.variable} font-sans antialiased`}>
-        <ErrorBoundary>
-          <Providers>
-            <Layout
-              navbar={navbar}
-              pageMap={pageMap}
-              footer={footer}
-            >
-              {children}
-            </Layout>
-          </Providers>
-        </ErrorBoundary>
+    <html lang="en" className={inter.className} suppressHydrationWarning>
+      <body className="flex flex-col min-h-screen">
+        <RootProvider>{children}</RootProvider>
       </body>
     </html>
-  )
+  );
 }

@@ -1,11 +1,9 @@
-const components = {
-  // Custom MDX components can be added here
-  // See: https://nextra.site/docs/guide/markdown#mdx-components
+import defaultMdxComponents from 'fumadocs-ui/mdx';
+import type { MDXComponents } from 'mdx/types';
+
+export function getMDXComponents(components?: MDXComponents): MDXComponents {
+  return {
+    ...defaultMdxComponents,
+    ...components,
+  };
 }
-
-export function useMDXComponents() {
-  return components
-}
-
-export default components
-
