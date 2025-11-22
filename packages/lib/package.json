@@ -12,6 +12,11 @@
       "types": "./dist/types/index.d.ts",
       "require": "./dist/cjs/index.cjs",
       "import": "./dist/esm/index.mjs"
+    },
+    "./server": {
+      "types": "./dist/types/load-env.d.ts",
+      "require": "./dist/cjs/load-env.cjs",
+      "import": "./dist/esm/load-env.mjs"
     }
   },
   "scripts": {
@@ -33,6 +38,7 @@
     "@types/lodash": "^4.17.20",
     "@vencura/types": "workspace:*",
     "lodash": "^4.17.21",
+    "viem": "^2.21.45",
     "zod": "^3.25.76",
     "zod-validation-error": "^3.3.0"
   }

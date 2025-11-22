@@ -126,6 +126,19 @@ cp .env-example .env
 - `NEXT_PUBLIC_SENTRY_DSN`: Sentry DSN URL for error tracking (optional, defaults to disabled)
 - `NEXT_PUBLIC_SENTRY_ENVIRONMENT`: Environment name for Sentry (optional, defaults to `NODE_ENV`)
 
+**Using Environment Variables in Code:**
+
+This app exports a validated environment configuration object (`zEnv`) from `lib/env.ts`. Always import and use `zEnv` instead of accessing `process.env` directly:
+
+```typescript
+import { zEnv } from '@/lib/env'
+
+// Use zEnv instead of process.env
+const apiUrl = zEnv.NEXT_PUBLIC_VENCURA_API_URL
+```
+
+The `zEnv` object is validated at module load using Zod schemas and `getEnvHelper` from `@vencura/lib`. Validation fails fast in production if required variables are missing.
+
 **Environment-Specific Configuration:**
 
 - **Development** (`.env.development` + `.env`): Local development

@@ -15,3 +15,6 @@ export * from './zod/index'
 
 // Schema utilities
 export * from './schemas/index'
+
+// Chain utilities
+export * from './chains/index'

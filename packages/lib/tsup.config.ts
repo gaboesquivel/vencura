@@ -43,4 +43,46 @@ export default defineConfig([
       options.outbase = 'src'
     },
   },
+  {
+    entry: ['src/load-env.ts'],
+    format: ['esm'],
+    dts: false,
+    splitting: false,
+    sourcemap: true,
+    outDir: 'dist/esm',
+    outExtension() {
+      return {
+        js: '.mjs',
+      }
+    },
+    esbuildOptions(options) {
+      options.outbase = 'src'
+    },
+  },
+  {
+    entry: ['src/load-env.ts'],
+    format: ['cjs'],
+    dts: false,
+    splitting: false,
+    sourcemap: true,
+    outDir: 'dist/cjs',
+    outExtension() {
+      return {
+        js: '.cjs',
+      }
+    },
+    esbuildOptions(options) {
+      options.outbase = 'src'
+    },
+  },
+  {
+    entry: ['src/load-env.ts'],
+    dts: {
+      only: true,
+    },
+    outDir: 'dist/types',
+    esbuildOptions(options) {
+      options.outbase = 'src'
+    },
+  },
 ])
