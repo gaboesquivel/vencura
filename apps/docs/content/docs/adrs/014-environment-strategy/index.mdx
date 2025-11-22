@@ -67,16 +67,34 @@ We will implement an environment-based configuration strategy with the following
 
 ## Implementation
 
-### NestJS API
+### Environment Validation Enforcement
 
-- Created `apps/api/src/config/load-env.ts` to load environment-specific files
-- Updated `apps/api/src/app.module.ts` to call `loadEnv()` before ConfigModule initialization
-- Updated `apps/api/test/setup.ts` to load `.env.test` with proper priority
+All apps now enforce validated environment configuration objects (`zEnv`) using Zod schemas and `@vencura/lib` utilities:
 
-### Next.js Apps
+**API App (`apps/api`):**
+- Created `apps/api/src/lib/env.ts` with Zod schema
+- Uses `validateEnvOrThrow` from `@vencura/lib` (fails fast on invalid config)
+- Exports `zEnv` const object validated at module load
+- Replaced all `process.env` usage with `zEnv`
 
-- Next.js already supports environment-specific `.env` files natively
-- No code changes needed - documentation updated to clarify usage
+**Elysia App (`apps/elysia`):**
+- Created `apps/elysia/src/lib/env.ts` with Zod schema
+- Uses `validateEnvOrThrow` from `@vencura/lib`
+- Exports `zEnv` const object validated at module load
+- Replaced all `process.env` usage with `zEnv`
+
+**Next.js Apps (`apps/next`, `apps/mathler`):**
+- Updated existing `lib/env.ts` files to export `zEnv` const object
+- Already using `getEnvHelper` from `@vencura/lib` and Zod schemas
+- Validation happens at module load (build time for `NEXT_PUBLIC_*` vars)
+
+### Key Benefits
+
+- **Type Safety**: Full TypeScript inference from Zod schemas (`z.infer<typeof envSchema>`)
+- **Fail Fast**: Invalid config causes immediate failure at module load
+- **No Manual Checks**: Zod handles all validation - removed manual error checks
+- **Consistent Pattern**: All apps follow same pattern using `@vencura/lib` utilities
+- **Next.js Compatible**: Handles `NEXT_PUBLIC_*` build-time replacement correctly
 
 ### Dev Scripts
 

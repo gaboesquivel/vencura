@@ -17,3 +17,9 @@ export type Env = z.infer<typeof envSchema>
 export function getEnv(): Env {
   return getEnvHelper({ schema: envSchema })
 }
+
+/**
+ * Validated environment configuration object.
+ * Validated at module load - fails fast if config is invalid in production.
+ */
+export const zEnv = getEnv()

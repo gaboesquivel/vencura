@@ -20,14 +20,15 @@ alwaysApply: false
 
 ## Validation Pattern
 
-**Always use Zod for environment variable validation** - consistent across all apps (Next.js, NestJS API, etc.).
+**Always use Zod for environment variable validation** - consistent across all apps (Next.js, Elysia API, etc.).
 
-- Define schema with `z.object()`
-- Use `z.infer<typeof envSchema>` for type inference
+- Define schema with `z.object()` using Zod validators (`z.string()`, `z.coerce.number()`, `z.optional()`, `z.default()`)
+- Use `z.infer<typeof envSchema>` for type inference (no manual types)
 - Validation functions must have explicit return types
-- Next.js: Use `validateEnv` from `@vencura/lib`, handle warnings/errors based on NODE_ENV
-- NestJS: Use `safeParse`, throw errors on validation failure
-- NestJS requires manual `loadEnv()` call in app initialization
+- **Next.js apps**: Use `getEnvHelper` from `@vencura/lib` → export `zEnv = getEnv()` (validated const object)
+- **Server apps (Elysia, API)**: Use `validateEnvOrThrow` from `@vencura/lib` → export `zEnv = getEnv()` (fails fast)
+- **All apps**: Export `zEnv` as const object validated at module load - fails fast if config is invalid
+- Leverage `@vencura/lib` utilities - no custom validation logic needed
 
 **load-env.ts (ESM):**
 - Load `.env.{environment}` first (based on NODE_ENV)
@@ -37,10 +38,19 @@ alwaysApply: false
 ## Key Principles
 
 1. **Sensitive vs Non-Sensitive**: Clear separation - `.env` (sensitive, never commit) vs `.env.{environment}` (non-sensitive, committed)
-2. **Zod Validation**: Always use Zod for runtime validation and type inference
-3. **Type Safety**: Use `z.infer<typeof envSchema>` for type inference
+2. **Zod Validation**: Always use Zod for runtime validation and type inference - leverage `@vencura/lib` utilities (`validateEnvOrThrow`, `getEnvHelper`)
+3. **Type Safety**: Use `z.infer<typeof envSchema>` for type inference (no manual types)
 4. **Explicit Return Types**: Validation functions must have explicit return types
-5. **No Example Files**: Remove all `.env.{environment}.example` files - update `.env.{environment}` directly with values
+5. **zEnv Export**: All apps must export `zEnv` as const object validated at module load
+6. **No Manual Checks**: Remove all manual error checks - Zod validation handles this
+7. **No Example Files**: Remove all `.env.{environment}.example` files - update `.env.{environment}` directly with values
+
+## Next.js Caveats
+
+1. **NEXT_PUBLIC_ prefix**: Client-side vars must have `NEXT_PUBLIC_` prefix - replaced at build time
+2. **Server-only vars**: Don't use `NEXT_PUBLIC_` prefix for server-only vars
+3. **Validation timing**: Validation happens at module load (build time for `NEXT_PUBLIC_*` vars)
+4. **Optional vars**: Use Zod's `.optional()` or `.default()` instead of manual checks
 
 ## Git Configuration
 

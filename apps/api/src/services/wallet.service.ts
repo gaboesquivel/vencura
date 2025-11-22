@@ -155,17 +155,31 @@ export async function createWalletService({
     }
   } catch (error) {
     // Handle Dynamic SDK "wallet already exists" errors
-    // Check if wallet was created in race condition
+    // Dynamic SDK wraps errors, so we check error message and stack for indicators
     const errorMessage = error instanceof Error ? error.message : String(error)
+    const errorStack = error instanceof Error ? error.stack : ''
     const lowerMessage = errorMessage.toLowerCase()
+    const stackLower = errorStack.toLowerCase()
 
-    // Check if this is a "wallet already exists" error
-    if (
+    // Check if this is a "multiple wallets" error
+    // Dynamic SDK wraps errors, so we check error message and stack for indicators
+    const isMultipleWalletsError =
+      stackLower.includes('multiple wallets per chain') ||
+      stackLower.includes('wallet already exists') ||
+      stackLower.includes('you cannot create multiple wallets') ||
       lowerMessage.includes('multiple wallets per chain') ||
       lowerMessage.includes('wallet already exists') ||
       lowerMessage.includes('you cannot create multiple wallets')
-    ) {
-      // Query DB again to see if wallet was created
+
+    // Check if this is a generic wallet creation error (might be wrapped "multiple wallets" error)
+    // Dynamic SDK wraps "multiple wallets" errors as "Error creating wallet account"
+    const isWalletCreationError =
+      lowerMessage.includes('error creating') ||
+      lowerMessage.includes('wallet account') ||
+      isMultipleWalletsError
+
+    // If it's a wallet creation error, check DB again (might have been created in race condition)
+    if (isWalletCreationError) {
       const finalCheckWallets = await getUserWallets()
       const finalCheckWallet = finalCheckWallets.find(w => w.network === dynamicNetworkId)
       if (finalCheckWallet) {
@@ -177,6 +191,14 @@ export async function createWalletService({
           isNew: false,
         }
       }
+
+      // If we get a wallet creation error but no wallet in DB, it's likely a "multiple wallets" error
+      // that was wrapped. Dynamic SDK prevents multiple wallets per chain, so if creation fails,
+      // it means a wallet already exists in Dynamic SDK's system (possibly from a previous test run).
+      // Throw a user-friendly error indicating wallet already exists.
+      throw new Error(
+        `Wallet already exists for chain ${chainId}. Multiple wallets per chain are not allowed.`,
+      )
     }
 
     // Re-throw other errors

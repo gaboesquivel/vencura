@@ -226,6 +226,32 @@ All apps use the same environment file structure:
 2. `.env.<NODE_ENV>` (development/staging/production/test based on NODE_ENV)
 3. `.env` fallback (lowest priority)
 
+**Environment Validation:**
+
+All apps enforce validated environment configuration objects (`zEnv`) using Zod schemas and `@vencura/lib` utilities:
+
+- **Next.js apps**: Use `getEnvHelper` from `@vencura/lib` → export `zEnv = getEnv()`
+- **Server apps**: Use `validateEnvOrThrow` from `@vencura/lib` → export `zEnv = getEnv()`
+- **All apps**: Import `zEnv` from `lib/env.ts` instead of accessing `process.env` directly
+- Validation happens at module load - fails fast if config is invalid
+
+```typescript
+// Example: apps/api/src/lib/env.ts
+import { z } from 'zod'
+import { validateEnvOrThrow } from '@vencura/lib'
+
+const envSchema = z.object({
+  DYNAMIC_ENVIRONMENT_ID: z.string().min(1),
+  PORT: z.coerce.number().optional().default(3077),
+})
+
+export type Env = z.infer<typeof envSchema>
+export function getEnv(): Env {
+  return validateEnvOrThrow({ schema: envSchema })
+}
+export const zEnv = getEnv()
+```
+
 For project-specific setup, see individual project READMEs:
 
 - [Vencura API](./apps/api/README.md#environment-variables)

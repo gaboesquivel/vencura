@@ -213,6 +213,55 @@ GitHub Actions workflows automatically:
 
 No manual configuration needed for CI/CD.
 
+## Environment Validation
+
+All apps enforce validated environment configuration objects using Zod schemas and `@vencura/lib` utilities.
+
+### Pattern
+
+**Next.js Apps:**
+- Use `getEnvHelper` from `@vencura/lib`
+- Export `zEnv` as const object: `export const zEnv = getEnv()`
+- Validation happens at module load (build time for `NEXT_PUBLIC_*` vars)
+
+**Server Apps (API, Elysia):**
+- Use `validateEnvOrThrow` from `@vencura/lib`
+- Export `zEnv` as const object: `export const zEnv = getEnv()`
+- Server crashes on invalid config (fails fast)
+
+### Usage Example
+
+```typescript
+// apps/api/src/lib/env.ts
+import { z } from 'zod'
+import { validateEnvOrThrow } from '@vencura/lib'
+
+const envSchema = z.object({
+  DYNAMIC_ENVIRONMENT_ID: z.string().min(1),
+  DYNAMIC_API_TOKEN: z.string().min(1),
+  PORT: z.coerce.number().optional().default(3077),
+})
+
+export type Env = z.infer<typeof envSchema>
+
+export function getEnv(): Env {
+  return validateEnvOrThrow({ schema: envSchema })
+}
+
+export const zEnv = getEnv()
+```
+
+### Using zEnv in Code
+
+```typescript
+// Instead of process.env.PORT
+import { zEnv } from './lib/env'
+const port = zEnv.PORT
+
+// Zod handles type coercion and validation
+// No manual error checks needed
+```
+
 ## Best Practices
 
 1. **Never commit `.env.local`** - It's in `.gitignore` and contains sensitive secrets
@@ -221,4 +270,7 @@ No manual configuration needed for CI/CD.
 4. **Local overrides** - Use `.env.local` for local-only overrides (highest priority)
 5. **RPC URL pattern** - Use `RPC_URL_<CHAIN_ID>` pattern for consistency
 6. **Default behavior** - Rely on defaults for `USE_LOCAL_BLOCKCHAIN` based on NODE_ENV
+7. **Always use zEnv** - Import `zEnv` from `lib/env.ts` instead of accessing `process.env` directly
+8. **Leverage @vencura/lib** - Use `validateEnvOrThrow` or `getEnvHelper` - no custom validation logic
+9. **Zod schemas** - Use `z.coerce.number()`, `z.optional()`, `z.default()` for proper type handling
 

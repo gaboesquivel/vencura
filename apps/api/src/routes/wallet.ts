@@ -64,8 +64,29 @@ export const walletRoute = new Elysia()
         }
         return wallet
       } catch (err) {
-        // Handle errors - 500 for internal errors
+        // Handle errors - check for specific error types
         const errorMessage = err instanceof Error ? err.message : String(err)
+        const lowerMessage = errorMessage.toLowerCase()
+
+        // Check if this is a "wallet already exists" error (400 Bad Request)
+        if (
+          lowerMessage.includes('wallet already exists') ||
+          lowerMessage.includes('multiple wallets per chain') ||
+          lowerMessage.includes('multiple wallets are not allowed')
+        ) {
+          return new Response(
+            JSON.stringify({
+              error: 'Wallet already exists',
+              message: errorMessage,
+            }),
+            {
+              status: 400,
+              headers: { 'Content-Type': 'application/json' },
+            },
+          )
+        }
+
+        // All other errors are 500 Internal Server Error
         return new Response(
           JSON.stringify({
             error: 'Internal server error',
