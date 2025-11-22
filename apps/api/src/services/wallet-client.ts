@@ -57,10 +57,8 @@ export async function getSolanaClient(): Promise<DynamicSolanaWalletClient> {
  * Matches NestJS pattern: uses ThresholdSignatureScheme.TWO_OF_TWO and backUpToClientShareService: false.
  */
 export async function createWallet({
-  userId,
   chainType,
 }: {
-  userId: string
   chainType: ChainType
 }) {
   // Use dynamic import for ESM module compatibility

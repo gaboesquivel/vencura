@@ -17,6 +17,7 @@
   "dependencies": {
     "elysia": "^1.1.0",
     "@vencura/types": "workspace:*",
+    "@vencura/lib": "workspace:*",
     "zod": "^3.25.76"
   },
   "devDependencies": {

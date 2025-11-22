@@ -1,6 +1,7 @@
 import type { Chain } from 'viem'
 import isString from 'lodash/isString'
 import isNumber from 'lodash/isNumber'
+import type { ChainType } from '@vencura/types'
 import {
   arbitrum,
   arbitrumSepolia,
@@ -14,17 +15,7 @@ import {
   polygonAmoy,
 } from 'viem/chains'
 
-export type ChainType =
-  | 'evm'
-  | 'solana'
-  | 'cosmos'
-  | 'bitcoin'
-  | 'flow'
-  | 'starknet'
-  | 'algorand'
-  | 'sui'
-  | 'spark'
-  | 'tron'
+export type { ChainType }
 
 export interface ChainMetadata {
   chainType: ChainType

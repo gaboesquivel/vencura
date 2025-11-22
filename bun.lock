@@ -66,6 +66,7 @@
       "name": "elysia-template",
       "version": "0.0.1",
       "dependencies": {
+        "@vencura/lib": "workspace:*",
         "@vencura/types": "workspace:*",
         "elysia": "^1.1.0",
         "zod": "^3.25.76",

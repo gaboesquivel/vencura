@@ -1,4 +1,5 @@
 import { createHash } from 'crypto'
+import { eq } from 'drizzle-orm'
 import { getDatabase } from './database'
 import { keyShares } from '../db/schema'
 import { encryptKeyShare } from './encryption'
@@ -6,28 +7,27 @@ import { createWallet } from './wallet-client'
 import { type ChainType } from './chain-utils'
 
 /**
- * Generate deterministic wallet ID from address and chainType.
- * Uses SHA-256 hash of address+chainType to create a deterministic ID.
+ * Generate deterministic wallet ID from userId, address and chainType.
+ * Uses SHA-256 hash of userId+address+chainType to create a deterministic ID.
  */
-function generateWalletId(address: string, chainType: string): string {
-  const input = `${address}:${chainType}`
+function generateWalletId(userId: string, address: string, chainType: string): string {
+  const input = `${userId}:${address}:${chainType}`
   const hash = createHash('sha256').update(input).digest('hex')
   // Format as UUID v4-like string (but deterministic)
   return `${hash.slice(0, 8)}-${hash.slice(8, 12)}-4${hash.slice(13, 16)}-${hash.slice(16, 20)}-${hash.slice(20, 32)}`
 }
 
 /**
- * Get all wallets for a user (query DB by chainType).
- * Note: Schema doesn't track userId, so we return all wallets in key_shares table.
+ * Get all wallets for a user (query DB by userId).
  */
-async function getUserWallets(): Promise<
-  Array<{ id: string; address: string; chainType: ChainType }>
-> {
+async function getUserWallets(
+  userId: string,
+): Promise<Array<{ id: string; address: string; chainType: ChainType }>> {
   const db = await getDatabase()
-  const allKeyShares = await db.select().from(keyShares)
+  const userKeyShares = await db.select().from(keyShares).where(eq(keyShares.userId, userId))
 
-  return allKeyShares.map(keyShare => {
-    const id = generateWalletId(keyShare.address, keyShare.chainType)
+  return userKeyShares.map(keyShare => {
+    const id = generateWalletId(userId, keyShare.address, keyShare.chainType)
     return {
       id,
       address: keyShare.address,
@@ -37,9 +37,49 @@ async function getUserWallets(): Promise<
 }
 
 /**
+ * Get wallet by userId and chainType.
+ */
+async function getWalletByChainType(
+  userId: string,
+  chainType: ChainType,
+): Promise<{ id: string; address: string; chainType: ChainType } | null> {
+  const wallets = await getUserWallets(userId)
+  return wallets.find(w => w.chainType === chainType) ?? null
+}
+
+type WalletError = Error | unknown
+
+function getErrorStrings(error: WalletError) {
+  const message = error instanceof Error ? error.message : String(error)
+  const stack = error instanceof Error ? (error.stack ?? '') : ''
+  const lowerMessage = message.toLowerCase()
+  const lowerStack = stack.toLowerCase()
+  return { lowerMessage, lowerStack }
+}
+
+function isMultipleWalletsError(error: WalletError): boolean {
+  const { lowerMessage, lowerStack } = getErrorStrings(error)
+  const patterns = [
+    'multiple wallets per chain',
+    'wallet already exists',
+    'you cannot create multiple wallets',
+  ]
+  return patterns.some(p => lowerMessage.includes(p) || lowerStack.includes(p))
+}
+
+function isWalletCreationError(error: WalletError): boolean {
+  const { lowerMessage } = getErrorStrings(error)
+  return (
+    lowerMessage.includes('error creating') ||
+    lowerMessage.includes('wallet account') ||
+    isMultipleWalletsError(error)
+  )
+}
+
+/**
  * Create wallet with idempotent behavior.
- * One wallet per chainType, matching DynamicSDK's model.
- * 1. Query DB first using chainType
+ * One wallet per user per chainType, matching DynamicSDK's model.
+ * 1. Query DB first using userId and chainType
  * 2. If found, return 200 with existing wallet
  * 3. Only call Dynamic SDK if DB is empty
  * 4. Create wallet, encrypt, save to DB
@@ -57,9 +97,8 @@ export async function createWalletService({
   chainType: ChainType
   isNew: boolean
 }> {
-  // Query DB first - check if wallet exists for this chainType (idempotent check)
-  const existingWallets = await getUserWallets()
-  const existingWallet = existingWallets.find(w => w.chainType === chainType)
+  // Query DB first - check if wallet exists for this user and chainType (idempotent check)
+  const existingWallet = await getWalletByChainType(userId, chainType)
 
   // If wallet already exists, return it immediately (idempotent success)
   if (existingWallet) {
@@ -74,7 +113,6 @@ export async function createWalletService({
   // Only call Dynamic SDK if DB is empty (no existing wallet found)
   try {
     const wallet = await createWallet({
-      userId,
       chainType,
     })
 
@@ -86,19 +124,20 @@ export async function createWalletService({
     await db
       .insert(keyShares)
       .values({
+        userId,
         address: wallet.accountAddress,
         chainType,
         encryptedKeyShares: keySharesEncrypted,
       })
       .onConflictDoUpdate({
-        target: [keyShares.address, keyShares.chainType],
+        target: [keyShares.userId, keyShares.address, keyShares.chainType],
         set: {
           encryptedKeyShares: keySharesEncrypted,
         },
       })
 
     // Compute walletId deterministically
-    const walletId = generateWalletId(wallet.accountAddress, chainType)
+    const walletId = generateWalletId(userId, wallet.accountAddress, chainType)
 
     return {
       id: walletId,
@@ -108,33 +147,8 @@ export async function createWalletService({
     }
   } catch (error) {
     // Handle Dynamic SDK "wallet already exists" errors
-    // Dynamic SDK wraps errors, so we check error message and stack for indicators
-    const errorMessage = error instanceof Error ? error.message : String(error)
-    const errorStack = error instanceof Error ? error.stack : ''
-    const lowerMessage = errorMessage.toLowerCase()
-    const stackLower = errorStack.toLowerCase()
-
-    // Check if this is a "multiple wallets" error
-    // Dynamic SDK wraps errors, so we check error message and stack for indicators
-    const isMultipleWalletsError =
-      stackLower.includes('multiple wallets per chain') ||
-      stackLower.includes('wallet already exists') ||
-      stackLower.includes('you cannot create multiple wallets') ||
-      lowerMessage.includes('multiple wallets per chain') ||
-      lowerMessage.includes('wallet already exists') ||
-      lowerMessage.includes('you cannot create multiple wallets')
-
-    // Check if this is a generic wallet creation error (might be wrapped "multiple wallets" error)
-    // Dynamic SDK wraps "multiple wallets" errors as "Error creating wallet account"
-    const isWalletCreationError =
-      lowerMessage.includes('error creating') ||
-      lowerMessage.includes('wallet account') ||
-      isMultipleWalletsError
-
-    // If it's a wallet creation error, check DB again (might have been created in race condition)
-    if (isWalletCreationError) {
-      const finalCheckWallets = await getUserWallets()
-      const finalCheckWallet = finalCheckWallets.find(w => w.chainType === chainType)
+    if (isWalletCreationError(error)) {
+      const finalCheckWallet = await getWalletByChainType(userId, chainType)
       if (finalCheckWallet) {
         return {
           id: finalCheckWallet.id,
