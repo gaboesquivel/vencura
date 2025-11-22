@@ -61,6 +61,7 @@ Documentation content lives in:
   - `mcp-servers/` - MCP server documentation
   - `packages/` - Package documentation
   - `apps/` - Application documentation
+  - `tooling/testing-patterns.mdx` - Monorepo-wide Vitest blackbox testing strategy
 - **`source.config.ts`** - Fumadocs configuration (frontmatter schema, etc.)
 
 ## Adding Documentation
