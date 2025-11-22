@@ -76,39 +76,54 @@ Fetch all wallets for the authenticated user.
 import { useWallets } from '@vencura/react'
 
 function WalletsList() {
-  const { data, isLoading, error } = useWallets({
-    staleTime: 5 * 60 * 1000, // Override default options
-    refetchOnWindowFocus: true,
-  })
+  const { data, isLoading, error } = useWallets()
 
-  // ...
+  if (isLoading) return <div>Loading wallets...</div>
+  if (error) return <div>Error: {error.message}</div>
+
+  return (
+    <ul>
+      {data?.map(wallet => (
+        <li key={wallet.id}>
+          {wallet.address} ({wallet.chainType})
+        </li>
+      ))}
+    </ul>
+  )
 }
 ```
 
-**Returns:** `UseQueryResult<Wallet[], Error>`
+**Returns:** `UseQueryResult<ListWalletsResponse, Error>`
+
+**Note:** Uses the `wallets.all` query key from the query-key factory.
 
 ### useCreateWallet
 
-Create a new custodial wallet.
+Create a new custodial wallet. Automatically invalidates wallet list queries on success.
 
 ```tsx
 import { useCreateWallet } from '@vencura/react'
 
 function CreateWalletButton() {
-  const createWallet = useCreateWallet({
-    onSuccess: data => {
-      console.log('Wallet created:', data.address)
-    },
-    onError: error => {
-      console.error('Failed to create wallet:', error)
-    },
-  })
+  const createWallet = useCreateWallet()
+
+  const handleCreate = () => {
+    createWallet.mutate(
+      { chainType: 'evm' },
+      {
+        onSuccess: data => {
+          console.log('Wallet created:', data.address)
+          // Wallet list will automatically refetch
+        },
+        onError: error => {
+          console.error('Failed to create wallet:', error)
+        },
+      },
+    )
+  }
 
   return (
-    <button
-      onClick={() => createWallet.mutate({ chainId: 421614 })}
-      disabled={createWallet.isPending}
-    >
+    <button onClick={handleCreate} disabled={createWallet.isPending}>
       {createWallet.isPending ? 'Creating...' : 'Create Wallet'}
     </button>
   )
@@ -117,6 +132,8 @@ function CreateWalletButton() {
 
 **Returns:** `UseMutationResult<Wallet, Error, CreateWalletInput>`
 
+**Note:** This hook automatically invalidates all wallet queries on success using the query-key factory namespace.
+
 ### useWalletBalance
 
 Fetch balance for a specific wallet.
@@ -124,24 +141,25 @@ Fetch balance for a specific wallet.
 ```tsx
 import { useWalletBalance } from '@vencura/react'
 
-function WalletBalance({ walletId }: { walletId: string }) {
-  const { data, isLoading } = useWalletBalance(walletId, {
-    enabled: !!walletId, // Only fetch when walletId exists
-    refetchInterval: 30000, // Refetch every 30 seconds
+function WalletBalance() {
+  const { data, isLoading } = useWalletBalance({
+    chainId: 421614,
+    chainType: 'evm',
+    tokenAddress: '0x...', // Optional: for ERC20 token balance
   })
 
   if (isLoading) return <div>Loading balance...</div>
 
-  return <div>Balance: {data?.balance} ETH</div>
+  return <div>Balance: {data?.balance} {data?.token?.symbol || 'ETH'}</div>
 }
 ```
 
 **Parameters:**
 
-- `id: string` - Wallet ID
-- `options?: UseQueryOptions` - Optional React Query options
+- `input: BalanceInput` - Balance query input with `chainId`, `chainType`, and optional `tokenAddress`
+- The hook automatically handles `enabled` based on input validity
 
-**Returns:** `UseQueryResult<WalletBalance, Error>`
+**Returns:** `UseQueryResult<Balance, Error>`
 
 ### useSignMessage
 
@@ -274,17 +292,35 @@ function BurnButton({ walletId, tokenAddress, accountAddress }: Props) {
 
 ## Architecture
 
-This package uses a contract-first approach:
+This package uses a contract-first approach with query-key factories:
 
 1. **Contracts** (`@vencura/types`) define API endpoints with Zod schemas
 2. **Core Client** (`@vencura/core`) provides type-safe client using ts-rest
-3. **React Hooks** (`@vencura/react`) wrap the client with TanStack Query
+3. **Query Key Factories** (`@lukemorales/query-key-factory`) provide centralized, type-safe query keys
+4. **React Hooks** (`@vencura/react`) wrap the client with TanStack Query
 
 This ensures:
 
 - **Full type inference** - No manual type definitions needed
 - **End-to-end type safety** - Types shared across backend, SDK, and frontend
+- **Centralized query keys** - Query-key factories ensure consistent key structure and easy invalidation
 - **Clean API** - `client.wallet.list()` instead of `client.wallets.walletControllerGetWallets()`
+
+### Query Key Factory Pattern
+
+All hooks use query-key factories from `src/queries/` for centralized, type-safe query keys. This enables:
+
+- **Consistent invalidation**: Use `wallets._def` to invalidate all wallet queries
+- **Type-safe keys**: Query keys are typed and validated at compile time
+- **Easy refactoring**: Change query key structure in one place
+
+```tsx
+import { useQueryClient } from '@tanstack/react-query'
+import { wallets } from '@vencura/react'
+
+// Invalidate all wallet queries
+queryClient.invalidateQueries({ queryKey: wallets._def })
+```
 
 ## Related Packages
 
