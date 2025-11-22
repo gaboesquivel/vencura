@@ -8,6 +8,6 @@ export const useWalletBalance = (input: BalanceInput): UseQueryResult<Balance, E
   return useQuery({
     queryKey: ['wallet-balance', input.chainId, input.chainType, input.tokenAddress],
     queryFn: () => client.getBalance(input),
-    enabled: Boolean(input.chainId && input.chainType),
+    enabled: input.chainId != null && Boolean(input.chainType),
   })
 }

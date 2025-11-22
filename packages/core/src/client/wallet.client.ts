@@ -54,10 +54,7 @@ export const createWalletClient = ({
       url: `${baseUrl}${listWalletsContract.path}`,
       options: {
         method: listWalletsContract.method,
-        headers: {
-          'Content-Type': 'application/json',
-          ...headers,
-        },
+        headers,
       },
     })
 
@@ -74,7 +71,10 @@ export const createWalletClient = ({
     walletId,
     ...input
   }: SendTransactionInput & { walletId: string }): Promise<SendTransactionResult> => {
-    const path = sendTransactionContract.path.replace(':id', walletId)
+    if (!walletId || typeof walletId !== 'string') {
+      throw new Error('walletId must be a non-empty string')
+    }
+    const path = sendTransactionContract.path.replace(':id', encodeURIComponent(walletId))
     const response = await fetchWithTimeout({
       url: `${baseUrl}${path}`,
       options: {
