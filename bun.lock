@@ -370,7 +370,7 @@
       "name": "@vencura/react",
       "version": "0.0.1",
       "dependencies": {
-        "@lukemorales/query-key-factory": "^1.1.0",
+        "@lukemorales/query-key-factory": "^1.3.4",
         "@tanstack/react-query": "^5.0.0",
         "@vencura/core": "workspace:*",
       },

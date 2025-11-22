@@ -151,10 +151,17 @@ All hooks use query-key factories from `src/queries/` for centralized, type-safe
 
 ```typescript
 // Query keys are defined in src/queries/wallets.ts
-import { wallets } from '@vencura/react/queries'
+import { wallets } from '@vencura/react'
 
 // Hooks use these factories internally
 const { data } = useWallets() // Uses wallets.all query key
+
+// For invalidation in mutations:
+import { useQueryClient } from '@tanstack/react-query'
+import { wallets } from '@vencura/react'
+
+const queryClient = useQueryClient()
+queryClient.invalidateQueries({ queryKey: wallets._def })
 ```
 
 This ensures consistent query key structure and enables easy invalidation across the app.

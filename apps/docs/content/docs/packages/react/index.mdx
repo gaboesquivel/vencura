@@ -316,7 +316,7 @@ All hooks use query-key factories from `src/queries/` for centralized, type-safe
 
 ```tsx
 import { useQueryClient } from '@tanstack/react-query'
-import { wallets } from '@vencura/react/queries'
+import { wallets } from '@vencura/react'
 
 // Invalidate all wallet queries
 queryClient.invalidateQueries({ queryKey: wallets._def })
