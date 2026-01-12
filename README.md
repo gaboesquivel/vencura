@@ -72,19 +72,27 @@ See [Getting Started Guide](/docs/getting-started) and [Environment Strategy](/d
 
 ## Architecture
 
-This monorepo follows a modular architecture with clear separation between applications, shared packages, and infrastructure. **Built with portability in mind - deploy anywhere without vendor lock-in.**
+This monorepo follows a **4-tier workspace model** with clear separation between applications, shared packages, configuration, and internal development tools. **Built with portability in mind - deploy anywhere without vendor lock-in.**
+
+### 4-Tier Workspace Model
+
+| Folder | Role |
+|--------|------|
+| `apps/*` | User-facing products (Next.js, APIs, CLIs, etc) |
+| `packages/*` | Shared libraries (types, UI, SDKs, db, contracts) |
+| `config/*` | Tooling as code (eslint, tsconfig, biome, tailwind, jest, etc) |
+| `_dev/**` | Internal dev tools (infra scripts, fixtures, test harnesses, generators, local tools) |
 
 ### Structure
 
 ```
-dynamic/
-├── apps/              # Applications
+vencura/
+├── apps/              # Tier 1: User-facing applications
 │   ├── api/           # Elysia backend API (multichain custodial wallet platform)
 │   ├── web/           # Next.js frontend for Vencura API
 │   ├── docs/          # Documentation site (Fumadocs)
-│   ├── mathler/       # Next.js Mathler game
-│   └── elysia/        # Elysia template/example app
-├── packages/          # Shared packages
+│   └── mathler/       # Next.js Mathler game
+├── packages/          # Tier 2: Shared libraries
 │   ├── core/          # TypeScript SDK for Vencura API (contract-first)
 │   ├── react/         # React hooks for Vencura API using TanStack Query
 │   ├── types/         # Shared API contracts and types (Zod schemas, ts-rest contracts)
@@ -92,12 +100,21 @@ dynamic/
 │   ├── lib/           # Shared utility library (@vencura/lib)
 │   ├── evm/           # EVM token contract ABIs and utilities
 │   └── tools/         # Development tools enabled by feature flags
-├── contracts/         # Smart contracts
+├── config/            # Tier 3: Shared configurations
+│   ├── eslint/        # Shared ESLint configuration
+│   └── typescript/    # Shared TypeScript configuration
+├── contracts/         # Smart contracts (separate area)
 │   ├── evm/           # EVM contracts (Foundry)
 │   └── solana/        # Solana programs (Anchor)
-└── infra/             # Infrastructure as Code
-    └── vencura/       # Pulumi infrastructure for Vencura API
+└── _dev/              # Tier 4: Internal dev tools (reference only)
+    ├── infra/         # Pulumi infrastructure for GCP (reference only, not deployed)
+    ├── elysia/        # Elysia app template
+    └── next/           # Next.js app template
 ```
+
+**Applications** (`apps/`) are deployable services with their own dependencies and configurations. **Packages** (`packages/`) provide shared code and utilities consumed by applications. **Config** (`config/`) contains shared configuration packages for ESLint, TypeScript, and other tooling. **Internal Dev Tools** (`_dev/`) contains infrastructure scripts, app templates, and other development utilities - nothing in `_dev/` is deployed.
+
+**Note**: GCP Pulumi infrastructure has been moved to `_dev/infra` and is currently **documented but not wired into the default workflow**, which uses Vercel. See [`_dev/README.md`](./_dev/README.md) for details.
 
 ### Portable by Default
 

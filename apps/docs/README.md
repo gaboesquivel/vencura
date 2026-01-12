@@ -17,6 +17,8 @@ The docs site focuses on:
 - **AI-assisted workflow**: How MCP servers, Cursor rules, and v0 are used in development (see [MCP Servers](/docs/mcp-servers))
 - **Testing patterns**: Blackbox Vitest strategy (see [Testing Patterns](/docs/tooling/testing-patterns))
 
+**Workspace Context**: This app is part of the **apps tier** in our 4-tier workspace model (`apps/*` for user-facing products). It consumes shared packages (`@vencura/ui`, `@vencura/types`) and shared configs (`@workspace/eslint-config`, `@workspace/typescript-config`), while `_dev/` contains internal infra scripts and templates. See [`_dev/README.md`](../../_dev/README.md) for workspace structure details.
+
 For app-specific documentation, see individual app READMEs:
 - [Vencura API](../../apps/api/README.md)
 - [Vencura Web](../../apps/web/README.md)
@@ -28,6 +30,32 @@ For app-specific documentation, see individual app READMEs:
 - **Fumadocs** - Documentation framework built on Next.js and MDX
 - **TypeScript** - Type safety
 - **Tailwind CSS** - Styling
+
+## Tooling
+
+This app follows the monorepo tooling standards:
+
+- **Package Manager**: Bun (see [ADR 005: Package Manager](/docs/adrs/005-package-manager))
+- **Linting & Formatting**: Biome + ESLint (see [ADR 006: Linters](/docs/adrs/006-linters))
+  - **Formatting**: Use root-level `bun run format` (Biome) for consistent formatting across the monorepo
+  - **Linting**: ESLint for rule enforcement (configured via `@workspace/eslint-config`)
+
+### Development Commands
+
+**From monorepo root:**
+- `bun run dev` - Start all apps in development mode
+- `bun run build` - Build all apps
+- `bun run format` - Format all code using Biome (use this for formatting)
+- `bun run lint` - Lint all apps using ESLint
+
+**From `apps/docs` directory:**
+- `bun run dev` - Start docs site in development mode
+- `bun run build` - Build docs site for production
+- `bun run start` - Start production server
+- `bun run types:check` - Type check MDX files and TypeScript
+- `bun run lint` - Lint using ESLint
+
+**Note**: Formatting is handled at the root level via `bun run format` - no local format script needed.
 
 ## Getting Started
 
@@ -105,6 +133,9 @@ bun run types:check
 
 # Lint
 bun run lint
+
+# Format (use root-level command)
+# From monorepo root: bun run format
 ```
 
 ## Related Documentation

@@ -2,38 +2,36 @@
 
 Production-grade infrastructure-as-code for the Vencura API using Pulumi and Google Cloud Platform.
 
+## Status
+
+⚠️ **Reference Only** - This infrastructure code is kept for reference but is **not actively used** in this demo. All live deployments currently run on **Vercel**. This GCP infrastructure is preserved as a reference implementation for potential future use when production security requirements demand enhanced control, security, and extensibility.
+
 ## Overview
 
 This directory contains Pulumi TypeScript infrastructure code for deploying the Vencura Elysia API to Google Cloud Run with Cloud SQL Postgres, VPC networking, Secret Manager, and secure service accounts.
 
-## Architecture Decisions
-
-- **[ADR 007: Vencura API Infrastructure](/docs/adrs/007-vencura-api-infrastructure)** - Decision to use Google Cloud Run
-- **[ADR 010: Vencura Infrastructure Orchestration](/docs/adrs/010-vencura-infra-orchestration)** - Decision to use Pulumi for infrastructure orchestration
-
 ## Structure
 
 ```
-/infra
-  /vencura
-    Pulumi.yaml                    # Pulumi project config
-    Pulumi.dev.yaml               # Dev stack config
-    Pulumi.prod.yaml               # Prod stack config
-    package.json                   # Pulumi dependencies
-    tsconfig.json                  # TypeScript config
-    index.ts                       # Main Pulumi program
-    /lib
-      config.ts                    # Environment-aware configuration
-      network.ts                   # VPC, subnet, VPC Connector
-      database.ts                  # Cloud SQL Postgres (private IP)
-      secrets.ts                   # Secret Manager
-      service-accounts.ts         # IAM with least privilege
-      artifact-registry.ts         # Artifact Registry repository
-      docker-build.ts              # Docker image building and pushing
-      cloud-run.ts                 # Cloud Run service
-      outputs.ts                   # Stack outputs
-    /utils
-      helpers.ts                   # Utility functions
+_dev/infra/
+  Pulumi.yaml                    # Pulumi project config
+  Pulumi.dev.yaml               # Dev stack config
+  Pulumi.prod.yaml               # Prod stack config
+  package.json                   # Pulumi dependencies
+  tsconfig.json                  # TypeScript config
+  index.ts                       # Main Pulumi program
+  /lib
+    config.ts                    # Environment-aware configuration
+    network.ts                   # VPC, subnet, VPC Connector
+    database.ts                  # Cloud SQL Postgres (private IP)
+    secrets.ts                   # Secret Manager
+    service-accounts.ts         # IAM with least privilege
+    artifact-registry.ts         # Artifact Registry repository
+    docker-build.ts              # Docker image building and pushing
+    cloud-run.ts                 # Cloud Run service
+    outputs.ts                   # Stack outputs
+  /utils
+    helpers.ts                   # Utility functions
 ```
 
 ## Prerequisites
@@ -134,7 +132,7 @@ This directory contains Pulumi TypeScript infrastructure code for deploying the 
 ### Step 1: Install Dependencies (On Your Computer)
 
 ```bash
-cd infra/vencura
+cd _dev/infra
 bun install
 ```
 
@@ -226,10 +224,10 @@ Configure GCP project and region. The infrastructure code reads these values in 
 
 **Option A: Using .env file (Recommended for Local Development)**
 
-The infrastructure code uses `dotenv` to automatically load environment variables from a `.env` file. Create a `.env` file in `infra/vencura/` directory:
+The infrastructure code uses `dotenv` to automatically load environment variables from a `.env` file. Create a `.env` file in `_dev/infra/` directory:
 
 ```bash
-cd infra/vencura
+cd _dev/infra
 cat > .env << EOF
 GCP_PROJECT_ID=your-gcp-project-id
 GCP_REGION=us-central1
@@ -240,7 +238,7 @@ EOF
 Or copy the sample file:
 
 ```bash
-cd infra/vencura
+cd _dev/infra
 cp .env-sample .env
 # Then edit .env with your actual values
 ```
@@ -873,7 +871,7 @@ pulumi stack output
 
 - **Solution**: This means the resource exists in GCP but is not in Pulumi's state. You need to import the existing resource into Pulumi state. For example, to import an existing service account:
   ```bash
-  cd infra/vencura
+  cd _dev/infra
   pulumi stack select dev
   pulumi import gcp:serviceaccount/account:Account vencura-dev-cicd-sa projects/PROJECT_ID/serviceAccounts/vencura-dev-cicd-sa@PROJECT_ID.iam.gserviceaccount.com
   ```

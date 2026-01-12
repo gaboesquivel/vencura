@@ -1,5 +1,5 @@
 {
-  "name": "elysia-template",
+  "name": "@workspace/elysia",
   "version": "0.0.1",
   "private": true,
   "description": "Elysia",
