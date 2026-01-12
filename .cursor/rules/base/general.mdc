@@ -13,9 +13,7 @@ alwaysApply: true
 - Suggest improvements proactively when spotting issues
 - Always read readme files before coding
 - Always update readme files after making code changes
-- Always run format, lint and test to verify changes work
 
 ## Tooling
 - Use **bun** for package management (not pnpm, npm, or yarn)
-- Use **Biome + ESLint** for linting and formatting (Biome for formatting, ESLint for rule enforcement only) - see [ADR 006](/docs/adrs/006-linters)
 - Run `bun run format` to format code (uses Biome), `bun run lint` to lint code (uses ESLint)
