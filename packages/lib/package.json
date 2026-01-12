@@ -24,7 +24,6 @@
     "lint": "eslint . --max-warnings 0 --ignore-pattern 'scripts/**'"
   },
   "devDependencies": {
-    "@types/bun": "latest",
     "@types/node": "^20.19.9",
     "@workspace/eslint-config": "workspace:*",
     "@workspace/typescript-config": "workspace:*",

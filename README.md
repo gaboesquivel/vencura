@@ -157,6 +157,7 @@ This project follows strict coding standards enforced through Cursor rules and d
 ### Tooling
 - **Package Manager**: Bun (see [ADR 005: Package Manager](/docs/adrs/005-package-manager))
 - **Linting & Formatting**: Biome + ESLint (see [ADR 006: Linters](/docs/adrs/006-linters))
+- **Runtime Types**: `bun-types` for Bun (no `@types/bun`)
 - **Testing**: Vitest with blackbox HTTP API testing strategy (see [Testing Patterns](/docs/tooling/testing-patterns))
 
 ### Key Patterns
