@@ -1,10 +1,14 @@
-import { z } from 'zod'
+export type HelloResponse = { message: string }
 
 /**
- * Hello response schema.
+ * Minimal runtime validator for the hello response.
+ * Kept lightweight to avoid test bundler issues while still enforcing shape.
  */
-export const HelloResponseSchema = z.object({
-  message: z.string(),
-})
+export const HelloResponseSchema = {
+  parse: (value: unknown): HelloResponse => {
+    if (!value || typeof (value as { message?: unknown }).message !== 'string')
+      throw new Error('Invalid HelloResponse: expected { message: string }')
 
-export type HelloResponse = z.infer<typeof HelloResponseSchema>
+    return { message: (value as { message: string }).message }
+  },
+}
