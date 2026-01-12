@@ -1,7 +1,9 @@
 'use client'
 
 import { useAsyncFn } from 'react-use'
-import { groupBy, sumBy, isPlainObject } from 'lodash'
+import groupBy from 'lodash-es/groupBy'
+import sumBy from 'lodash-es/sumBy'
+import isPlainObject from 'lodash-es/isPlainObject'
 import {
   useDynamicContext,
   useUserUpdateRequest,

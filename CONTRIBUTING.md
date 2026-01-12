@@ -113,7 +113,7 @@ Prefer lodash utilities over custom implementations for common operations:
 - **String transformations**: `camelCase`, `kebabCase`, `startCase`
 - **Functional utilities**: `debounce`, `throttle`, `memoize`
 
-Always use specific imports: `import { isEmpty, uniq } from 'lodash'` (not `import _ from 'lodash'`)
+Always use per-function imports: `import isEmpty from 'lodash-es/isEmpty'` and `import uniq from 'lodash-es/uniq'` (not `import { isEmpty, uniq } from 'lodash-es'` or `import _ from 'lodash-es'`)
 
 #### Zod
 

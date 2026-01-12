@@ -6,7 +6,7 @@ import {
   generateEquationsForTarget,
 } from './math'
 import { getDateKey } from '@vencura/lib'
-import { isArray } from 'lodash'
+import isArray from 'lodash-es/isArray'
 
 describe('evaluateExpression', () => {
   it('should evaluate simple addition', () => {

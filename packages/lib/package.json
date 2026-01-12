@@ -20,10 +20,21 @@
     }
   },
   "scripts": {
-    "build": "tsup && node scripts/fix-lodash-imports.js",
+    "build": "tsup",
     "lint": "eslint . --max-warnings 0 --ignore-pattern 'scripts/**'"
   },
+  "peerDependencies": {
+    "typescript": "^5.0.0"
+  },
+  "dependencies": {
+    "@vencura/types": "workspace:*",
+    "lodash-es": "latest",
+    "viem": "^2.21.45",
+    "zod": "^3.25.76",
+    "zod-validation-error": "^3.3.0"
+  },
   "devDependencies": {
+    "@types/lodash-es": "latest",
     "@types/node": "^20.19.9",
     "@workspace/eslint-config": "workspace:*",
     "@workspace/typescript-config": "workspace:*",
@@ -31,16 +42,5 @@
     "eslint": "^9.32.0",
     "tsup": "^8.3.5",
     "typescript": "^5.9.2"
-  },
-  "peerDependencies": {
-    "typescript": "^5.0.0"
-  },
-  "dependencies": {
-    "@types/lodash": "^4.17.20",
-    "@vencura/types": "workspace:*",
-    "lodash": "^4.17.21",
-    "viem": "^2.21.45",
-    "zod": "^3.25.76",
-    "zod-validation-error": "^3.3.0"
   }
 }

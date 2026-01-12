@@ -56,11 +56,7 @@ export async function getSolanaClient(): Promise<DynamicSolanaWalletClient> {
  * Create wallet using appropriate client based on chain type.
  * Matches NestJS pattern: uses ThresholdSignatureScheme.TWO_OF_TWO and backUpToClientShareService: false.
  */
-export async function createWallet({
-  chainType,
-}: {
-  chainType: ChainType
-}) {
+export async function createWallet({ chainType }: { chainType: ChainType }) {
   // Use dynamic import for ESM module compatibility
   // This matches the pattern used in dynamic-examples/nodejs-omnibus-sweep
   const { ThresholdSignatureScheme } = await import('@dynamic-labs-wallet/node')

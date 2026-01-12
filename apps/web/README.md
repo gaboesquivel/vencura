@@ -40,7 +40,7 @@ This app leverages shared utility libraries to reduce boilerplate and ensure con
   - `formatZodError` / `formatZodErrors` - User-friendly zod error formatting
   - `getEnvHelper` - Environment variable validation (used in `lib/env.ts`)
 - **zod**: Always use for schema validation and type inference
-- **lodash**: Use for complex array/object manipulations, functional utilities (debounce, throttle), and type checking (`isEmpty`, `isPlainObject`, `isString`, etc.)
+- **lodash-es**: Use for complex array/object manipulations, functional utilities (debounce, throttle), and type checking (`isEmpty`, `isPlainObject`, `isString`, etc.). Use per-function imports: `import isEmpty from 'lodash-es/isEmpty'`
 
 See [@vencura/lib README](../../packages/lib/README.md) for complete utility documentation.
 

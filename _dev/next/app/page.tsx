@@ -3,7 +3,7 @@
 import { useHello } from '@vencura/react'
 import { DynamicWidget, useDynamicContext } from '@dynamic-labs/sdk-react-core'
 import { delay, getErrorMessage } from '@vencura/lib'
-import { isString } from 'lodash'
+import isString from 'lodash-es/isString'
 import { useState } from 'react'
 
 export const dynamic = 'force-dynamic'

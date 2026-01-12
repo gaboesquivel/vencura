@@ -231,7 +231,7 @@ import { delay, fetchWithTimeout, getErrorMessage, formatZodError, formatZodErro
 ### Error Handling
 
 - Use `getErrorMessage` from @lib for consistent error message extraction
-- Use lodash utilities (`isPlainObject`, `isEmpty`) for type checking instead of manual checks
+- Use lodash-es utilities (`isPlainObject`, `isEmpty`) for type checking instead of manual checks
 - Use `formatZodError` for user-facing messages, `formatZodErrors` for arrays
 
 ### Fetch Calls
@@ -243,7 +243,7 @@ import { delay, fetchWithTimeout, getErrorMessage, formatZodError, formatZodErro
 ## When to Use @vencura/lib vs Other Libraries
 
 - **@vencura/lib**: Use for shared utilities (error handling, delays, date formatting, env validation)
-- **lodash**: Use for complex array/object manipulations, functional utilities (debounce, throttle), and type checking (`isPlainObject`, `isEmpty`, `isString`)
+- **lodash-es**: Use for complex array/object manipulations, functional utilities (debounce, throttle), and type checking (`isPlainObject`, `isEmpty`, `isString`). Use per-function imports: `import isEmpty from 'lodash-es/isEmpty'`
 - **zod**: Use for schema validation and type inference (always prefer zod for validation)
 - **nanoid**: Use directly for unique ID generation (not wrapped in @vencura/lib)
 - **Native JavaScript**: Use for simple operations (array.map, Object.keys, etc.)

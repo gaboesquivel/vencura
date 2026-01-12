@@ -156,7 +156,7 @@ This project follows strict coding standards enforced through Cursor rules and d
 
 ### Tooling
 - **Package Manager**: Bun (see [ADR 005: Package Manager](apps/docs/content/docs/adrs/005-package-manager/index.mdx))
-- **Linting & Formatting**: Biome + ESLint (see [ADR 006: Linters](apps/docs/content/docs/adrs/006-linters/index.mdx))
+- **Linting & Formatting**: Biome + ESLint (Biome configured via root `biome.json`, see [ADR 006: Linters](apps/docs/content/docs/adrs/006-linters/index.mdx))
 - **Runtime Types**: `bun-types` for Bun (no `@types/bun`)
 - **Testing**: Vitest with blackbox HTTP API testing strategy (see [Testing Patterns](apps/docs/content/docs/tooling/testing-patterns.mdx))
 - **Frontend Browserslist**: Next.js apps depend directly on `browserslist` with Baseline support provided transitively (no explicit `baseline-browser-mapping` dependency)
@@ -176,7 +176,7 @@ This project follows strict coding standards enforced through Cursor rules and d
 - **RORO Pattern**: Functions with multiple parameters use Receive Object, Return Object pattern. See [TypeScript Rules](.cursor/rules/base/typescript.mdc)
 - **Type Inference**: Always enforce type inference - define return types in functions when needed, never in consumers
 - **Functional Code**: Prefer functional and declarative programming patterns
-- **Utility Libraries**: Always leverage `@vencura/lib`, `zod`, and `lodash` instead of custom implementations
+- **Utility Libraries**: Always leverage `@vencura/lib`, `zod`, and `lodash-es` instead of custom implementations
 
 ### Cursor Rules
 
