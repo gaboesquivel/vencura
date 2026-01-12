@@ -1,6 +1,6 @@
 import { Elysia } from 'elysia'
-import { balanceContract, BalanceSchema, BalanceInputSchema, type ChainType } from '@vencura/types'
-import { formatZodError, getErrorMessage, isZodError } from '@vencura/lib'
+import { balanceContract, BalanceSchema, BalanceInputSchema } from '@vencura/types'
+import { getErrorMessage } from '@vencura/lib'
 import { getBalanceService } from '../services/balance.service'
 import { getUserId } from '../middleware/auth'
 
@@ -11,37 +11,12 @@ export const balanceRoute = new Elysia()
   .post(
     balanceContract.path,
     async ({ body, userId }) => {
-      // Validate body with Zod schema (400 if invalid)
-      let validatedBody: {
-        chainId: number
-        chainType: ChainType
-        tokenAddress?: string
-      }
-      try {
-        validatedBody = BalanceInputSchema.parse(body)
-      } catch (err) {
-        // Zod validation error - return 400
-        const message = isZodError(err)
-          ? formatZodError({ error: err })
-          : (getErrorMessage(err) ?? 'Invalid request body')
-        return new Response(
-          JSON.stringify({
-            error: 'Validation error',
-            message,
-          }),
-          {
-            status: 400,
-            headers: { 'Content-Type': 'application/json' },
-          },
-        )
-      }
-
       try {
         const result = await getBalanceService({
           userId,
-          chainId: validatedBody.chainId,
-          chainType: validatedBody.chainType,
-          tokenAddress: validatedBody.tokenAddress,
+          chainId: body.chainId,
+          chainType: body.chainType,
+          tokenAddress: body.tokenAddress,
         })
 
         // Validate response matches contract
@@ -102,6 +77,7 @@ export const balanceRoute = new Elysia()
       }
     },
     {
+      body: BalanceInputSchema,
       detail: {
         summary: 'Get wallet balance',
         description:

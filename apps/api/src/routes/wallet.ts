@@ -8,10 +8,8 @@ import {
   SendTransactionInputSchema,
   SendTransactionResultSchema,
   ListWalletsResponseSchema,
-  type ChainType,
-  type SendTransactionInput,
 } from '@vencura/types'
-import { formatZodError, getErrorMessage, isZodError } from '@vencura/lib'
+import { getErrorMessage } from '@vencura/lib'
 import { createWalletService, getUserWallets } from '../services/wallet.service'
 import { sendTransactionService } from '../services/transaction.service'
 import { getUserId } from '../middleware/auth'
@@ -63,31 +61,8 @@ export const walletRoute = new Elysia()
   .post(
     createWalletContract.path,
     async ({ body, userId }) => {
-      // Validate body with Zod schema (400 if invalid)
-      // ChainType validation is handled by Zod schema
-      let chainType: ChainType
       try {
-        const validatedBody = CreateWalletInputSchema.parse(body)
-        chainType = validatedBody.chainType
-      } catch (err) {
-        // Zod validation error - return 400
-        const message = isZodError(err)
-          ? formatZodError({ error: err })
-          : (getErrorMessage(err) ?? 'Invalid request body')
-        return new Response(
-          JSON.stringify({
-            error: 'Validation error',
-            message,
-          }),
-          {
-            status: 400,
-            headers: { 'Content-Type': 'application/json' },
-          },
-        )
-      }
-
-      try {
-        const result = await createWalletService({ userId, chainType })
+        const result = await createWalletService({ userId, chainType: body.chainType })
 
         // Validate response matches contract
         const wallet = WalletSchema.parse({
@@ -141,6 +116,7 @@ export const walletRoute = new Elysia()
       }
     },
     {
+      body: CreateWalletInputSchema,
       detail: {
         summary: 'Create a new custodial wallet',
         description:
@@ -153,34 +129,14 @@ export const walletRoute = new Elysia()
     async ({ params, body, userId }) => {
       // Type assertion for path parameter
       const walletId = (params as { id: string }).id
-      // Validate body with Zod schema (400 if invalid)
-      let validatedBody: SendTransactionInput
-      try {
-        validatedBody = SendTransactionInputSchema.parse(body)
-      } catch (err) {
-        // Zod validation error - return 400
-        const message = isZodError(err)
-          ? formatZodError({ error: err })
-          : (getErrorMessage(err) ?? 'Invalid request body')
-        return new Response(
-          JSON.stringify({
-            error: 'Validation error',
-            message,
-          }),
-          {
-            status: 400,
-            headers: { 'Content-Type': 'application/json' },
-          },
-        )
-      }
 
       try {
         const result = await sendTransactionService({
           userId,
           walletId,
-          to: validatedBody.to,
-          amount: validatedBody.amount,
-          data: validatedBody.data ?? undefined,
+          to: body.to,
+          amount: body.amount,
+          data: body.data ?? undefined,
         })
 
         // Validate response matches contract
@@ -236,6 +192,7 @@ export const walletRoute = new Elysia()
       }
     },
     {
+      body: SendTransactionInputSchema,
       detail: {
         summary: 'Send a transaction from a wallet',
         description:

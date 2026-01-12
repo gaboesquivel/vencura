@@ -1,6 +1,5 @@
 import { Elysia } from 'elysia'
 import { z } from 'zod'
-import { getErrorMessage } from '@vencura/lib'
 import { getUserId } from '../middleware/auth'
 import { createWalletService, getUserWallets } from '../services/wallet.service'
 import { getBalanceService } from '../services/balance.service'
@@ -210,10 +209,9 @@ export const chatRoute = new Elysia()
   .get('/chat/tools', () => {
     return walletTools
   })
-  .post('/chat', async ({ body, userId }) => {
-    try {
-      const validated = chatRequestSchema.parse(body)
-
+  .post(
+    '/chat',
+    async ({ body, userId }) => {
       // For now, return a simple response indicating tool calls are supported
       // In a full implementation, this would integrate with an AI provider (OpenAI, Anthropic, etc.)
       // and handle tool calls automatically
@@ -225,17 +223,8 @@ export const chatRoute = new Elysia()
         },
         finishReason: 'stop' as const,
       }
-    } catch (err) {
-      const errorMessage = getErrorMessage(err) ?? String(err)
-      return new Response(
-        JSON.stringify({
-          error: 'Invalid request',
-          message: errorMessage,
-        }),
-        {
-          status: 400,
-          headers: { 'Content-Type': 'application/json' },
-        },
-      )
-    }
-  })
+    },
+    {
+      body: chatRequestSchema,
+    },
+  )
