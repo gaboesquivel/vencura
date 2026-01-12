@@ -55,7 +55,7 @@ The API will be available at `http://localhost:3077` (or configured port).
 
 ### Environment Variables
 
-This app uses environment-specific configuration files. See [Environment Strategy](/docs/adrs/014-environment-strategy) for the complete pattern.
+This app uses environment-specific configuration files. See [Environment Strategy](../docs/content/docs/adrs/014-environment-strategy/index.mdx) for the complete pattern.
 
 **File Structure:**
 - `.env` - Sensitive data (API keys, tokens, secrets) - **NEVER COMMIT**
@@ -119,13 +119,13 @@ bun run test:e2e
 
 **Testing Strategy:**
 - **Testnet-based**: Tests run against Arbitrum Sepolia testnet (Dynamic SDK doesn't support localhost chains)
-- **Automated gas funding**: Wallets are auto-funded with minimum ETH using `ARB_TESTNET_GAS_FAUCET_KEY` (see [ADR 013](/docs/adrs/013-vencura-api-test-gas-faucet))
+- **Automated gas funding**: Wallets are auto-funded with minimum ETH using `ARB_TESTNET_GAS_FAUCET_KEY` (see [ADR 013](../docs/content/docs/adrs/013-vencura-api-test-gas-faucet/index.mdx))
 - **Test tokens**: Uses deployed test tokens (USDT, USDC, DNMC) on Arbitrum Sepolia
 - **Blackbox testing**: All tests hit HTTP endpoints only, ensuring end-to-end validation
 - **Dynamic SDK integration**: All transaction signing uses the real Dynamic SDK (no mocks)
 - **Balance endpoint tests**: `src/routes/balance.spec.ts` tests the `/wallets/balance` endpoint which requires `chainId`, `chainType`, and authentication. Supports both native token and ERC20 token balance queries.
 
-See [API Test Documentation](./test/README.md) for complete testing strategy details.
+See the [Testing](#testing) section above for complete testing strategy details.
 
 ## API Endpoints
 
@@ -229,9 +229,9 @@ api/
 │   │   ├── balance.service.ts      # Balance retrieval logic
 │   │   ├── token-metadata.service.ts  # Token metadata caching
 │   │   └── wallet.service.ts      # Wallet creation logic
+│   ├── test/             # Test utilities and setup
 │   └── db/               # Database schema and migrations
 │       └── schema.ts     # Drizzle ORM schema definitions
-├── test/                 # E2E tests
 └── package.json
 ```
 
@@ -241,7 +241,7 @@ api/
 - [Testing Rules](../../.cursor/rules/backend/testing.mdc) - Testing patterns
 - [TypeScript Rules](../../.cursor/rules/base/typescript.mdc) - Type safety patterns
 - [Environment Rules](../../.cursor/rules/base/environment.mdc) - Environment variable patterns
-- [Documentation Site](/docs) - High-level architecture and ADRs
+- [Documentation Site](../docs/README.md) - High-level architecture and ADRs
 
 ## License
 

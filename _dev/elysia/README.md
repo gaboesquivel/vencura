@@ -1,10 +1,12 @@
 # Elysia Template
 
-Elysia template/example app for reference and experimentation. This template mirrors the patterns and architecture used in the production Vencura API (`@api`).
+Elysia template/example app for reference and experimentation. This template mirrors the patterns and architecture used in the production Vencura API (`apps/api`).
 
 ## Overview
 
 This is a minimal Elysia application template that demonstrates basic patterns and can be used as a starting point for new Elysia-based services. It follows the same architectural patterns as the production API, including contract-first design, Zod validation, black-box testing, and environment variable management.
+
+**Note**: This template lives in `_dev/` as part of the **internal dev tools tier** in our 4-tier workspace model. It's a starter template for creating new Elysia services, not a deployed application. See [`_dev/README.md`](../README.md) for more context on the workspace structure.
 
 ## Tech Stack
 
@@ -34,7 +36,7 @@ This is a minimal Elysia application template that demonstrates basic patterns a
 bun install
 
 # Or from this directory
-cd apps/elysia
+cd _dev/elysia
 bun install
 ```
 
@@ -55,7 +57,7 @@ The server will be available at `http://localhost:3077` (or configured port).
 
 ### Environment Variables
 
-This app uses environment-specific configuration files. See [Environment Strategy](/docs/adrs/014-environment-strategy) for the complete pattern.
+This app uses environment-specific configuration files. See [Environment Strategy](../../apps/docs/content/docs/adrs/014-environment-strategy/index.mdx) for the complete pattern.
 
 **File Structure:**
 - `.env` - Sensitive data (API keys, tokens, secrets) - **NEVER COMMIT**
@@ -146,7 +148,8 @@ elysia/
 - [TypeScript Rules](../../.cursor/rules/base/typescript.mdc) - Type safety patterns
 - [Environment Rules](../../.cursor/rules/base/environment.mdc) - Environment variable patterns
 - [Vencura API](../../apps/api/README.md) - Production Elysia API implementation
-- [Documentation Site](/docs) - High-level architecture and ADRs
+- [`_dev/README.md`](../README.md) - Development tools and workspace structure
+- [Documentation Site](../../apps/docs/README.md) - High-level architecture and ADRs
 
 ## License
 

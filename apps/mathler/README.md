@@ -157,7 +157,7 @@ The `zEnv` object is validated at module load using Zod schemas and `getEnvHelpe
 
 **Note**: If `NEXT_PUBLIC_DYNAMIC_ENVIRONMENT_ID` is not set, the app will use a placeholder ID and show warnings in development mode. Authentication will not work properly without a valid environment ID.
 
-See [ADR 014: Environment Strategy](/docs/adrs/014-environment-strategy) for the complete architecture decision and [Environment Rules](../../.cursor/rules/base/environment.mdc) for implementation patterns.
+See [ADR 014: Environment Strategy](../docs/content/docs/adrs/014-environment-strategy/index.mdx) for the complete architecture decision and [Environment Rules](../../.cursor/rules/base/environment.mdc) for implementation patterns.
 
 ## Development
 

@@ -17,7 +17,7 @@ We need a Next.js-native documentation framework that:
 - Is open source and self-hostable
 - Supports AI-assisted documentation workflows (we use AI tools extensively)
 
-We initially had documentation content in `__dev/pages/` directory and needed to migrate to a proper documentation framework integrated with our docs app.
+We initially had documentation content in `__dev/pages/` directory and needed to migrate to a proper documentation framework integrated with our docs app. Note: This `__dev/` directory is different from the current `_dev/` directory which contains internal dev tools (infra scripts, templates).
 
 ## Decision
 
@@ -66,7 +66,7 @@ We migrated all documentation content from `__dev/pages/` to `apps/docs/content/
 ### Neutral
 
 - Content structure preserved, only format changed
-- `__dev/pages/` directory kept for reference
+- `__dev/pages/` directory kept for reference (note: different from current `_dev/` directory)
 
 ## Implementation
 

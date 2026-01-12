@@ -1,6 +1,8 @@
-# Mathler
+# Next.js Template
 
-A Mathler game built with Next.js - like Wordle but with numbers. Users have 6 guesses to find the equation that equals a daily number.
+A Next.js application template demonstrating patterns for building Next.js apps in this monorepo. This template includes examples of Dynamic SDK integration, shared component usage, environment variable management, testing setup, and mobile-first responsive design.
+
+**Note**: This template lives in `_dev/` as part of the **internal dev tools tier** in our 4-tier workspace model. It's a starter template for creating new Next.js applications, separate from `apps/web` and `apps/mathler`. See [`_dev/README.md`](../README.md) for more context on the workspace structure.
 
 ## Current Status
 
@@ -88,7 +90,7 @@ See [Mobile-First Rules](../../.cursor/rules/frontend/mobile-first.mdc) for deta
 bun install
 
 # Or from this directory
-cd apps/next
+cd _dev/next
 bun install
 ```
 
@@ -99,7 +101,7 @@ bun install
 bun run dev
 
 # Or from this directory
-cd apps/next
+cd _dev/next
 bun run dev
 ```
 
@@ -172,7 +174,7 @@ The `zEnv` object is validated at module load using Zod schemas and `getEnvHelpe
 
 **Note**: If `NEXT_PUBLIC_DYNAMIC_ENVIRONMENT_ID` is not set, the app will use a placeholder ID and show warnings in development mode. Authentication will not work properly without a valid environment ID.
 
-See [ADR 014: Environment Strategy](/docs/adrs/014-environment-strategy) for the complete architecture decision and [Environment Rules](../../.cursor/rules/base/environment.mdc) for implementation patterns.
+See [ADR 014: Environment Strategy](../../apps/docs/content/docs/adrs/014-environment-strategy/index.mdx) for the complete architecture decision and [Environment Rules](../../.cursor/rules/base/environment.mdc) for implementation patterns.
 
 ## Development
 

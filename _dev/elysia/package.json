@@ -1,5 +1,5 @@
 {
-  "name": "elysia-template",
+  "name": "@workspace/elysia",
   "version": "0.0.1",
   "private": true,
   "description": "Elysia",
@@ -21,7 +21,7 @@
     "zod": "^3.25.76"
   },
   "devDependencies": {
-    "@types/bun": "latest",
+    "bun-types": "^1.3.5",
     "@vitest/coverage-v8": "^4.0.13",
     "@workspace/eslint-config": "workspace:*",
     "@workspace/typescript-config": "workspace:*",

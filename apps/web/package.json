@@ -1,5 +1,5 @@
 {
-  "name": "vencura-web",
+  "name": "@vencura/web",
   "version": "0.1.0",
   "type": "module",
   "private": true,
@@ -54,6 +54,7 @@
     "@vitest/coverage-v8": "^4.0.13",
     "@vitest/ui": "^4.0.13",
     "@workspace/eslint-config": "workspace:*",
+    "browserslist": "^4.28.1",
     "eslint": "^9.32.0",
     "jsdom": "^27.2.0",
     "postcss": "^8.5",

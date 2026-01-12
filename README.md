@@ -68,23 +68,31 @@ bun run qa
 2. Fill in your values (Dynamic environment ID, API token, etc.)
 3. Start local development: `bun run dev:local`
 
-See [Getting Started Guide](/docs/getting-started) and [Environment Strategy](/docs/environment) for detailed setup instructions.
+See [Getting Started Guide](apps/docs/content/docs/getting-started/index.mdx) and [Environment Strategy](apps/docs/content/docs/environment/index.mdx) for detailed setup instructions.
 
 ## Architecture
 
-This monorepo follows a modular architecture with clear separation between applications, shared packages, and infrastructure. **Built with portability in mind - deploy anywhere without vendor lock-in.**
+This monorepo follows a **4-tier workspace model** with clear separation between applications, shared packages, configuration, and internal development tools. **Built with portability in mind - deploy anywhere without vendor lock-in.**
+
+### 4-Tier Workspace Model
+
+| Folder | Role |
+|--------|------|
+| `apps/*` | User-facing products (Next.js, APIs, CLIs, etc) |
+| `packages/*` | Shared libraries (types, UI, SDKs, db, contracts) |
+| `config/*` | Tooling as code (eslint, tsconfig, biome, tailwind, jest, etc) |
+| `_dev/**` | Internal dev tools (infra scripts, fixtures, test harnesses, generators, local tools) |
 
 ### Structure
 
 ```
-dynamic/
-├── apps/              # Applications
+vencura/
+├── apps/              # Tier 1: User-facing applications
 │   ├── api/           # Elysia backend API (multichain custodial wallet platform)
 │   ├── web/           # Next.js frontend for Vencura API
 │   ├── docs/          # Documentation site (Fumadocs)
-│   ├── mathler/       # Next.js Mathler game
-│   └── elysia/        # Elysia template/example app
-├── packages/          # Shared packages
+│   └── mathler/       # Next.js Mathler game
+├── packages/          # Tier 2: Shared libraries
 │   ├── core/          # TypeScript SDK for Vencura API (contract-first)
 │   ├── react/         # React hooks for Vencura API using TanStack Query
 │   ├── types/         # Shared API contracts and types (Zod schemas, ts-rest contracts)
@@ -92,12 +100,21 @@ dynamic/
 │   ├── lib/           # Shared utility library (@vencura/lib)
 │   ├── evm/           # EVM token contract ABIs and utilities
 │   └── tools/         # Development tools enabled by feature flags
-├── contracts/         # Smart contracts
+├── config/            # Tier 3: Shared configurations
+│   ├── eslint/        # Shared ESLint configuration
+│   └── typescript/    # Shared TypeScript configuration
+├── contracts/         # Smart contracts (separate area)
 │   ├── evm/           # EVM contracts (Foundry)
 │   └── solana/        # Solana programs (Anchor)
-└── infra/             # Infrastructure as Code
-    └── vencura/       # Pulumi infrastructure for Vencura API
+└── _dev/              # Tier 4: Internal dev tools (reference only)
+    ├── infra/         # Pulumi infrastructure for GCP (reference only, not deployed)
+    ├── elysia/        # Elysia app template
+    └── next/           # Next.js app template
 ```
+
+**Applications** (`apps/`) are deployable services with their own dependencies and configurations. **Packages** (`packages/`) provide shared code and utilities consumed by applications. **Config** (`config/`) contains shared configuration packages for ESLint, TypeScript, and other tooling. **Internal Dev Tools** (`_dev/`) contains infrastructure scripts, app templates, and other development utilities - nothing in `_dev/` is deployed.
+
+**Note**: GCP Pulumi infrastructure has been moved to `_dev/infra` and is currently **documented but not wired into the default workflow**, which uses Vercel. See [`_dev/README.md`](./_dev/README.md) for details.
 
 ### Portable by Default
 
@@ -108,9 +125,9 @@ dynamic/
 - **Platform-agnostic**: Can be deployed to any containerized platform (Docker, Kubernetes, etc.)
 - **Vercel as convenience**: Vercel is chosen for rapid deployment and excellent developer experience, not as a requirement
 
-**Current Deployment**: All applications (UI + API) are currently deployed on **Vercel**. See [Vercel Portability Strategy](/docs/vercel-portability) for details.
+**Current Deployment**: All applications (UI + API) are currently deployed on **Vercel**. See [Vercel Portability Strategy](apps/docs/content/docs/vercel-portability/index.mdx) for details.
 
-For comprehensive architecture documentation, see the [Architecture Guide](/docs/architecture).
+For comprehensive architecture documentation, see the [Architecture Guide](apps/docs/content/docs/architecture/index.mdx).
 
 ## Projects
 
@@ -138,9 +155,11 @@ For comprehensive architecture documentation, see the [Architecture Guide](/docs
 This project follows strict coding standards enforced through Cursor rules and documented in Architecture Decision Records (ADRs).
 
 ### Tooling
-- **Package Manager**: Bun (see [ADR 005: Package Manager](/docs/adrs/005-package-manager))
-- **Linting & Formatting**: Biome + ESLint (see [ADR 006: Linters](/docs/adrs/006-linters))
-- **Testing**: Vitest with blackbox HTTP API testing strategy (see [Testing Patterns](/docs/tooling/testing-patterns))
+- **Package Manager**: Bun (see [ADR 005: Package Manager](apps/docs/content/docs/adrs/005-package-manager/index.mdx))
+- **Linting & Formatting**: Biome + ESLint (see [ADR 006: Linters](apps/docs/content/docs/adrs/006-linters/index.mdx))
+- **Runtime Types**: `bun-types` for Bun (no `@types/bun`)
+- **Testing**: Vitest with blackbox HTTP API testing strategy (see [Testing Patterns](apps/docs/content/docs/tooling/testing-patterns.mdx))
+ - **Frontend Browserslist**: Next.js apps depend directly on `browserslist` with Baseline support provided transitively (no explicit `baseline-browser-mapping` dependency)
 
 ### Key Patterns
 - **Mobile-First Design**: All frontend components follow mobile-first responsive design. See [Mobile-First Rules](.cursor/rules/frontend/mobile-first.mdc)
@@ -162,15 +181,15 @@ See [`.cursor/README.md`](.cursor/README.md) for more information on rules and M
 
 ### Architecture Decisions
 
-Architectural decisions are documented in [Architecture Decision Records (ADRs)](/docs/adrs). See the [ADRs index](/docs/adrs) for the complete list.
+Architectural decisions are documented in [Architecture Decision Records (ADRs)](apps/docs/content/docs/adrs/index.mdx). See the [ADRs index](apps/docs/content/docs/adrs/index.mdx) for the complete list.
 
 ## AI-Assisted Development
 
-This project leverages AI tools throughout the development workflow. See [MCP Servers Guide](/docs/mcp-servers) for the complete AI-assisted development workflow and [ADR 012: Vencura AI Architecture](/docs/adrs/012-vencura-ai-architecture) for architecture patterns.
+This project leverages AI tools throughout the development workflow. See [MCP Servers Guide](apps/docs/content/docs/mcp-servers/index.mdx) for the complete AI-assisted development workflow and [ADR 012: Vencura AI Architecture](apps/docs/content/docs/adrs/012-vencura-ai-architecture/index.mdx) for architecture patterns.
 
 **Key tools:**
 
-- **[MCP Servers](/docs/mcp-servers)**: Model Context Protocol servers for enhanced AI capabilities (Shadcn, v0, GitHub, Vercel)
+- **[MCP Servers](apps/docs/content/docs/mcp-servers/index.mdx)**: Model Context Protocol servers for enhanced AI capabilities (Shadcn, v0, GitHub, Vercel)
 - **[v0.dev](https://v0.dev)**: UI component generation via MCP integration (configured in [`.cursor/mcp.json`](.cursor/mcp.json))
 - **Cursor Rules**: Automated code standards enforcement (see [`.cursor/README.md`](.cursor/README.md))
 - **[Development Workflow](.cursor/workflow.md)**: Guidelines for using AI effectively in large, full-stack TypeScript codebases
@@ -179,12 +198,12 @@ This project leverages AI tools throughout the development workflow. See [MCP Se
 
 For comprehensive documentation, see the [Documentation Site](https://vencura-docs.vercel.app):
 
-- **[Getting Started](/docs/getting-started)** - Quick start guide
-- **[Architecture](/docs/architecture)** - Monorepo architecture overview
-- **[Environment Strategy](/docs/environment)** - Environment variable configuration
-- **[Deployment](/docs/deployment)** - Deployment and branching strategy
-- **[Tooling](/docs/tooling)** - Development tools and stack
-- **[MCP Servers](/docs/mcp-servers)** - Model Context Protocol servers guide
-- **[ADRs](/docs/adrs)** - Architecture Decision Records
+- **[Getting Started](apps/docs/content/docs/getting-started/index.mdx)** - Quick start guide
+- **[Architecture](apps/docs/content/docs/architecture/index.mdx)** - Monorepo architecture overview
+- **[Environment Strategy](apps/docs/content/docs/environment/index.mdx)** - Environment variable configuration
+- **[Deployment](apps/docs/content/docs/deployment/index.mdx)** - Deployment and branching strategy
+- **[Tooling](apps/docs/content/docs/tooling/index.mdx)** - Development tools and stack
+- **[MCP Servers](apps/docs/content/docs/mcp-servers/index.mdx)** - Model Context Protocol servers guide
+- **[ADRs](apps/docs/content/docs/adrs/index.mdx)** - Architecture Decision Records
 
 For app-specific documentation, see individual app READMEs in the monorepo.

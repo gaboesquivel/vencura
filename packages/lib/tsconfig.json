@@ -5,7 +5,7 @@
     "paths": {
       "@vencura/lib/*": ["./src/*"]
     },
-    "types": ["node"]
+    "types": ["bun-types", "node"]
   },
   "include": [".", "../../config/typescript/reset.d.ts"],
   "exclude": ["node_modules", "dist"]
