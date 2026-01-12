@@ -10,10 +10,12 @@ This is a minimal Elysia application template that demonstrates basic patterns a
 
 ## Tech Stack
 
-- **Elysia** - Fast, functional web framework with native Zod validation
+- **Elysia** - Fast, functional web framework with native Zod validation (validated against `^1.4.21`)
 - **Bun** - Runtime and package manager
 - **Zod** - Schema validation
 - **Vitest** - Testing framework
+
+**Note**: This template is validated against Elysia `^1.4.21`. The template uses standard route patterns (`.get`, `.post`, etc.) with Zod schema validation and does not rely on deprecated APIs such as `error()`, `mapResponse`, `afterResponse`, macros, or custom cookie parsing. All patterns follow Elysia 1.4.21+ best practices.
 
 ## Architecture
 

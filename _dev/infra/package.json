@@ -19,12 +19,12 @@
     "@pulumi/random": "^4.18.5",
     "dotenv": "^16.6.1",
     "google-auth-library": "^9.15.1",
-    "lodash-es": "latest"
+    "lodash-es": "4.17.22"
   },
   "devDependencies": {
     "@eslint/eslintrc": "^3.3.3",
     "@eslint/js": "^9.39.2",
-    "@types/lodash-es": "latest",
+    "@types/lodash-es": "4.17.12",
     "@types/minimatch": "^5.1.2",
     "@types/node": "^22.19.5",
     "eslint": "^9.39.2",
