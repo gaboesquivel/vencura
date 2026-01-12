@@ -21,6 +21,8 @@
         "SENTRY_ENVIRONMENT",
         "ENABLE_SWAGGER_UI",
         "FAUCET_PRIVATE_KEY",
+        "ARB_TESTNET_GAS_FAUCET_KEY",
+        "SEPOLIA_RPC_URL",
         "CORS_ORIGIN",
         "GCP_PROJECT_ID",
         "GOOGLE_PROJECT",

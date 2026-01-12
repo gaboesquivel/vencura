@@ -9,6 +9,7 @@ import {
   SendTransactionResultSchema,
   ListWalletsResponseSchema,
   type ChainType,
+  type SendTransactionInput,
 } from '@vencura/types'
 import { formatZodError, getErrorMessage, isZodError } from '@vencura/lib'
 import { createWalletService, getUserWallets } from '../services/wallet.service'
@@ -150,8 +151,10 @@ export const walletRoute = new Elysia()
   .post(
     sendTransactionContract.path,
     async ({ params, body, userId }) => {
+      // Type assertion for path parameter
+      const walletId = (params as { id: string }).id
       // Validate body with Zod schema (400 if invalid)
-      let validatedBody: { to: string; amount: number; data?: string | null }
+      let validatedBody: SendTransactionInput
       try {
         validatedBody = SendTransactionInputSchema.parse(body)
       } catch (err) {
@@ -174,7 +177,7 @@ export const walletRoute = new Elysia()
       try {
         const result = await sendTransactionService({
           userId,
-          walletId: params.id,
+          walletId,
           to: validatedBody.to,
           amount: validatedBody.amount,
           data: validatedBody.data ?? undefined,
