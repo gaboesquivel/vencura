@@ -49,7 +49,7 @@ A test SPL Token program designed for testing and faucet purposes. Key features:
 - [Solana CLI](https://docs.solana.com/cli/install-solana-cli-tools) (latest)
 - [Anchor](https://www.anchor-lang.com/docs/installation) (latest)
 - Node.js >= 20
-- Bun >= 1.3.2 (package manager - see [ADR 005: Package Manager](/docs/adrs/005-package-manager))
+- Bun >= 1.3.2 (package manager - see [ADR 005: Package Manager](../../apps/docs/content/docs/adrs/005-package-manager/index.mdx))
 
 ## Installation
 

@@ -57,7 +57,7 @@ The server will be available at `http://localhost:3077` (or configured port).
 
 ### Environment Variables
 
-This app uses environment-specific configuration files. See [Environment Strategy](/docs/adrs/014-environment-strategy) for the complete pattern.
+This app uses environment-specific configuration files. See [Environment Strategy](../../apps/docs/content/docs/adrs/014-environment-strategy/index.mdx) for the complete pattern.
 
 **File Structure:**
 - `.env` - Sensitive data (API keys, tokens, secrets) - **NEVER COMMIT**
@@ -149,7 +149,7 @@ elysia/
 - [Environment Rules](../../.cursor/rules/base/environment.mdc) - Environment variable patterns
 - [Vencura API](../../apps/api/README.md) - Production Elysia API implementation
 - [`_dev/README.md`](../README.md) - Development tools and workspace structure
-- [Documentation Site](/docs) - High-level architecture and ADRs
+- [Documentation Site](../../apps/docs/README.md) - High-level architecture and ADRs
 
 ## License
 

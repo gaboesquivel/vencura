@@ -12,10 +12,10 @@ The docs site focuses on:
 
 - **High-level architecture**: Monorepo layout, key components, and how they interact
 - **Stack & conventions**: Major tech choices (Elysia, Next.js, Fumadocs, Bun, Biome + ESLint, Viem/Wagmi, `@vencura/*` packages)
-- **ADRs**: Architecture Decision Records documenting key technical decisions (see [Architecture Decisions](/docs/adrs))
+- **ADRs**: Architecture Decision Records documenting key technical decisions (see [Architecture Decisions](./content/docs/adrs/index.mdx))
 - **Deployment & environments**: Thin-layer Vercel design, environment strategy, Google Cloud/Pulumi options
-- **AI-assisted workflow**: How MCP servers, Cursor rules, and v0 are used in development (see [MCP Servers](/docs/mcp-servers))
-- **Testing patterns**: Blackbox Vitest strategy (see [Testing Patterns](/docs/tooling/testing-patterns))
+- **AI-assisted workflow**: How MCP servers, Cursor rules, and v0 are used in development (see [MCP Servers](./content/docs/mcp-servers/index.mdx))
+- **Testing patterns**: Blackbox Vitest strategy (see [Testing Patterns](./content/docs/tooling/testing-patterns.mdx))
 
 **Workspace Context**: This app is part of the **apps tier** in our 4-tier workspace model (`apps/*` for user-facing products). It consumes shared packages (`@vencura/ui`, `@vencura/types`) and shared configs (`@workspace/eslint-config`, `@workspace/typescript-config`), while `_dev/` contains internal infra scripts and templates. See [`_dev/README.md`](../../_dev/README.md) for workspace structure details.
 
@@ -35,8 +35,8 @@ For app-specific documentation, see individual app READMEs:
 
 This app follows the monorepo tooling standards:
 
-- **Package Manager**: Bun (see [ADR 005: Package Manager](/docs/adrs/005-package-manager))
-- **Linting & Formatting**: Biome + ESLint (see [ADR 006: Linters](/docs/adrs/006-linters))
+- **Package Manager**: Bun (see [ADR 005: Package Manager](./content/docs/adrs/005-package-manager/index.mdx))
+- **Linting & Formatting**: Biome + ESLint (see [ADR 006: Linters](./content/docs/adrs/006-linters/index.mdx))
   - **Formatting**: Use root-level `bun run format` (Biome) for consistent formatting across the monorepo
   - **Linting**: ESLint for rule enforcement (configured via `@workspace/eslint-config`)
 
@@ -114,7 +114,7 @@ The docs site includes reusable components for enhancing documentation:
 - **DocsChart** - Data visualization charts (`<DocsChart>`)
 - **DocsVideo** - Embedded videos (`<DocsVideo>`)
 
-Components are located in `components/` and automatically available in all MDX files. See [Documentation Authoring Guide](/docs/tooling/docs-authoring) for usage examples and best practices.
+Components are located in `components/` and automatically available in all MDX files. See [Documentation Authoring Guide](./content/docs/tooling/docs-authoring.mdx) for usage examples and best practices.
 
 ## Development
 

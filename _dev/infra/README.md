@@ -37,7 +37,7 @@ _dev/infra/
 ## Prerequisites
 
 - Node.js >= 20.0.0
-- Bun >= 1.3.2 (package manager - see [ADR 005: Package Manager](/docs/adrs/005-package-manager))
+- Bun >= 1.3.2 (package manager - see [ADR 005: Package Manager](../../apps/docs/content/docs/adrs/005-package-manager/index.mdx))
 - Pulumi CLI (latest)
 - Google Cloud SDK (`gcloud`)
 - GCP project with billing enabled

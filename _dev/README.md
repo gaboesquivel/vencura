@@ -72,14 +72,14 @@ This structure is intentionally designed to showcase good monorepo practices for
 
 All development tools in this directory follow the monorepo standards:
 
-- **Package Manager**: Bun (see [ADR 005: Package Manager](/docs/adrs/005-package-manager))
-- **Linting & Formatting**: Biome + ESLint (see [ADR 006: Linters](/docs/adrs/006-linters))
+- **Package Manager**: Bun (see [ADR 005: Package Manager](../apps/docs/content/docs/adrs/005-package-manager/index.mdx))
+- **Linting & Formatting**: Biome + ESLint (see [ADR 006: Linters](../apps/docs/content/docs/adrs/006-linters/index.mdx))
 - **Formatting**: Use root-level `bun run format` (Biome) for consistent formatting across the monorepo
 - **TypeScript**: Shared configuration via `@workspace/typescript-config`
 
 ## Related Documentation
 
 - [Root README](../README.md) - Monorepo overview and getting started
-- [Architecture Guide](/docs/architecture) - High-level architecture documentation
-- [Tooling Guide](/docs/tooling) - Development tools and stack
-- [Google Cloud Deployment Option](/docs/google-cloud) - GCP deployment documentation
+- [Architecture Guide](../apps/docs/content/docs/architecture/index.mdx) - High-level architecture documentation
+- [Tooling Guide](../apps/docs/content/docs/tooling/index.mdx) - Development tools and stack
+- [Google Cloud Deployment Option](../apps/docs/content/docs/google-cloud/index.mdx) - GCP deployment documentation
