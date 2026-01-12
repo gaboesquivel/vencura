@@ -17,9 +17,6 @@ export default defineConfig({
   },
   resolve: {
     alias: {
-      '@vencura/types': resolve(__dirname, '../../packages/types/src/index.ts'),
-      '@vencura/types/schemas': resolve(__dirname, '../../packages/types/src/schemas'),
-      '@vencura/types/contracts': resolve(__dirname, '../../packages/types/src/contracts'),
       '@vencura/core': resolve(__dirname, '../../packages/core/src'),
     },
   },

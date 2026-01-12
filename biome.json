@@ -1,38 +1,40 @@
 {
-  "$schema": "https://biomejs.dev/schemas/1.9.4/schema.json",
+  "$schema": "https://biomejs.dev/schemas/2.3.11/schema.json",
   "files": {
-    "ignore": [
-      "node_modules/**",
-      ".next/**",
-      "out/**",
-      "dist/**",
-      "build/**",
-      "bin/**",
-      ".turbo/**",
-      ".vercel/**",
-      ".bun/**",
-      "coverage/**",
-      "test-results/**",
-      "playwright-report/**",
-      "playwright/.cache/**",
-      "contracts/evm/out/**",
-      "contracts/evm/cache/**",
-      "contracts/evm/broadcast/**",
-      "contracts/evm/lib/**",
-      "contracts/solana/target/**",
-      "contracts/solana/.anchor/**",
-      "contracts/solana/tests/**",
-      "contracts/**/*.so",
-      "**/target/**",
-      "*.generated.*",
-      "*.log",
-      "pnpm-lock.yaml",
-      "package-lock.json",
-      "yarn.lock",
-      ".pnp.js",
-      ".DS_Store",
-      "*.pem",
-      "__dev/**"
+    "includes": [
+      "**",
+      "!**/node_modules/**",
+      "!**/.next/**",
+      "!**/out/**",
+      "!**/dist/**",
+      "!**/build/**",
+      "!**/bin/**",
+      "!**/.turbo/**",
+      "!**/.vercel/**",
+      "!**/.cache/**",
+      "!**/bun/**",
+      "!**/coverage/**",
+      "!**/test-results/**",
+      "!**/playwright-report/**",
+      "!**/playwright/.cache/**",
+      "!contracts/evm/out/**",
+      "!contracts/evm/cache/**",
+      "!contracts/evm/broadcast/**",
+      "!contracts/evm/lib/**",
+      "!contracts/solana/target/**",
+      "!contracts/solana/.anchor/**",
+      "!contracts/solana/tests/**",
+      "!contracts/**/*.so",
+      "!**/target/**",
+      "!*.generated.*",
+      "!*.log",
+      "!pnpm-lock.yaml",
+      "!package-lock.json",
+      "!yarn.lock",
+      "!.pnp.js",
+      "!.DS_Store",
+      "!*.pem",
+      "!__dev/**"
     ],
     "maxSize": 1048576
   },
@@ -59,10 +61,21 @@
   "linter": {
     "enabled": true,
     "rules": {
-      "recommended": true
+      "recommended": true,
+      "style": {
+        "noRestrictedImports": {
+          "options": {
+            "paths": {
+              "lodash-es": "Use per-function imports: lodash-es/<fn> (e.g., lodash-es/isEmpty)."
+            }
+          }
+        }
+      }
     }
   },
-  "organizeImports": {
-    "enabled": true
+  "css": {
+    "parser": {
+      "tailwindDirectives": true
+    }
   }
 }

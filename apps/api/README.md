@@ -8,7 +8,7 @@ The Vencura API is built with **Elysia**, a fast, functional, Zod-first web fram
 
 ## Tech Stack
 
-- **Elysia** - Fast, functional web framework with native Zod validation
+- **Elysia** (v1.4.21) - Fast, functional web framework with native Zod validation
 - **Bun** - Runtime and package manager
 - **Dynamic SDK** - Multichain wallet infrastructure (`@dynamic-labs-wallet/node`)
 - **Drizzle ORM** - Type-safe database queries

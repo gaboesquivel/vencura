@@ -89,7 +89,7 @@ export const walletRoute = new Elysia()
   - Zod: `parseJsonWithSchema` (JSON parsing with validation), `isZodError` (type guards)
   - Env: `validateEnvOrThrow` (environment validation - see [Environment Rules](../base/environment.mdc))
 - **zod**: Use for all validation (request bodies, responses, environment variables, internal validation)
-- **lodash**: Use for array/object operations (`isEmpty`, `uniq`, `groupBy`, `merge`), type checking (`isPlainObject`, `isString`, `isArray`)
+- **lodash-es**: Use for array/object operations (`isEmpty`, `uniq`, `groupBy`, `merge`), type checking (`isPlainObject`, `isString`, `isArray`). Use per-function imports: `import isEmpty from 'lodash-es/isEmpty'`
 
 ## Error Handling
 

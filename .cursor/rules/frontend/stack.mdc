@@ -43,13 +43,13 @@ alwaysApply: false
   - Env: `getEnvHelper` (Next.js), `validateEnvOrThrow` (server apps) - see [Environment Rules](../base/environment.mdc)
 - **react-use**: Use `useAsyncFn` for one-off async operations (not data fetching)
 - **nanoid**: Unique ID generation
-- **lodash**: Prefer over custom implementations for common operations
+- **lodash-es**: Prefer over custom implementations for common operations (ESM version for tree-shaking)
   - Array: `isEmpty`, `uniq`, `groupBy`, `chunk`
   - Object: `merge`, `pick`, `omit`, `isPlainObject`
   - Type checking: `isString`, `isNumber`, `isEmpty`, `isPlainObject`, `isArray`
   - String: `camelCase`, `kebabCase`, `startCase`
   - Functional: `debounce`, `throttle`, `memoize`
-  - Import specific: `import { debounce, isEmpty } from 'lodash'`
+  - Use per-function imports: `import isEmpty from 'lodash-es/isEmpty'` and `import debounce from 'lodash-es/debounce'`
 
 ## Usage Patterns
 

@@ -8,60 +8,59 @@ alwaysApply: false
 
 ## Core Principles
 - Prefer interfaces over types for object definitions
-  - **Exception**: Union types, utility types (e.g., `z.infer<typeof schema>`), and mapped types use `type`
+  - Exception: unions, utility types (e.g., `z.infer<typeof schema>`), mapped types use `type`
 - Avoid enums; use maps or union types instead
 - Use descriptive variable names with auxiliary verbs (e.g., `isLoading`, `hasError`)
-- Follow RORO pattern for function arguments **only when there are multiple parameters**; single-parameter functions use direct parameters
+- Follow RORO for function arguments only when there are multiple parameters
 - Use lowercase-with-dashes for directories (e.g., `components/auth-wizard`)
 - Favor named exports (exception: Next.js pages/layouts require default exports)
-- Use functional & declarative programming patterns; avoid classes
+- Prefer functional & declarative patterns; avoid classes
 - Infer types and keep them inline unless you need to reuse them
-
-## Framework Exceptions
-- **Next.js**: Pages (`app/**/page.tsx`) and layouts (`app/**/layout.tsx`) require default exports
-- **Elysia**: Fully functional, no classes or decorators required
-
-## Code Style
-- **Single-line if statements without brackets**: `if (!value) return null` ✅
-- **Single-line arrow functions without brackets**: `const double = (x: number) => x * 2` ✅
-- Always use the least amount of chars possible while maintaining simplicity
-- Prefer one-liners for simple conditional logic
-- Avoid unnecessary curly braces in conditionals
 - CRITICAL: Always follow eslint rules when generating code
 
-## Modularization and Code Reuse
-- **@vencura/lib**: Use for shared utilities (error handling: `getErrorMessage`, `formatZodError`; async: `delay`, `fetchWithTimeout`; env: `getEnvHelper`, `validateEnvOrThrow`; zod: `parseJsonWithSchema`, `isZodError`)
-- **zod**: Always use for schema validation and type inference (`z.infer<typeof schema>`)
-- **lodash**: Use for array/object operations (`isEmpty`, `uniq`, `groupBy`, `merge`, `pick`), type checking (`isPlainObject`, `isString`, `isArray`), functional utilities (`debounce`, `throttle`)
-- Prefer importing types from `@vencura/core` over `@vencura/types` when types are re-exported
-- Schema imports should use `@vencura/types/schemas` (schemas not re-exported from `@vencura/core`)
+## Framework Exceptions
+- Next.js: `app/**/page.tsx` and `app/**/layout.tsx` require default exports
+- Elysia: fully functional; no classes or decorators
+
+## Code Style
+- Allow single-line if without braces: `if (!value) return null`
+- Allow single-line arrow bodies: `const double = (x: number) => x * 2`
+- Prefer simple one-liners for trivial conditionals; avoid extra braces/elses
+
+## Modularization and Imports
+- Use `@vencura/lib` for shared utilities (error, async, env, zod helpers)
+- Use Zod for schema validation + inference (`z.infer<typeof schema>`)
+- Prefer importing types from `@vencura/core` over `@vencura/types` when re-exported
+- Schema imports should use `@vencura/types/schemas` when not re-exported from `@vencura/core`
+- Lodash: prefer `lodash-es` and per-function imports for tree-shaking + RSC safety  
+  - ✅ `import isEmpty from "lodash-es/isEmpty"`  
+  - ❌ `import { isEmpty } from "lodash-es"`
+
+## ESM & Architecture Safety
+- Use `import type { X } from "..."` for type-only imports
+- Avoid barrel `index.ts` re-exports across layers (especially in shared packages); prefer explicit module imports
+- Exported API functions and route handlers must use explicit `Promise<...>` return types
+- Zod schemas live next to the feature that owns them; only re-export centrally when there is real reuse
 
 ## ts-reset Type Safety
-This monorepo uses `@total-typescript/ts-reset` configured globally via `config/typescript/reset.d.ts`. All TypeScript configurations extending workspace configs automatically include these enhanced types.
-
-**Reference**: See [ts-reset documentation](https://www.totaltypescript.com/ts-reset) for complete details.
+This monorepo uses `@total-typescript/ts-reset` configured globally via `config/typescript/reset.d.ts`.
 
 ## Type Safety Model: Zod-First, Boundary-Driven Validation
-**Zod-first type-safety strategy** - validate data at runtime boundaries, use TypeScript inference internally.
+Validate untrusted data at runtime boundaries with Zod; rely on inferred types internally.
 
-The following TypeScript ESLint "unsafe" rules are intentionally disabled globally:
+The following TS ESLint "unsafe" rules are intentionally disabled globally:
 - `@typescript-eslint/no-unsafe-assignment`
 - `@typescript-eslint/no-unsafe-call`
 - `@typescript-eslint/no-unsafe-member-access`
 - `@typescript-eslint/no-unsafe-return`
 - `@typescript-eslint/no-unsafe-argument`
 
-**Reason**: These rules generate excessive noise with real-world SDKs/APIs, and the project validates untrusted data at runtime using Zod, making static checks redundant.
-
 ## Error Handling
-- Fail fast: Handle errors early using guard clauses & early returns
-- Place the happy path last for improved readability
-- Avoid unnecessary else statements; prefer `if-return` pattern
-- **Zod-based validation functions**: Functions returning result objects (e.g., `{ valid: boolean; error?: string }`) must catch all errors and return consistent error objects instead of throwing
-  - ✅ **Good**: `catch (error) { if (isZodError(error)) return { valid: false, error: ... }; return { valid: false, error: 'Unexpected validation error' } }`
-  - ❌ **Bad**: `catch (error) { if (isZodError(error)) return { valid: false, error: ... }; throw error }` (breaks callers expecting result objects)
+- Fail fast with guard clauses and early returns; avoid unnecessary `else`
+- Place the happy path last when it improves readability
+- Validation functions that return result objects must never throw; always return a consistent `{ valid, error? }` shape
 
 ## Related Rules
-- [React Rules](../frontend/react.mdc) - React-specific patterns
-- [React Hooks Rules](../frontend/react-hooks.mdc) - Hooks and data fetching patterns
-- [Next.js Rules](../frontend/nextjs.mdc) - Next.js-specific patterns
+- [React Rules](../frontend/react.mdc)
+- [React Hooks Rules](../frontend/react-hooks.mdc)
+- [Next.js Rules](../frontend/nextjs.mdc)

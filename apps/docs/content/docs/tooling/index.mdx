@@ -38,14 +38,14 @@ description: "Development tools and stack used across the monorepo."
   - Used for all schemas (environment variables, API responses, form validation, tool parameters)
   - Always use `z.infer<typeof schema>` for type inference (no manual types)
   - **zod-validation-error**: Used for better error messages when displaying validation errors to users
-- **lodash**: Preferred utility library for common operations
-  - Prefer lodash over custom implementations for array/object manipulation, type checking, string transformations, and functional utilities
+- **lodash-es**: Preferred utility library for common operations (ESM version for tree-shaking)
+  - Prefer lodash-es over custom implementations for array/object manipulation, type checking, string transformations, and functional utilities
   - Array operations: `isEmpty`, `uniq`, `groupBy`, `chunk`
   - Object operations: `merge`, `pick`, `omit`, `isPlainObject`
   - Type checking: `isString`, `isNumber`, `isEmpty`, `isPlainObject`, `isArray`
   - String transformations: `camelCase`, `kebabCase`, `startCase`
   - Functional utilities: `debounce`, `throttle`, `memoize`
-  - Import specific functions to reduce bundle size: `import { isEmpty, uniq, merge } from 'lodash'`
+  - Use per-function imports for maximum tree-shaking: `import isEmpty from 'lodash-es/isEmpty'` and `import uniq from 'lodash-es/uniq'`
 - **nanoid**: Unique ID generation library (smaller and faster than UUID)
 - **DrizzleORM**: Type-safe database ORM
 - **Pulumi**: Infrastructure as Code (TypeScript) - See [`_dev/infra/README.md`](../../../../_dev/infra/README.md) for details (reference only, not actively deployed)

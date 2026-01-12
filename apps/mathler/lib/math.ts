@@ -1,5 +1,7 @@
 import { Parser } from 'expr-eval'
-import { isEmpty, uniq, isString } from 'lodash'
+import isEmpty from 'lodash-es/isEmpty'
+import uniq from 'lodash-es/uniq'
+import isString from 'lodash-es/isString'
 
 /**
  * Singleton parser instance configured for basic arithmetic only.

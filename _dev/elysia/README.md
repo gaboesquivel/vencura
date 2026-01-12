@@ -10,15 +10,21 @@ This is a minimal Elysia application template that demonstrates basic patterns a
 
 ## Tech Stack
 
-- **Elysia** - Fast, functional web framework with native Zod validation
+<<<<<<< Updated upstream
+- **Elysia** - Fast, functional web framework with native Zod validation (validated against `^1.4.21`)
+=======
+- **Elysia** (v1.4.21) - Fast, functional web framework with native Zod validation
+>>>>>>> Stashed changes
 - **Bun** - Runtime and package manager
 - **Zod** - Schema validation
 - **Vitest** - Testing framework
 
+**Note**: This template is validated against Elysia `^1.4.21`. The template uses standard route patterns (`.get`, `.post`, etc.) with Zod schema validation and does not rely on deprecated APIs such as `error()`, `mapResponse`, `afterResponse`, macros, or custom cookie parsing. All patterns follow Elysia 1.4.21+ best practices.
+
 ## Architecture
 
-- **Contract-first**: Routes consume contracts from `@vencura/types` for type safety
-- **Zod validation**: Request/response validation using Zod schemas
+- **Contract-first** (production pattern): The real Vencura API in `apps/api` consumes contracts from `@vencura/types` for type safety
+- **Zod validation**: Request/response validation using Zod schemas (see `apps/api` and `packages/types`)
 - **Blackbox testing**: E2E tests hit HTTP endpoints only (see [Testing](#testing))
 - **Environment validation**: Uses `validateEnvOrThrow` from `@vencura/lib` for fail-fast config validation
 
@@ -124,7 +130,7 @@ bun run test:cov
 
 **Testing Strategy:**
 - **Blackbox testing**: All tests hit HTTP endpoints only, ensuring end-to-end validation
-- **Contract-based**: Tests validate responses match contracts from `@vencura/types`
+- **Production-aligned contracts**: For full contract-first examples using `@vencura/types`, see `apps/api` tests
 - **Vitest**: Uses Vitest with the same configuration patterns as the production API
 
 See [Testing Rules](../../.cursor/rules/backend/testing.mdc) for Elysia testing patterns.
