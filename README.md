@@ -159,6 +159,7 @@ This project follows strict coding standards enforced through Cursor rules and d
 - **Linting & Formatting**: Biome + ESLint (see [ADR 006: Linters](/docs/adrs/006-linters))
 - **Runtime Types**: `bun-types` for Bun (no `@types/bun`)
 - **Testing**: Vitest with blackbox HTTP API testing strategy (see [Testing Patterns](/docs/tooling/testing-patterns))
+ - **Frontend Browserslist**: Next.js apps depend directly on `browserslist` with Baseline support provided transitively (no explicit `baseline-browser-mapping` dependency)
 
 ### Key Patterns
 - **Mobile-First Design**: All frontend components follow mobile-first responsive design. See [Mobile-First Rules](.cursor/rules/frontend/mobile-first.mdc)

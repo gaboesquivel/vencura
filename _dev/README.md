@@ -79,7 +79,7 @@ All development tools in this directory follow the monorepo standards:
 
 ## Related Documentation
 
-- [Root README](../../README.md) - Monorepo overview and getting started
+- [Root README](../README.md) - Monorepo overview and getting started
 - [Architecture Guide](/docs/architecture) - High-level architecture documentation
 - [Tooling Guide](/docs/tooling) - Development tools and stack
 - [Google Cloud Deployment Option](/docs/google-cloud) - GCP deployment documentation
