@@ -15,7 +15,6 @@
       "!!**/bun/**",
       "!!**/coverage/**",
       "!!**/test-results/**",
-
       "!!**/playwright-report/**",
       "!!**/playwright/.cache/**",
       "!!contracts/evm/out/**",
