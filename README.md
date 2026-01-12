@@ -159,7 +159,17 @@ This project follows strict coding standards enforced through Cursor rules and d
 - **Linting & Formatting**: Biome + ESLint (see [ADR 006: Linters](apps/docs/content/docs/adrs/006-linters/index.mdx))
 - **Runtime Types**: `bun-types` for Bun (no `@types/bun`)
 - **Testing**: Vitest with blackbox HTTP API testing strategy (see [Testing Patterns](apps/docs/content/docs/tooling/testing-patterns.mdx))
- - **Frontend Browserslist**: Next.js apps depend directly on `browserslist` with Baseline support provided transitively (no explicit `baseline-browser-mapping` dependency)
+- **Frontend Browserslist**: Next.js apps depend directly on `browserslist` with Baseline support provided transitively (no explicit `baseline-browser-mapping` dependency)
+- **Vercel + Bun Runtime**: The monorepo is configured to use the Bun runtime on Vercel via a root `vercel.json`:
+
+  ```json
+  {
+    "$schema": "https://openapi.vercel.sh/vercel.json",
+    "bunVersion": "1.x"
+  }
+  ```
+
+  This root-level config applies Bun to all apps by default; add per-app `vercel.json` files only when you need to override runtime settings for a specific app.
 
 ### Key Patterns
 - **Mobile-First Design**: All frontend components follow mobile-first responsive design. See [Mobile-First Rules](.cursor/rules/frontend/mobile-first.mdc)
