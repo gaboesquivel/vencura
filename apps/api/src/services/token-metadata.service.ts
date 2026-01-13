@@ -72,17 +72,17 @@ export async function getTokenMetadata({
       address: normalizedAddress as Address,
       abi: testnetTokenAbi,
       functionName: 'name',
-    } as any),
+    } as unknown as Parameters<typeof publicClient.readContract>[0]),
     publicClient.readContract({
       address: normalizedAddress as Address,
       abi: testnetTokenAbi,
       functionName: 'symbol',
-    } as any),
+    } as unknown as Parameters<typeof publicClient.readContract>[0]),
     publicClient.readContract({
       address: normalizedAddress as Address,
       abi: testnetTokenAbi,
       functionName: 'decimals',
-    } as any),
+    } as unknown as Parameters<typeof publicClient.readContract>[0]),
   ])
 
   const metadata: TokenMetadata = {

@@ -16,19 +16,19 @@
     "test:cov": "vitest run --coverage"
   },
   "dependencies": {
-    "elysia": "^1.4.21",
-    "@elysiajs/openapi": "^1.4.0",
-    "@vencura/types": "workspace:*",
-    "@vencura/lib": "workspace:*",
-    "@vencura/evm": "workspace:*",
     "@dynamic-labs-wallet/node": "^0.0.188",
     "@dynamic-labs-wallet/node-evm": "^0.0.188",
     "@dynamic-labs-wallet/node-svm": "^0.0.188",
-    "drizzle-orm": "^0.36.4",
     "@electric-sql/pglite": "^0.2.17",
+    "@elysiajs/openapi": "^1.4.0",
+    "@vencura/evm": "workspace:*",
+    "@vencura/lib": "workspace:*",
+    "@vencura/types": "workspace:*",
+    "drizzle-orm": "^0.36.4",
+    "elysia": "^1.4.21",
+    "viem": "2.44.1",
     "zod": "^3.25.76",
-    "zod-to-json-schema": "^3.24.1",
-    "viem": "2.44.1"
+    "zod-to-json-schema": "^3.25.1"
   },
   "devDependencies": {
     "bun-types": "^1.3.5",

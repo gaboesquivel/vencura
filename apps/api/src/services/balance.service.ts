@@ -76,7 +76,7 @@ export async function getBalanceService({
       abi: testnetTokenAbi,
       functionName: 'balanceOf' as const,
       args: [walletAddress] as const,
-    } as any
+    } as unknown as Parameters<typeof publicClient.readContract>[0]
     balance = await publicClient.readContract(contractParams) as bigint
 
     // Get token metadata (will use cache if available)
