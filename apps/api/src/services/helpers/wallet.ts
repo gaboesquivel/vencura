@@ -5,6 +5,7 @@ import { keyShares } from '../../db/schema'
 import { decryptKeyShare } from '../encryption'
 import { getWalletByIdForUser } from '../wallet.service'
 import type { ChainType } from '../chain-utils'
+import { NotFoundError } from '../../http/errors'
 
 /**
  * Get wallet info and decrypted key shares for a user's wallet.
@@ -20,7 +21,7 @@ export async function getWalletAndKeyShares({
   // Get wallet info by ID and user
   const walletInfo = await getWalletByIdForUser({ userId, walletId })
   if (!walletInfo) {
-    throw new Error(`Wallet not found for user ${userId}`)
+    throw new NotFoundError('Wallet not found', { userId, walletId })
   }
 
   const { address, chainType } = walletInfo

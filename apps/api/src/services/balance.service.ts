@@ -1,10 +1,10 @@
 import { createPublicClient, http, type Address, getAddress, formatUnits, parseUnits } from 'viem'
-import { getErrorMessage } from '@vencura/lib'
 import { getChainMetadata } from './chain-utils'
 import { getWalletByChainType } from './wallet.service'
 import { getTokenMetadata } from './token-metadata.service'
 import { testnetTokenAbi } from '@vencura/evm/abis/asset/TestnetToken'
 import type { ChainType } from '@vencura/types'
+import { NotFoundError, BadRequestError } from '../http/errors'
 
 /**
  * Get balance for a user's wallet.
@@ -40,17 +40,17 @@ export async function getBalanceService({
   // Get user's wallet for the chain type
   const wallet = await getWalletByChainType(userId, chainType)
   if (!wallet) {
-    throw new Error(`Wallet not found for user ${userId} on chain type ${chainType}`)
+    throw new NotFoundError('Wallet not found', { userId, chainType })
   }
 
   // Get chain metadata for viem client
   const chainMeta = getChainMetadata(chainId)
   if (!chainMeta?.viemChain) {
-    throw new Error(`Unsupported chain ID: ${chainId}`)
+    throw new BadRequestError('Unsupported chain ID', { chainId })
   }
 
   if (chainMeta.chainType !== chainType) {
-    throw new Error(`Chain ID ${chainId} does not match chain type ${chainType}`)
+    throw new BadRequestError('Chain ID does not match chain type', { chainId, chainType })
   }
 
   const publicClient = createPublicClient({

@@ -42,7 +42,8 @@ describe.skipIf(!hasRequiredCredentials)('walletRoute send transaction', () => {
       // May return 400 if wallet exists in Dynamic SDK but not in local DB
       if (createResponse.status === 400) {
         const errorData = await createResponse.json()
-        expect(errorData.error).toBe('Wallet already exists')
+        expect(errorData.error).toBe('BAD_REQUEST')
+        expect(errorData).toHaveProperty('message')
         // Skip test if wallet already exists in Dynamic SDK but not in DB
         // This indicates a data inconsistency that would need to be resolved
         return

@@ -6,6 +6,7 @@ import { keyShares } from '../db/schema'
 import { encryptKeyShare } from './encryption'
 import { createWallet } from './wallet-client'
 import { type ChainType } from './chain-utils'
+import { BadRequestError } from '../http/errors'
 
 /**
  * Generate deterministic wallet ID from userId, address and chainType.
@@ -179,9 +180,9 @@ export async function createWalletService({
       // that was wrapped. Dynamic SDK prevents multiple wallets per chainType, so if creation fails,
       // it means a wallet already exists in Dynamic SDK's system (possibly from a previous test run).
       // Throw a user-friendly error indicating wallet already exists.
-      throw new Error(
-        `Wallet already exists for chainType ${chainType}. Multiple wallets per chainType are not allowed.`,
-      )
+      throw new BadRequestError('Wallet already exists for chainType. Multiple wallets per chainType are not allowed.', {
+        chainType,
+      })
     }
 
     // Re-throw other errors

@@ -220,7 +220,8 @@ describe.skipIf(!hasDynamicCredentials)('balanceRoute', () => {
     expect(response.status).toBe(400)
     const data = await response.json()
     expect(data).toHaveProperty('error')
-    expect(data.error).toBe('Validation error')
+    expect(data.error).toBe('VALIDATION_ERROR')
+    expect(data).toHaveProperty('details')
   })
 
   it('should return 400 for missing chainType', async () => {
@@ -274,7 +275,8 @@ describe.skipIf(!hasDynamicCredentials)('balanceRoute', () => {
     expect(response.status).toBe(404)
     const data = await response.json()
     expect(data).toHaveProperty('error')
-    expect(data.error).toBe('Wallet not found')
+    expect(data.error).toBe('NOT_FOUND')
+    expect(data).toHaveProperty('message')
   })
 
   it('should validate response matches BalanceSchema contract', async () => {
