@@ -3,6 +3,7 @@ import './lib/load-env'
 
 import { Elysia } from 'elysia'
 import { openapi } from '@elysiajs/openapi'
+import { zodToJsonSchema } from 'zod-to-json-schema'
 import { errorPlugin } from './http/error-plugin'
 import { walletRoute } from './routes/wallet'
 import { balanceRoute } from './routes/balance'
@@ -13,8 +14,11 @@ const app = new Elysia()
   .use(errorPlugin)
   .use(
     openapi({
-      path: '/docs',
+      path: '/',
       specPath: '/docs/json',
+      mapJsonSchema: {
+        zod: zodToJsonSchema,
+      },
       documentation: {
         info: {
           title: 'Vencura API',
@@ -30,4 +34,4 @@ const app = new Elysia()
   .listen(zEnv.PORT)
 
 console.log(`🚀 Server is running on http://localhost:${app.server?.port}`)
-console.log(`📚 OpenAPI docs available at http://localhost:${app.server?.port}/docs`)
+console.log(`📚 OpenAPI docs available at http://localhost:${app.server?.port}/`)

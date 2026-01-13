@@ -53,6 +53,7 @@
         "elysia": "^1.4.21",
         "viem": "2.44.1",
         "zod": "^3.25.76",
+        "zod-to-json-schema": "^3.24.1",
       },
       "devDependencies": {
         "@vitest/coverage-v8": "^4.0.17",
