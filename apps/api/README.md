@@ -132,7 +132,10 @@ export const walletRoute = new Elysia()
 # Development mode
 bun run dev
 
-# Build for production
+# Type-check (catches type errors before deployment)
+bun run typecheck
+
+# Build for production (includes type-checking)
 bun run build
 
 # Start production server
@@ -141,6 +144,22 @@ bun run start
 # Lint
 bun run lint
 ```
+
+### Pre-commit Checklist
+
+Before pushing to Vercel or committing changes, run:
+
+```bash
+bun run typecheck  # Catches TypeScript type errors
+bun run lint       # Catches code style issues
+bun run test       # Runs unit tests
+```
+
+**Why type-check locally?**
+
+Bun's build command (`bun build`) is transpile-only and doesn't perform full TypeScript type-checking. Vercel runs `tsc --noEmit` during deployment, which catches type errors that might pass locally. Running `typecheck` locally ensures you catch these errors before deployment.
+
+The `build` script now automatically runs type-checking before bundling to catch errors early.
 
 ## Testing
 

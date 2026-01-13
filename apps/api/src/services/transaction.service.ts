@@ -34,7 +34,9 @@ export async function sendTransactionService({
 
   // Only support EVM chains for now
   if (chainType !== 'evm') {
-    throw new BadRequestError('Unsupported chain type. Only EVM chains are supported.', { chainType })
+    throw new BadRequestError('Unsupported chain type. Only EVM chains are supported.', {
+      chainType,
+    })
   }
 
   // For now, assume Arbitrum Sepolia (421614) for EVM wallets

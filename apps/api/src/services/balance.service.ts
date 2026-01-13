@@ -1,4 +1,4 @@
-import { createPublicClient, http, type Address, getAddress, formatUnits, parseUnits } from 'viem'
+import { createPublicClient, http, type Address, getAddress, formatUnits } from 'viem'
 import { getChainMetadata } from './chain-utils'
 import { getWalletByChainType } from './wallet.service'
 import { getTokenMetadata } from './token-metadata.service'
@@ -69,12 +69,12 @@ export async function getBalanceService({
     const normalizedTokenAddress = getAddress(tokenAddress) as Address
 
     // Get token balance
-    balance = await publicClient.readContract({
+    balance = (await publicClient.readContract({
       address: normalizedTokenAddress,
       abi: testnetTokenAbi,
       functionName: 'balanceOf',
       args: [walletAddress],
-    })
+    })) as bigint
 
     // Get token metadata (will use cache if available)
     tokenMetadata = await getTokenMetadata({

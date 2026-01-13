@@ -32,11 +32,13 @@ export function createDynamicLocalAccount({
   return {
     address: address as `0x${string}`,
     type: 'local',
+    publicKey: address as `0x${string}`,
+    source: 'custom',
     signMessage: async ({ message }: { message: SignableMessage }) => {
       const messageStr = messageToString(message)
       return (await dynamicEvmClient.signMessage({
         accountAddress: address,
-        externalServerKeyShares,
+        externalServerKeyShares: externalServerKeyShares as any,
         message: messageStr,
       })) as Hex
     },
@@ -45,15 +47,15 @@ export function createDynamicLocalAccount({
     ) =>
       (await dynamicEvmClient.signTypedData({
         accountAddress: address,
-        externalServerKeyShares,
-        typedData: parameters,
+        externalServerKeyShares: externalServerKeyShares as any,
+        typedData: parameters as any,
       })) as Hex,
     signTransaction: async <transaction extends TransactionSerializable = TransactionSerializable>(
       transaction: transaction,
     ) =>
       (await dynamicEvmClient.signTransaction({
         senderAddress: address,
-        externalServerKeyShares,
+        externalServerKeyShares: externalServerKeyShares as any,
         transaction,
       })) as Hex,
   }

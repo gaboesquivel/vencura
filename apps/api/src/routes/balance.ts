@@ -8,15 +8,11 @@ export const balanceRoute = new Elysia().derive(({ request }) => ({
   userId: getUserId(request),
 }))
 
-registerRoute(
-  balanceRoute,
-  balanceContract,
-  async ({ body, userId }) => {
-    return getBalanceService({
-      userId,
-      chainId: body.chainId,
-      chainType: body.chainType,
-      tokenAddress: body.tokenAddress,
-    })
-  },
-)
+registerRoute(balanceRoute, balanceContract, async ({ body, userId }) => {
+  return getBalanceService({
+    userId: userId!,
+    chainId: body.chainId,
+    chainType: body.chainType,
+    tokenAddress: body.tokenAddress,
+  })
+})

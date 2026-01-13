@@ -180,9 +180,12 @@ export async function createWalletService({
       // that was wrapped. Dynamic SDK prevents multiple wallets per chainType, so if creation fails,
       // it means a wallet already exists in Dynamic SDK's system (possibly from a previous test run).
       // Throw a user-friendly error indicating wallet already exists.
-      throw new BadRequestError('Wallet already exists for chainType. Multiple wallets per chainType are not allowed.', {
-        chainType,
-      })
+      throw new BadRequestError(
+        'Wallet already exists for chainType. Multiple wallets per chainType are not allowed.',
+        {
+          chainType,
+        },
+      )
     }
 
     // Re-throw other errors
