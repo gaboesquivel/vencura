@@ -34,7 +34,7 @@ describe('contract integrity', () => {
   it('all contracts use defineContract (have brand symbol)', () => {
     for (const contract of allContracts) {
       expect(contract).toHaveProperty(CONTRACT_BRAND)
-      expect((contract as any)[CONTRACT_BRAND]).toBe(true)
+      expect((contract as Record<symbol, unknown>)[CONTRACT_BRAND]).toBe(true)
     }
   })
 })
