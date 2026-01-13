@@ -29,8 +29,8 @@ jobs:
       - name: Lint (ESLint via Turbo)
         run: bun run lint
 
-      - name: Type check
-        run: bunx turbo run check-types || echo "Type check skipped if not configured"
+      - name: Type check (TypeScript)
+        run: turbo run typecheck
 
       - name: Build
         run: bun run build

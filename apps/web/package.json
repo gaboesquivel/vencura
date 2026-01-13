@@ -8,6 +8,7 @@
     "dev:local": "NODE_ENV=development next dev",
     "dev:staging": "NODE_ENV=staging next dev",
     "build": "next build",
+    "typecheck": "tsc --noEmit",
     "start": "next start",
     "lint": "eslint .",
     "test": "vitest run",

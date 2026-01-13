@@ -21,6 +21,7 @@
   },
   "scripts": {
     "build": "tsup",
+    "typecheck": "tsc --noEmit",
     "lint": "eslint . --max-warnings 0 --ignore-pattern 'scripts/**'"
   },
   "peerDependencies": {

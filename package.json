@@ -10,7 +10,7 @@
     "lint": "turbo lint",
     "format": "biome format --write .",
     "hooks:pre-commit": "bun run lint && bun run format",
-    "qa": "bun install && bun run format && turbo run lint && turbo build && turbo run test --continue",
+    "qa": "bun install && bun run format && turbo run lint && turbo run typecheck && turbo build && turbo run test --continue",
     "contracts:evm:build": "cd contracts/evm && forge build",
     "contracts:evm:test": "cd contracts/evm && forge test",
     "contracts:solana:build": "cd contracts/solana && anchor build",
