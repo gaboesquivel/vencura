@@ -261,7 +261,7 @@
         "@workspace/eslint-config": "workspace:*",
         "@workspace/typescript-config": "workspace:*",
         "eslint": "^9.32.0",
-        "tsup": "^8.3.5",
+        "tsup": "^8.5.1",
         "typescript": "^5.9.2",
         "vitest": "^4.0.13",
       },

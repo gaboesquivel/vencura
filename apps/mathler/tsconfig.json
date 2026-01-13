@@ -3,7 +3,8 @@
   "compilerOptions": {
     "baseUrl": ".",
     "paths": {
-      "@/*": ["./*"]
+      "@/*": ["./*"],
+      "@vencura/ui/*": ["../../packages/ui/src/*"]
     },
     "plugins": [
       {
