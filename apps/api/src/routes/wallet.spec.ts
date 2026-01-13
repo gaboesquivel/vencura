@@ -41,7 +41,8 @@ describe.skipIf(!hasDynamicCredentials)('walletRoute', () => {
       // May return 400 if wallet exists in Dynamic SDK but not in local DB
       if (response.status === 400) {
         const errorData = await response.json()
-        expect(errorData.error).toBe('Wallet already exists')
+        expect(errorData.error).toBe('BAD_REQUEST')
+        expect(errorData).toHaveProperty('message')
         return // Skip further validation for 400 responses
       }
 
@@ -131,7 +132,8 @@ describe.skipIf(!hasDynamicCredentials)('walletRoute', () => {
     expect(response.status).toBe(400)
     const data = await response.json()
     expect(data).toHaveProperty('error')
-    expect(data.error).toBe('Validation error')
+    expect(data.error).toBe('VALIDATION_ERROR')
+    expect(data).toHaveProperty('details')
   })
 
   it('should return 400 for missing chainType', async () => {
@@ -169,7 +171,8 @@ describe.skipIf(!hasDynamicCredentials)('walletRoute', () => {
       // May return 400 if wallet exists in Dynamic SDK but not in local DB
       if (response.status === 400) {
         const errorData = await response.json()
-        expect(errorData.error).toBe('Wallet already exists')
+        expect(errorData.error).toBe('BAD_REQUEST')
+        expect(errorData).toHaveProperty('message')
         return // Skip further validation for 400 responses
       }
 
@@ -231,7 +234,8 @@ describe.skipIf(!hasDynamicCredentials)('walletRoute', () => {
       // May return 400 if wallet already exists
       if (createResponse.status === 400) {
         const errorData = await createResponse.json()
-        expect(errorData.error).toBe('Wallet already exists')
+        expect(errorData.error).toBe('BAD_REQUEST')
+        expect(errorData).toHaveProperty('message')
         // If wallet already exists, we can still test listing
       } else {
         expect([200, 201]).toContain(createResponse.status)

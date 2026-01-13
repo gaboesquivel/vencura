@@ -19,6 +19,7 @@ The Vencura API is built with **Elysia**, a fast, functional, Zod-first web fram
 
 - **Contract-first**: Routes consume contracts from `@vencura/types` for type safety
 - **Zod validation**: Request/response validation using Zod schemas
+- **Elysia built-in body validation**: Automatic request body validation via `body` option (see [Route Pattern](#route-pattern))
 - **OpenAPI**: Auto-generated Swagger documentation via `@elysiajs/swagger`
 - **Blackbox testing**: E2E tests hit HTTP endpoints only (see [Testing](#testing))
 
@@ -89,6 +90,41 @@ const envId = zEnv.DYNAMIC_ENVIRONMENT_ID
 The `zEnv` object is validated at module load using Zod schemas and `validateEnvOrThrow` from `@vencura/lib`. Validation fails fast if required variables are missing.
 
 See [Environment Rules](../../.cursor/rules/base/environment.mdc) for implementation patterns.
+
+## Route Pattern
+
+Routes use **Elysia's built-in body validation** by specifying Zod schemas in the route options. This automatically validates request bodies and returns 400 errors for invalid input.
+
+```typescript
+import { Elysia } from 'elysia'
+import { walletContract, WalletSchema, CreateWalletInputSchema } from '@vencura/types'
+
+export const walletRoute = new Elysia()
+  .post(
+    walletContract.path,
+    async ({ body, userId }) => {
+      // Body is already validated and typed by Elysia!
+      // No manual validation needed - Elysia handles it automatically
+      const result = await createWalletService({ userId, chainType: body.chainType })
+      
+      // Validate response matches contract
+      return WalletSchema.parse(result)
+    },
+    {
+      body: CreateWalletInputSchema, // Elysia validates automatically
+      detail: {
+        summary: 'Create wallet',
+        description: 'Creates a new custodial wallet',
+      },
+    },
+  )
+```
+
+**Benefits:**
+- **Automatic validation**: Invalid bodies return 400 errors automatically
+- **Type safety**: Body is fully typed based on the Zod schema
+- **Less boilerplate**: No manual try-catch validation blocks
+- **Consistent error handling**: Elysia handles validation errors uniformly
 
 ## Development
 

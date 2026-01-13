@@ -5,6 +5,7 @@ import { getEvmClient } from './wallet-client'
 import { zEnv } from '../lib/env'
 import { getWalletAndKeyShares } from './helpers/wallet'
 import { createDynamicLocalAccount } from './helpers/account'
+import { BadRequestError } from '../http/errors'
 
 /**
  * Send transaction service for EVM wallets.
@@ -33,7 +34,7 @@ export async function sendTransactionService({
 
   // Only support EVM chains for now
   if (chainType !== 'evm') {
-    throw new Error(`Unsupported chain type: ${chainType}. Only EVM chains are supported.`)
+    throw new BadRequestError('Unsupported chain type. Only EVM chains are supported.', { chainType })
   }
 
   // For now, assume Arbitrum Sepolia (421614) for EVM wallets

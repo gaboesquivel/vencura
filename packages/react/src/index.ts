@@ -8,7 +8,6 @@
  */
 
 export { VencuraProvider } from './provider'
-export { useHello } from './hooks/use-hello'
 export { useVencuraClient } from './hooks/use-vencura-client'
 export { useWallets } from './hooks/use-wallets'
 export { useCreateWallet } from './hooks/use-create-wallet'

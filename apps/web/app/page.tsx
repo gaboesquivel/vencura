@@ -1,8 +1,7 @@
 'use client'
 
-import { useHello } from '@vencura/react'
 import { DynamicWidget, useDynamicContext } from '@dynamic-labs/sdk-react-core'
-import { delay, getErrorMessage } from '@vencura/lib'
+import { delay } from '@vencura/lib'
 import isString from 'lodash-es/isString'
 import { useState } from 'react'
 import { Chatbot } from '@vencura/ai'
@@ -13,7 +12,6 @@ import { Button } from '@vencura/ui/components/button'
 export const dynamic = 'force-dynamic'
 
 export default function Home() {
-  const { data, error, isLoading } = useHello()
   const dynamicContext = useDynamicContext()
   const { user } = dynamicContext
   const [copied, setCopied] = useState(false)
@@ -61,18 +59,6 @@ export default function Home() {
   return (
     <main className="min-h-screen bg-background flex items-center justify-center p-4">
       <div className="max-w-2xl w-full space-y-8">
-        <div className="space-y-4">
-          <h1 className="text-3xl font-bold">Hello World Response</h1>
-          {isLoading ? <p>Loading...</p> : null}
-          {error ? (
-            <p className="text-destructive">Error: {getErrorMessage(error) ?? 'Unknown error'}</p>
-          ) : null}
-          {data ? (
-            <div className="p-4 border rounded-lg">
-              <pre className="whitespace-pre-wrap">{JSON.stringify(data, null, 2)}</pre>
-            </div>
-          ) : null}
-        </div>
 
         <div className="space-y-4">
           <h2 className="text-2xl font-semibold">Authentication</h2>

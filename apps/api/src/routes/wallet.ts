@@ -3,243 +3,55 @@ import {
   createWalletContract,
   sendTransactionContract,
   listWalletsContract,
-  WalletSchema,
-  CreateWalletInputSchema,
-  SendTransactionInputSchema,
-  SendTransactionResultSchema,
-  ListWalletsResponseSchema,
-  type ChainType,
-  type SendTransactionInput,
 } from '@vencura/types'
-import { formatZodError, getErrorMessage, isZodError } from '@vencura/lib'
 import { createWalletService, getUserWallets } from '../services/wallet.service'
 import { sendTransactionService } from '../services/transaction.service'
 import { getUserId } from '../middleware/auth'
+import { registerRoute } from '../http/register-route'
 
-export const walletRoute = new Elysia()
-  .derive(({ request }) => ({
-    userId: getUserId(request),
-  }))
-  .get(
-    listWalletsContract.path,
-    async ({ userId }) => {
-      try {
-        const wallets = await getUserWallets(userId)
+export const walletRoute = new Elysia().derive(({ request }) => ({
+  userId: getUserId(request),
+}))
 
-        // Validate response matches contract
-        const response = ListWalletsResponseSchema.parse(
-          wallets.map(w => ({
-            id: w.id,
-            address: w.address,
-            chainType: w.chainType,
-          })),
-        )
+registerRoute(
+  walletRoute,
+  listWalletsContract,
+  async ({ userId }) => {
+    const wallets = await getUserWallets(userId)
+    return wallets.map(w => ({
+      id: w.id,
+      address: w.address,
+      chainType: w.chainType,
+    }))
+  },
+)
 
-        return response
-      } catch (err) {
-        // Handle errors
-        const errorMessage = getErrorMessage(err) ?? String(err)
+registerRoute(
+  walletRoute,
+  createWalletContract,
+  async ({ body, userId }) => {
+    const result = await createWalletService({ userId, chainType: body.chainType })
+    return {
+      id: result.id,
+      address: result.address,
+      chainType: result.chainType,
+    }
+  },
+)
 
-        // All errors are 500 Internal Server Error
-        return new Response(
-          JSON.stringify({
-            error: 'Internal server error',
-            message: errorMessage,
-          }),
-          {
-            status: 500,
-            headers: { 'Content-Type': 'application/json' },
-          },
-        )
-      }
-    },
-    {
-      detail: {
-        summary: 'List all wallets for the authenticated user',
-        description: 'Get all wallets associated with the authenticated user.',
-      },
-    },
-  )
-  .post(
-    createWalletContract.path,
-    async ({ body, userId }) => {
-      // Validate body with Zod schema (400 if invalid)
-      // ChainType validation is handled by Zod schema
-      let chainType: ChainType
-      try {
-        const validatedBody = CreateWalletInputSchema.parse(body)
-        chainType = validatedBody.chainType
-      } catch (err) {
-        // Zod validation error - return 400
-        const message = isZodError(err)
-          ? formatZodError({ error: err })
-          : (getErrorMessage(err) ?? 'Invalid request body')
-        return new Response(
-          JSON.stringify({
-            error: 'Validation error',
-            message,
-          }),
-          {
-            status: 400,
-            headers: { 'Content-Type': 'application/json' },
-          },
-        )
-      }
-
-      try {
-        const result = await createWalletService({ userId, chainType })
-
-        // Validate response matches contract
-        const wallet = WalletSchema.parse({
-          id: result.id,
-          address: result.address,
-          chainType: result.chainType,
-        })
-
-        // Return 201 for new wallets, 200 for existing (idempotent)
-        if (result.isNew) {
-          return new Response(JSON.stringify(wallet), {
-            status: 201,
-            headers: { 'Content-Type': 'application/json' },
-          })
-        }
-        return wallet
-      } catch (err) {
-        // Handle errors - check for specific error types
-        const errorMessage = getErrorMessage(err) ?? String(err)
-        const lowerMessage = errorMessage.toLowerCase()
-
-        // Check if this is a "wallet already exists" error (400 Bad Request)
-        if (
-          lowerMessage.includes('wallet already exists') ||
-          lowerMessage.includes('multiple wallets per chaintype') ||
-          lowerMessage.includes('multiple wallets are not allowed')
-        ) {
-          return new Response(
-            JSON.stringify({
-              error: 'Wallet already exists',
-              message: errorMessage,
-            }),
-            {
-              status: 400,
-              headers: { 'Content-Type': 'application/json' },
-            },
-          )
-        }
-
-        // All other errors are 500 Internal Server Error
-        return new Response(
-          JSON.stringify({
-            error: 'Internal server error',
-            message: errorMessage,
-          }),
-          {
-            status: 500,
-            headers: { 'Content-Type': 'application/json' },
-          },
-        )
-      }
-    },
-    {
-      detail: {
-        summary: 'Create a new custodial wallet',
-        description:
-          'Create a wallet for a chain type. Returns 201 for new wallets, 200 for existing wallets (idempotent). One wallet per chainType.',
-      },
-    },
-  )
-  .post(
-    sendTransactionContract.path,
-    async ({ params, body, userId }) => {
-      // Type assertion for path parameter
-      const walletId = (params as { id: string }).id
-      // Validate body with Zod schema (400 if invalid)
-      let validatedBody: SendTransactionInput
-      try {
-        validatedBody = SendTransactionInputSchema.parse(body)
-      } catch (err) {
-        // Zod validation error - return 400
-        const message = isZodError(err)
-          ? formatZodError({ error: err })
-          : (getErrorMessage(err) ?? 'Invalid request body')
-        return new Response(
-          JSON.stringify({
-            error: 'Validation error',
-            message,
-          }),
-          {
-            status: 400,
-            headers: { 'Content-Type': 'application/json' },
-          },
-        )
-      }
-
-      try {
-        const result = await sendTransactionService({
-          userId,
-          walletId,
-          to: validatedBody.to,
-          amount: validatedBody.amount,
-          data: validatedBody.data ?? undefined,
-        })
-
-        // Validate response matches contract
-        const response = SendTransactionResultSchema.parse({
-          transactionHash: result.transactionHash,
-        })
-
-        return response
-      } catch (err) {
-        // Handle errors - check for specific error types
-        const errorMessage = getErrorMessage(err) ?? String(err)
-        const lowerMessage = errorMessage.toLowerCase()
-
-        // Check if this is a "wallet not found" error (404 Not Found)
-        if (lowerMessage.includes('wallet not found')) {
-          return new Response(
-            JSON.stringify({
-              error: 'Wallet not found',
-              message: errorMessage,
-            }),
-            {
-              status: 404,
-              headers: { 'Content-Type': 'application/json' },
-            },
-          )
-        }
-
-        // Check if this is an "unsupported chain type" error (400 Bad Request)
-        if (lowerMessage.includes('unsupported chain type')) {
-          return new Response(
-            JSON.stringify({
-              error: 'Unsupported chain type',
-              message: errorMessage,
-            }),
-            {
-              status: 400,
-              headers: { 'Content-Type': 'application/json' },
-            },
-          )
-        }
-
-        // All other errors are 500 Internal Server Error
-        return new Response(
-          JSON.stringify({
-            error: 'Internal server error',
-            message: errorMessage,
-          }),
-          {
-            status: 500,
-            headers: { 'Content-Type': 'application/json' },
-          },
-        )
-      }
-    },
-    {
-      detail: {
-        summary: 'Send a transaction from a wallet',
-        description:
-          'Send a transaction from a custodial wallet. Only EVM chains are currently supported.',
-      },
-    },
-  )
+registerRoute(
+  walletRoute,
+  sendTransactionContract,
+  async ({ params, body, userId }) => {
+    const result = await sendTransactionService({
+      userId,
+      walletId: params.id,
+      to: body.to,
+      amount: body.amount,
+      data: body.data ?? undefined,
+    })
+    return {
+      transactionHash: result.transactionHash,
+    }
+  },
+)
