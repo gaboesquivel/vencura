@@ -69,12 +69,12 @@ export async function getBalanceService({
     const normalizedTokenAddress = getAddress(tokenAddress) as Address
 
     // Get token balance
-    balance = await publicClient.readContract({
+    balance = (await publicClient.readContract({
       address: normalizedTokenAddress,
       abi: testnetTokenAbi,
       functionName: 'balanceOf',
       args: [walletAddress],
-    }) as bigint
+    })) as bigint
 
     // Get token metadata (will use cache if available)
     tokenMetadata = await getTokenMetadata({
