@@ -73,12 +73,14 @@ export async function sendTransactionService({
   })
 
   // Send transaction
+  // Type assertion needed due to viem v2.44+ type inference requiring kzg
+  // in some type contexts, even though it's optional at runtime for non-blob transactions
   try {
     const hash = await walletClient.sendTransaction({
       to: to as `0x${string}`,
       value: parseEther(amount.toString()),
       ...(data && { data: data as Hex }),
-    })
+    } as any)
 
     return {
       transactionHash: hash,
