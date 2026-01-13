@@ -1,14 +1,21 @@
 import { Elysia } from 'elysia'
-import { AppError } from './errors'
+import { AppError, UnauthorizedError } from './errors'
 
 export const errorPlugin = new Elysia()
-  .error({ APP_ERROR: AppError })
-  .onError(({ code, error, status, set }) => {
+  .error({ APP_ERROR: AppError, UNAUTHORIZED_ERROR: UnauthorizedError })
+  .onError(({ code, error, set }) => {
     // Handle typed custom errors
     if (code === 'APP_ERROR') {
       const appError = error as AppError
       set.status = appError.status
       return appError.toResponse()
+    }
+
+    // Handle unauthorized errors
+    if (code === 'UNAUTHORIZED_ERROR') {
+      const unauthorizedError = error as UnauthorizedError
+      set.status = unauthorizedError.status
+      return unauthorizedError.toResponse()
     }
 
     // Normalize validation errors
@@ -27,16 +34,6 @@ export const errorPlugin = new Elysia()
       return {
         error: 'NOT_FOUND',
         message: 'Not Found',
-      }
-    }
-
-    // Handle unauthorized errors
-    if (code === 'UNAUTHORIZED') {
-      set.status = 401
-      return {
-        error: 'UNAUTHORIZED',
-        message: error.message || 'Unauthorized',
-        details: error.cause,
       }
     }
 
