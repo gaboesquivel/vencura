@@ -8,7 +8,7 @@
   "scripts": {
     "dev": "bun run src/index.ts",
     "build": "bun run typecheck && bun build src/index.ts --outdir dist --target bun",
-    "typecheck": "tsc --noEmit",
+    "typecheck": "tsc --noEmit && tsc --noEmit -p tsconfig.spec.json",
     "start": "bun run dist/index.js",
     "lint": "eslint . --max-warnings 0",
     "test": "vitest run",

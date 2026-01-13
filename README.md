@@ -129,6 +129,131 @@ vencura/
 
 For comprehensive architecture documentation, see the [Architecture Guide](apps/docs/content/docs/architecture/index.mdx).
 
+### Package Export Architecture
+
+**Core Principle**: Packages control their own exports via `package.json`. Consumers import packages normally - NO TypeScript path mappings override package imports.
+
+```mermaid
+graph LR
+    subgraph built [Built Packages]
+        types[types<br/>exports: dist/]
+        lib[lib<br/>exports: dist/]
+        core[core<br/>exports: dist/]
+        react[react<br/>exports: dist/]
+    end
+    
+    subgraph source [Source Packages]
+        ai[ai<br/>exports: src/]
+        evm[evm<br/>exports: src/]
+        ui[ui<br/>exports: src/]
+        tools[tools<br/>exports: src/]
+    end
+    
+    subgraph apps [Apps]
+        api[api<br/>no @vencura paths]
+        web[web<br/>no @vencura paths]
+    end
+    
+    core -->|package.json| types
+    core -->|package.json| lib
+    react -->|package.json| core
+    lib -->|package.json| types
+    
+    api -->|package.json| types
+    api -->|package.json| lib
+    api -->|package.json| evm
+    
+    web -->|package.json| react
+    web -->|package.json| ai
+    web -->|package.json| ui
+```
+
+#### Built Packages (Publishable to npm)
+
+These packages have build scripts and export from `dist/`:
+- `@vencura/types` - Shared API contracts and Zod schemas
+- `@vencura/lib` - Shared utility functions
+- `@vencura/core` - TypeScript SDK for Vencura API
+- `@vencura/react` - React hooks using TanStack Query
+
+**Export pattern**:
+```json
+{
+  "main": "./dist/index.js",
+  "module": "./dist/index.mjs",
+  "types": "./dist/index.d.ts",
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "require": "./dist/index.js",
+      "import": "./dist/index.mjs"
+    }
+  }
+}
+```
+
+#### Source-Only Packages (Internal use)
+
+These packages export directly from `src/` without a build step:
+
+- `@vencura/ai` - AI chatbot components and SDK
+- `@vencura/evm` - EVM contract ABIs
+- `@vencura/ui` - Shared Shadcn/ui component library
+- `@vencura/tools` - Development tools
+
+**Export pattern (ESM-compatible)**:
+
+```json
+{
+  "type": "module",
+  "exports": {
+    ".": "./src/index.ts",
+    "./components/*": "./src/components/*.tsx"
+  }
+}
+```
+
+**ESM Requirements**:
+
+- Must have `"type": "module"` in package.json
+- Exports must use TypeScript extensions (.ts, .tsx)
+- No CommonJS patterns (no require, module.exports)
+
+#### TypeScript Path Mappings
+
+**Each package only maps its own internal paths**:
+
+```json
+{
+  "compilerOptions": {
+    "paths": {
+      "@vencura/core/*": ["./src/*"]  // Only in @vencura/core
+    }
+  }
+}
+```
+
+**Apps have NO @vencura/* path mappings**:
+
+```json
+{
+  "compilerOptions": {
+    "paths": {
+      "@/*": ["./*"]  // App-internal paths only
+    }
+  }
+}
+```
+
+#### Why This Matters
+
+1. **Enforces proper boundaries** - Packages control their API surface
+2. **Enables npm publishing** - External consumers see the same interface as internal
+3. **Respects build chain** - Built packages consumed correctly via dist/
+4. **Prevents bypass** - Can't accidentally import unbundled source from built packages
+5. **Simplifies configuration** - No complex path mapping maintenance in consumers
+6. **ESM compatibility** - Source packages work seamlessly with modern ESM tooling and bundlers
+
 ## Projects
 
 ### Applications

@@ -2,9 +2,7 @@
   "extends": "@workspace/typescript-config/base.json",
   "compilerOptions": {
     "baseUrl": ".",
-    "paths": {
-      "@vencura/*": ["../../packages/*/src"]
-    },
+    "paths": {},
     "types": ["bun-types"]
   },
   "include": [".", "../../config/typescript/reset.d.ts"],
