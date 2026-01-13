@@ -1,6 +1,6 @@
-import type { Abi } from 'viem'
+import { Abi } from "viem";
 
-export const testnetTokenAbi: Abi = [
+export const testnetTokenAbi = [
   {
     type: 'constructor',
     inputs: [
@@ -235,4 +235,4 @@ export const testnetTokenAbi: Abi = [
     name: 'ERC20InvalidSpender',
     inputs: [{ name: 'spender', type: 'address', internalType: 'address' }],
   },
-]
+] as const satisfies Abi
