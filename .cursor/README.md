@@ -57,6 +57,39 @@ Model Context Protocol servers for specialized capabilities:
 - `github`: `GITHUB_TOKEN`
 - `vercel`: `VERCEL_API_TOKEN`
 
+**Setting API Keys:**
+
+Add the required API keys to your shell profile so Cursor can access them:
+
+**For zsh (recommended):**
+```bash
+# Add to ~/.zshrc
+export V0_API_KEY=your_v0_api_key_here
+export GITHUB_TOKEN=your_github_token_here
+export VERCEL_API_TOKEN=your_vercel_api_token_here
+
+# Then reload
+source ~/.zshrc
+```
+
+**For bash:**
+```bash
+# Add to ~/.bashrc
+export V0_API_KEY=your_v0_api_key_here
+export GITHUB_TOKEN=your_github_token_here
+export VERCEL_API_TOKEN=your_vercel_api_token_here
+
+# Then reload
+source ~/.bashrc
+```
+
+**Important:** Restart Cursor after setting the environment variables for them to take effect.
+
+**Getting API Keys:**
+- `V0_API_KEY`: Get from [v0.dev account settings](https://v0.dev)
+- `GITHUB_TOKEN`: Create at [GitHub Personal Access Tokens](https://github.com/settings/tokens)
+- `VERCEL_API_TOKEN`: Create at [Vercel Account Tokens](https://vercel.com/account/tokens)
+
 **Package Manager:** All MCP servers use `bunx` for command execution, consistent with the project's package manager choice.
 
 ## Documentation

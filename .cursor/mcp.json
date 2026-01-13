@@ -1,13 +1,12 @@
 {
   "mcpServers": {
     "shadcn": {
-      "command": "pnpm",
-      "args": ["dlx", "shadcn@latest", "mcp"]
+      "command": "bunx",
+      "args": ["shadcn@latest", "mcp"]
     },
     "v0": {
-      "command": "pnpm",
+      "command": "bunx",
       "args": [
-        "dlx",
         "mcp-remote",
         "https://mcp.v0.dev",
         "--header",
@@ -15,9 +14,8 @@
       ]
     },
     "github": {
-      "command": "pnpm",
+      "command": "bunx",
       "args": [
-        "dlx",
         "mcp-remote",
         "https://mcp.github.com",
         "--header",
@@ -25,9 +23,8 @@
       ]
     },
     "vercel": {
-      "command": "pnpm",
+      "command": "bunx",
       "args": [
-        "dlx",
         "mcp-remote",
         "https://mcp.vercel.com",
         "--header",
