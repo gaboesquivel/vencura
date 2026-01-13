@@ -69,12 +69,15 @@ export async function getBalanceService({
     const normalizedTokenAddress = getAddress(tokenAddress) as Address
 
     // Get token balance
-    balance = await publicClient.readContract({
+    // Type assertion needed due to viem v2.44+ type inference requiring authorizationList
+    // in some type contexts, even though it's optional at runtime
+    const contractParams = {
       address: normalizedTokenAddress,
       abi: testnetTokenAbi,
-      functionName: 'balanceOf',
-      args: [walletAddress],
-    })
+      functionName: 'balanceOf' as const,
+      args: [walletAddress] as const,
+    } as any
+    balance = await publicClient.readContract(contractParams) as bigint
 
     // Get token metadata (will use cache if available)
     tokenMetadata = await getTokenMetadata({

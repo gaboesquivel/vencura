@@ -65,22 +65,24 @@ export async function getTokenMetadata({
   })
 
   // Fetch token metadata using multicall for efficiency
+  // Type assertions needed due to viem v2.44+ type inference requiring authorizationList
+  // in some type contexts, even though it's optional at runtime
   const [name, symbol, decimals] = await Promise.all([
     publicClient.readContract({
       address: normalizedAddress as Address,
       abi: testnetTokenAbi,
       functionName: 'name',
-    }),
+    } as any),
     publicClient.readContract({
       address: normalizedAddress as Address,
       abi: testnetTokenAbi,
       functionName: 'symbol',
-    }),
+    } as any),
     publicClient.readContract({
       address: normalizedAddress as Address,
       abi: testnetTokenAbi,
       functionName: 'decimals',
-    }),
+    } as any),
   ])
 
   const metadata: TokenMetadata = {
