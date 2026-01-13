@@ -30,7 +30,7 @@
   "dependencies": {
     "@vencura/types": "workspace:*",
     "lodash-es": "latest",
-    "viem": "^2.21.45",
+    "viem": "2.44.1",
     "zod": "^3.25.76",
     "zod-validation-error": "^3.3.0"
   },
