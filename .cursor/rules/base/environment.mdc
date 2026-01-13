@@ -20,30 +20,28 @@ alwaysApply: false
 
 ## Validation Pattern
 
-**Always use Zod for environment variable validation** - consistent across all apps (Next.js, Elysia API, etc.).
+**Environment variable patterns vary by app type:**
 
-- Define schema with `z.object()` using Zod validators (`z.string()`, `z.coerce.number()`, `z.optional()`, `z.default()`)
-- Use `z.infer<typeof envSchema>` for type inference (no manual types)
-- Validation functions must have explicit return types
 - **Next.js apps**: Use `getEnvHelper` from `@vencura/lib` → export `zEnv = getEnv()` (validated const object)
-- **Server apps (Elysia, API)**: Use `validateEnvOrThrow` from `@vencura/lib` → export `zEnv = getEnv()` (fails fast)
-- **All apps**: Export `zEnv` as const object validated at module load - fails fast if config is invalid
-- Leverage `@vencura/lib` utilities - no custom validation logic needed
+  - Define schema with `z.object()` using Zod validators (`z.string()`, `z.coerce.number()`, `z.optional()`, `z.default()`)
+  - Use `z.infer<typeof envSchema>` for type inference (no manual types)
+  - Validation functions must have explicit return types
+  - Leverage `@vencura/lib` utilities - no custom validation logic needed
 
-**load-env.ts (ESM):**
-- Load `.env.{environment}` first (based on NODE_ENV)
-- Load `.env` last (highest priority)
-- Use `fileURLToPath` and `dirname` for ESM path resolution
+- **Elysia API (apps/api)**: Use Bun's built-in `.env` loading → export `environment` object (no runtime validation)
+  - Bun automatically loads `.env` files, no manual loading needed
+  - Define Zod schema for TypeScript type inference only
+  - Export `environment` object that reads directly from `process.env`
+  - Provides type safety without runtime validation overhead
 
 ## Key Principles
 
 1. **Sensitive vs Non-Sensitive**: Clear separation - `.env` (sensitive, never commit) vs `.env.{environment}` (non-sensitive, committed)
-2. **Zod Validation**: Always use Zod for runtime validation and type inference - leverage `@vencura/lib` utilities (`validateEnvOrThrow`, `getEnvHelper`)
-3. **Type Safety**: Use `z.infer<typeof envSchema>` for type inference (no manual types)
-4. **Explicit Return Types**: Validation functions must have explicit return types
-5. **zEnv Export**: All apps must export `zEnv` as const object validated at module load
-6. **No Manual Checks**: Remove all manual error checks - Zod validation handles this
-7. **No Example Files**: Remove all `.env.{environment}.example` files - update `.env.{environment}` directly with values
+2. **Type Safety**: Use `z.infer<typeof envSchema>` for type inference (no manual types)
+3. **Next.js Apps**: Use `getEnvHelper` from `@vencura/lib` → export `zEnv` as const object validated at module load
+4. **Elysia API**: Use Bun's built-in `.env` loading → export `environment` object (no runtime validation, type-safe via Zod schema)
+5. **No Manual Checks**: Remove all manual error checks - Zod validation handles this (Next.js) or rely on runtime behavior (Elysia API)
+6. **No Example Files**: Remove all `.env.{environment}.example` files - update `.env.{environment}` directly with values
 
 ## Next.js Caveats
 

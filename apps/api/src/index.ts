@@ -1,6 +1,3 @@
-// Load environment files before other imports
-import './lib/load-env'
-
 import { Elysia } from 'elysia'
 import { openapi } from '@elysiajs/openapi'
 import { zodToJsonSchema } from 'zod-to-json-schema'
@@ -8,7 +5,7 @@ import { errorPlugin } from './http/error-plugin'
 import { walletRoute } from './routes/wallet'
 import { balanceRoute } from './routes/balance'
 import { chatRoute } from './routes/chat'
-import { zEnv } from './lib/env'
+import { environment } from './lib/env'
 
 const app = new Elysia()
   .use(errorPlugin)
@@ -31,7 +28,7 @@ const app = new Elysia()
   .use(walletRoute)
   .use(balanceRoute)
   .use(chatRoute)
-  .listen(zEnv.PORT)
+  .listen(environment.port)
 
 console.log(`🚀 Server is running on http://localhost:${app.server?.port}`)
 console.log(`📚 OpenAPI docs available at http://localhost:${app.server?.port}/`)

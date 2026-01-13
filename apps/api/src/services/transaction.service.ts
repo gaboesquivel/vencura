@@ -2,7 +2,7 @@ import { createWalletClient, http, parseEther, type Hex } from 'viem'
 import { arbitrumSepolia } from 'viem/chains'
 import { getErrorMessage, getChainMetadata } from '@vencura/lib'
 import { getEvmClient } from './wallet-client'
-import { zEnv } from '../lib/env'
+import { environment } from '../lib/env'
 import { getWalletAndKeyShares } from './helpers/wallet'
 import { createDynamicLocalAccount } from './helpers/account'
 import { BadRequestError } from '../http/errors'
@@ -59,7 +59,7 @@ export async function sendTransactionService({
 
   // Get RPC URL (priority: SEPOLIA_RPC_URL > default)
   const rpcUrl =
-    zEnv.SEPOLIA_RPC_URL ||
+    environment.sepoliaRpcUrl ||
     chainMetadata.viemChain?.rpcUrls?.default?.http?.[0] ||
     'https://sepolia-rollup.arbitrum.io/rpc'
 

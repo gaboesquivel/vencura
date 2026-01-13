@@ -203,16 +203,36 @@ All apps enforce validated environment configuration objects using Zod schemas a
 - Validation happens at module load (build time for `NEXT_PUBLIC_*` vars)
 
 **Server Apps (Vencura API - Elysia backend):**
-- Use `validateEnvOrThrow` from `@vencura/lib`
-- Export `zEnv` as const object: `export const zEnv = getEnv()`
-- Server crashes on invalid config (fails fast with clear Zod error messages)
+- Use Bun's built-in `.env` file loading (no manual loading needed)
+- Export `environment` object that reads directly from `process.env`
+- Provides TypeScript type safety via Zod schema (no runtime validation)
 
 ### Usage Example
 
+**Next.js Apps:**
+```typescript
+// apps/web/src/lib/env.ts
+import { z } from 'zod'
+import { getEnvHelper } from '@vencura/lib'
+
+const envSchema = z.object({
+  NEXT_PUBLIC_API_URL: z.string().url().optional(),
+  PORT: z.coerce.number().optional().default(3000),
+})
+
+export type Env = z.infer<typeof envSchema>
+
+export function getEnv(): Env {
+  return getEnvHelper({ schema: envSchema })
+}
+
+export const zEnv = getEnv()
+```
+
+**Elysia API:**
 ```typescript
 // apps/api/src/lib/env.ts
 import { z } from 'zod'
-import { validateEnvOrThrow } from '@vencura/lib'
 
 const envSchema = z.object({
   DYNAMIC_ENVIRONMENT_ID: z.string().min(1),
@@ -222,15 +242,17 @@ const envSchema = z.object({
 
 export type Env = z.infer<typeof envSchema>
 
-export function getEnv(): Env {
-  return validateEnvOrThrow({ schema: envSchema })
-}
-
-export const zEnv = getEnv()
+// Bun automatically loads .env files
+export const environment = {
+  DYNAMIC_ENVIRONMENT_ID: process.env.DYNAMIC_ENVIRONMENT_ID ?? '',
+  DYNAMIC_API_TOKEN: process.env.DYNAMIC_API_TOKEN ?? '',
+  PORT: Number(process.env.PORT) || 3077,
+} as const satisfies Env
 ```
 
-### Using zEnv in Code
+### Using Environment Variables in Code
 
+**Next.js Apps:**
 ```typescript
 // Instead of process.env.PORT
 import { zEnv } from './lib/env'
@@ -240,6 +262,16 @@ const port = zEnv.PORT
 // No manual error checks needed
 ```
 
+**Elysia API:**
+```typescript
+// Instead of process.env.PORT
+import { environment } from './lib/env'
+const port = environment.PORT
+
+// Type-safe access via TypeScript
+// Bun handles .env file loading automatically
+```
+
 ## Best Practices
 
 1. **Never commit `.env.local`** - It's in `.gitignore` and contains sensitive secrets
@@ -247,8 +279,9 @@ const port = zEnv.PORT
 3. **Environment-specific configs** - Use `.env.development`, `.env.staging`, `.env.production` for environment-specific values
 4. **Local overrides** - Use `.env.local` for local-only overrides (highest priority)
 5. **RPC URL pattern** - Use `RPC_URL_<CHAIN_ID>` pattern for consistency
-6. **Always use zEnv** - Import `zEnv` from `lib/env.ts` instead of accessing `process.env` directly
-7. **Leverage @vencura/lib** - Use `validateEnvOrThrow` or `getEnvHelper` - no custom validation logic
+6. **Always use typed env objects** - Import `zEnv` (Next.js) or `environment` (Elysia API) from `lib/env.ts` instead of accessing `process.env` directly
+7. **Leverage @vencura/lib** - Use `getEnvHelper` for Next.js apps - no custom validation logic needed
+8. **Elysia API** - Use Bun's built-in `.env` loading, no manual loading or validation required
 8. **Zod schemas** - Use `z.coerce.number()`, `z.optional()`, `z.default()` for proper type handling
 9. **Zod-first validation** - All environment variables validated with Zod for type safety and clear error messages
 

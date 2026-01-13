@@ -1,7 +1,7 @@
 import { createWalletClient, createPublicClient, http } from 'viem'
 import { arbitrumSepolia } from 'viem/chains'
 import { privateKeyToAccount } from 'viem/accounts'
-import { zEnv } from '../lib/env'
+import { environment } from '../lib/env'
 
 /**
  * Gas faucet helper for test wallets.
@@ -21,7 +21,7 @@ export async function fundWalletWithGas({
   chainId?: number
 }): Promise<{ transactionHash: string; fundedWei: bigint }> {
   // Guard: Only allow if ARB_TESTNET_GAS_FAUCET_KEY is set (test-only)
-  if (!zEnv.ARB_TESTNET_GAS_FAUCET_KEY) {
+  if (!environment.arbTestnetGasFaucetKey) {
     throw new Error(
       'ARB_TESTNET_GAS_FAUCET_KEY is not set. Gas faucet is only available in test environments.',
     )
@@ -35,10 +35,10 @@ export async function fundWalletWithGas({
   }
 
   // Derive faucet account from private key
-  const faucetAccount = privateKeyToAccount(zEnv.ARB_TESTNET_GAS_FAUCET_KEY as `0x${string}`)
+  const faucetAccount = privateKeyToAccount(environment.arbTestnetGasFaucetKey as `0x${string}`)
 
   // Get RPC URL (priority: SEPOLIA_RPC_URL > default)
-  const rpcUrl = zEnv.SEPOLIA_RPC_URL || arbitrumSepolia.rpcUrls.default.http[0]
+  const rpcUrl = environment.sepoliaRpcUrl || arbitrumSepolia.rpcUrls.default.http[0]
 
   // Create public client to get gas price
   const publicClient = createPublicClient({

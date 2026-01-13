@@ -1,8 +1,4 @@
-// Ensure env files are loaded before validation
-import './load-env'
-
 import { z } from 'zod'
-import { validateEnvOrThrow } from '@vencura/lib'
 
 const envSchema = z.object({
   DYNAMIC_ENVIRONMENT_ID: z.string().min(1),
@@ -16,15 +12,21 @@ const envSchema = z.object({
 export type Env = z.infer<typeof envSchema>
 
 /**
- * Gets validated environment variables.
- * Throws error if validation fails (server should crash on invalid config).
+ * Environment configuration object.
+ * Reads directly from process.env (Bun automatically loads .env files).
  */
-export function getEnv(): Env {
-  return validateEnvOrThrow({ schema: envSchema })
+export const environment = {
+  dynamicEnvironmentId: process.env.DYNAMIC_ENVIRONMENT_ID ?? '',
+  dynamicApiToken: process.env.DYNAMIC_API_TOKEN ?? '',
+  encryptionKey: process.env.ENCRYPTION_KEY ?? '',
+  port: Number(process.env.PORT) || 3077,
+  arbTestnetGasFaucetKey: process.env.ARB_TESTNET_GAS_FAUCET_KEY,
+  sepoliaRpcUrl: process.env.SEPOLIA_RPC_URL,
+} as const satisfies {
+  dynamicEnvironmentId: string
+  dynamicApiToken: string
+  encryptionKey: string
+  port: number
+  arbTestnetGasFaucetKey?: string
+  sepoliaRpcUrl?: string
 }
-
-/**
- * Validated environment configuration object.
- * Validated at module load - fails fast if config is invalid.
- */
-export const zEnv = getEnv()

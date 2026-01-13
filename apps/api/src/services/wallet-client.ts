@@ -1,7 +1,7 @@
 import type { DynamicEvmWalletClient } from '@dynamic-labs-wallet/node-evm'
 import type { DynamicSvmWalletClient } from '@dynamic-labs-wallet/node-svm'
 import { type ChainType } from '@vencura/lib'
-import { zEnv } from '../lib/env'
+import { environment } from '../lib/env'
 
 let evmClient: DynamicEvmWalletClient | null = null
 let solanaClient: DynamicSvmWalletClient | null = null
@@ -26,8 +26,8 @@ export async function getEvmClient(): Promise<DynamicEvmWalletClient> {
     // This matches the pattern used in dynamic-examples/nodejs-omnibus-sweep
     const module = await import('@dynamic-labs-wallet/node-evm')
     const DynamicEvmWalletClientClass = module.DynamicEvmWalletClient
-    evmClient = new DynamicEvmWalletClientClass({ environmentId: zEnv.DYNAMIC_ENVIRONMENT_ID })
-    await evmClient.authenticateApiToken(zEnv.DYNAMIC_API_TOKEN)
+    evmClient = new DynamicEvmWalletClientClass({ environmentId: environment.dynamicEnvironmentId })
+    await evmClient.authenticateApiToken(environment.dynamicApiToken)
   }
   return evmClient
 }
@@ -45,9 +45,9 @@ export async function getSolanaClient(): Promise<DynamicSvmWalletClient> {
     const module = await import('@dynamic-labs-wallet/node-svm')
     const DynamicSvmWalletClientClass = module.DynamicSvmWalletClient
     solanaClient = new DynamicSvmWalletClientClass({
-      environmentId: zEnv.DYNAMIC_ENVIRONMENT_ID,
+      environmentId: environment.dynamicEnvironmentId,
     })
-    await solanaClient.authenticateApiToken(zEnv.DYNAMIC_API_TOKEN)
+    await solanaClient.authenticateApiToken(environment.dynamicApiToken)
   }
   return solanaClient
 }

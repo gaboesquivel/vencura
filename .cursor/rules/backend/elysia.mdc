@@ -87,7 +87,7 @@ export const walletRoute = new Elysia()
   - Error: `getErrorMessage` (error extraction), `formatZodError` / `formatZodErrors` (zod error formatting), `sanitizeErrorMessage` (error sanitization)
   - Async: `fetchWithTimeout` (external APIs - replaces `fetch`), `delay` (replaces `setTimeout`)
   - Zod: `parseJsonWithSchema` (JSON parsing with validation), `isZodError` (type guards)
-  - Env: `validateEnvOrThrow` (environment validation - see [Environment Rules](../base/environment.mdc))
+  - Env: Bun's built-in `.env` loading (see [Environment Rules](../base/environment.mdc))
 - **zod**: Use for all validation (request bodies, responses, environment variables, internal validation)
 - **lodash-es**: Use for array/object operations (`isEmpty`, `uniq`, `groupBy`, `merge`), type checking (`isPlainObject`, `isString`, `isArray`). Use per-function imports: `import isEmpty from 'lodash-es/isEmpty'`
 
@@ -100,7 +100,7 @@ export const walletRoute = new Elysia()
 
 ## Environment Variables
 
-See [Environment Rules](../base/environment.mdc) for pattern. Elysia apps use `validateEnvOrThrow` from `@vencura/lib` for environment validation.
+See [Environment Rules](../base/environment.mdc) for pattern. Elysia apps use Bun's built-in `.env` loading and export an `environment` object for typed access to environment variables.
 
 ## Testing
 

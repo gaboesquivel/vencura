@@ -1,13 +1,13 @@
 import { createCipheriv, createDecipheriv, randomBytes, scrypt } from 'crypto'
 import { promisify } from 'util'
-import { zEnv } from '../lib/env'
+import { environment } from '../lib/env'
 
 const algorithm = 'aes-256-gcm'
 const keyLength = 32
 const ivLength = 16
 
 async function getKey(): Promise<Buffer> {
-  const encryptionKey = zEnv.ENCRYPTION_KEY
+  const encryptionKey = environment.encryptionKey
   const salt = Buffer.from(encryptionKey.slice(0, 16), 'utf8')
   return (await promisify(scrypt)(encryptionKey, salt, keyLength)) as Buffer
 }

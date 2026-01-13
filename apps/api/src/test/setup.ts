@@ -1,2 +1,1 @@
-// Load environment files before tests run
-import '../lib/load-env'
+// Bun automatically loads .env files, no manual loading needed

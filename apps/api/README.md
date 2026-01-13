@@ -78,16 +78,16 @@ cp .env-example .env
 
 **Using Environment Variables in Code:**
 
-This app exports a validated environment configuration object (`zEnv`) from `src/lib/env.ts`. Always import and use `zEnv` instead of accessing `process.env` directly:
+This app exports an environment configuration object (`environment`) from `src/lib/env.ts`. Always import and use `environment` instead of accessing `process.env` directly:
 
 ```typescript
-import { zEnv } from '@/lib/env'
+import { environment } from '@/lib/env'
 
-// Use zEnv instead of process.env
-const envId = zEnv.DYNAMIC_ENVIRONMENT_ID
+// Use environment instead of process.env
+const envId = environment.dynamicEnvironmentId
 ```
 
-The `zEnv` object is validated at module load using Zod schemas and `validateEnvOrThrow` from `@vencura/lib`. Validation fails fast if required variables are missing.
+Bun automatically loads `.env` files, so no manual loading is required. The `environment` object provides typed access to environment variables with TypeScript type safety.
 
 See [Environment Rules](../../.cursor/rules/base/environment.mdc) for implementation patterns.
 
@@ -243,7 +243,7 @@ Interactive OpenAPI/Swagger documentation is available at `/api` when running th
 
 This app leverages shared utility libraries:
 
-- **@vencura/lib**: Error handling (`getErrorMessage`, `formatZodError`), async utilities (`fetchWithTimeout`, `delay`), env validation (`validateEnvOrThrow`)
+- **@vencura/lib**: Error handling (`getErrorMessage`, `formatZodError`), async utilities (`fetchWithTimeout`, `delay`)
 - **@vencura/types**: Shared API contracts and Zod schemas
 - **zod**: Schema validation and type inference
 - **lodash**: Array/object operations, type checking

@@ -34,8 +34,9 @@ We will implement an environment-based configuration strategy with the following
 
 **Vencura API (Elysia backend):**
 
-1. `.env` (highest priority, sensitive data, never committed, overrides everything)
-2. `.env.<NODE_ENV>` (development/staging/production/test, committed configs)
+- Bun automatically loads `.env` files (no manual loading needed)
+- Uses standard `.env` file (sensitive data, never committed)
+- Environment-specific files (`.env.development`, `.env.staging`, etc.) are not automatically loaded by Bun
 
 **Next.js Apps:**
 
@@ -59,14 +60,19 @@ We will implement an environment-based configuration strategy with the following
 - **`develop` branch** → Staging environment → `.env.staging` → Testnets
 - **Feature branches** → Development environment → `.env.development` → Testnets
 
-### Zod-First Environment Validation
+### Environment Configuration
 
-All apps enforce **Zod-validated** environment configuration objects (`zEnv`) using Zod schemas and `@vencura/lib` utilities:
-
+**Next.js Apps:**
+- Enforce **Zod-validated** environment configuration objects (`zEnv`) using Zod schemas and `@vencura/lib` utilities
 - **Type safety**: Full TypeScript inference from Zod schemas (`z.infer<typeof envSchema>`)
 - **Fail fast**: Invalid config causes immediate failure at module load with clear error messages
 - **DX-focused**: Fast failure, clear error messages, no manual error checks needed
-- **Portable**: Works consistently across all environments
+
+**Elysia API:**
+- Uses Bun's built-in `.env` file loading (no manual loading needed)
+- Exports `environment` object with TypeScript type safety via Zod schema
+- No runtime validation (relies on Bun's environment handling)
+- **Type safety**: Full TypeScript inference from Zod schemas (`z.infer<typeof envSchema>`)
 
 ## Implementation
 
@@ -75,11 +81,11 @@ All apps enforce **Zod-validated** environment configuration objects (`zEnv`) us
 All apps now enforce validated environment configuration objects (`zEnv`) using Zod schemas and `@vencura/lib` utilities:
 
 **Vencura API (`apps/api` - Elysia backend):**
-- Created `apps/api/src/lib/env.ts` with Zod schema
-- Uses `validateEnvOrThrow` from `@vencura/lib` (fails fast on invalid config)
-- Exports `zEnv` const object validated at module load
-- Replaced all `process.env` usage with `zEnv`
-- **Zod-first**: All environment variables validated with Zod for type safety and clear error messages
+- Created `apps/api/src/lib/env.ts` with Zod schema for type inference
+- Uses Bun's built-in `.env` file loading (no manual loading needed)
+- Exports `environment` object that reads directly from `process.env`
+- Replaced all `process.env` usage with `environment`
+- **Type-safe**: TypeScript type safety via Zod schema, no runtime validation overhead
 
 **Next.js Apps (`apps/web`, `apps/mathler`):**
 - Updated existing `lib/env.ts` files to export `zEnv` const object
@@ -89,9 +95,10 @@ All apps now enforce validated environment configuration objects (`zEnv`) using 
 ### Key Benefits
 
 - **Type Safety**: Full TypeScript inference from Zod schemas (`z.infer<typeof envSchema>`)
-- **Fail Fast**: Invalid config causes immediate failure at module load
-- **No Manual Checks**: Zod handles all validation - removed manual error checks
-- **Consistent Pattern**: All apps follow same pattern using `@vencura/lib` utilities
+- **Next.js Apps**: Fail fast - invalid config causes immediate failure at module load
+- **Elysia API**: Simple and fast - uses Bun's built-in env loading, no validation overhead
+- **No Manual Checks**: Zod handles all validation (Next.js) or runtime behavior (Elysia API)
+- **Consistent Pattern**: Next.js apps use `@vencura/lib` utilities, Elysia API uses Bun's built-in loading
 - **Next.js Compatible**: Handles `NEXT_PUBLIC_*` build-time replacement correctly
 
 ### Dev Scripts
