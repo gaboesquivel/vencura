@@ -75,6 +75,7 @@ export async function sendTransactionService({
   // Send transaction
   try {
     const hash = await walletClient.sendTransaction({
+      chain: viemChain,
       to: to as `0x${string}`,
       value: parseEther(amount.toString()),
       ...(data && { data: data as Hex }),
