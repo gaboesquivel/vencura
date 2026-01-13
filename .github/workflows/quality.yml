@@ -30,7 +30,7 @@ jobs:
         run: bun run lint
 
       - name: Type check (TypeScript)
-        run: turbo run typecheck
+        run: bun run typecheck
 
       - name: Build
         run: bun run build

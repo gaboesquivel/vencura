@@ -141,9 +141,12 @@ const walletTools = [
   },
 ]
 
-// Unused for now - will be used when AI integration is added
-// @ts-expect-error - Function will be used when AI integration is added
-async function _executeTool({
+/**
+ * Execute a tool call for AI agent.
+ * Exported for use in integration tests and future AI integration.
+ * @internal
+ */
+export async function executeTool({
   toolCall,
   userId,
 }: {
