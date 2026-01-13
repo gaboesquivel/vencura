@@ -65,8 +65,8 @@
         "PLAYWRIGHT_TEST_BASE_URL"
       ]
     },
-    "check-types": {
-      "dependsOn": ["^check-types"]
+    "typecheck": {
+      "dependsOn": ["^build"]
     },
     "test": {
       "dependsOn": ["^build"],

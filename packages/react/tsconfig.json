@@ -5,7 +5,10 @@
     "paths": {
       "@vencura/react/*": ["./src/*"]
     },
-    "jsx": "react-jsx"
+    "jsx": "react-jsx",
+    "moduleResolution": "bundler",
+    "resolvePackageJsonExports": true,
+    "resolvePackageJsonImports": true
   },
   "include": [".", "../../config/typescript/reset.d.ts"],
   "exclude": ["node_modules", "dist"]

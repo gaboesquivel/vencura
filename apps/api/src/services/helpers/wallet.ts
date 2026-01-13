@@ -4,7 +4,6 @@ import { getDatabase } from '../database'
 import { keyShares } from '../../db/schema'
 import { decryptKeyShare } from '../encryption'
 import { getWalletByIdForUser } from '../wallet.service'
-import type { ChainType } from '../chain-utils'
 import { NotFoundError } from '../../http/errors'
 
 /**

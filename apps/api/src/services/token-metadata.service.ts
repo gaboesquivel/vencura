@@ -43,7 +43,7 @@ export async function getTokenMetadata({
     .where(and(eq(tokenMetadata.address, normalizedAddress), eq(tokenMetadata.chainId, chainId)))
     .limit(1)
 
-  if (cached.length > 0) {
+  if (cached.length > 0 && cached[0]) {
     return {
       address: cached[0].address,
       chainId: cached[0].chainId,

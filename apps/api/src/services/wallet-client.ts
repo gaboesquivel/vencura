@@ -1,10 +1,10 @@
 import type { DynamicEvmWalletClient } from '@dynamic-labs-wallet/node-evm'
-import type { DynamicSolanaWalletClient } from '@dynamic-labs-wallet/node-svm'
+import type { DynamicSvmWalletClient } from '@dynamic-labs-wallet/node-svm'
 import { type ChainType } from '@vencura/lib'
 import { zEnv } from '../lib/env'
 
 let evmClient: DynamicEvmWalletClient | null = null
-let solanaClient: DynamicSolanaWalletClient | null = null
+let solanaClient: DynamicSvmWalletClient | null = null
 
 /**
  * Reset clients (useful for testing)
@@ -37,14 +37,14 @@ export async function getEvmClient(): Promise<DynamicEvmWalletClient> {
  * CRITICAL: Must not recreate on every request - Dynamic SDK instantiation is expensive.
  * Matches NestJS pattern: dynamic import for ESM compatibility, authenticate after instantiation.
  */
-export async function getSolanaClient(): Promise<DynamicSolanaWalletClient> {
+export async function getSolanaClient(): Promise<DynamicSvmWalletClient> {
   if (!solanaClient) {
     // Use dynamic import for ESM module compatibility
     // Dynamic SDK packages are ESM-only - dynamic import() works from CommonJS
     // This matches the pattern used in dynamic-examples/nodejs-omnibus-sweep
     const module = await import('@dynamic-labs-wallet/node-svm')
-    const DynamicSolanaWalletClientClass = module.DynamicSolanaWalletClient
-    solanaClient = new DynamicSolanaWalletClientClass({
+    const DynamicSvmWalletClientClass = module.DynamicSvmWalletClient
+    solanaClient = new DynamicSvmWalletClientClass({
       environmentId: zEnv.DYNAMIC_ENVIRONMENT_ID,
     })
     await solanaClient.authenticateApiToken(zEnv.DYNAMIC_API_TOKEN)

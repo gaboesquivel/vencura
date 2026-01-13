@@ -1,7 +1,17 @@
 import type { Elysia } from 'elysia'
-import type { Contract, InferBody, InferParams, InferQuery, InferHeaders, InferResponse } from '@vencura/types/contracts/contract'
+import type {
+  Contract,
+  InferBody,
+  InferParams,
+  InferQuery,
+  InferHeaders,
+  InferResponse,
+} from '@vencura/types/contracts'
 
-type HandlerCtx<C extends Contract, Extra extends Record<string, unknown> = Record<string, never>> = Extra &
+type HandlerCtx<
+  C extends Contract,
+  Extra extends Record<string, unknown> = Record<string, never>,
+> = Extra &
   (C['body'] extends undefined ? Record<string, never> : { body: InferBody<C> }) &
   (C['params'] extends undefined ? Record<string, never> : { params: InferParams<C> }) &
   (C['query'] extends undefined ? Record<string, never> : { query: InferQuery<C> }) &
@@ -25,8 +35,7 @@ export function registerRoute<
   handler: (ctx: HandlerCtx<C, Extra>) => Promise<InferResponse<C>> | InferResponse<C>,
   opts: RegisterRouteOptions = {},
 ) {
-  const validateResponse =
-    opts.validateResponse ?? process.env.NODE_ENV !== 'production'
+  const validateResponse = opts.validateResponse ?? process.env.NODE_ENV !== 'production'
 
   const routeOptions: Record<string, unknown> = {
     ...(contract.body ? { body: contract.body } : {}),

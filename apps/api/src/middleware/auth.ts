@@ -15,3 +15,11 @@ export function getUserId(request: Request): string {
   // TODO: Implement proper JWT extraction
   return 'test-user-123'
 }
+
+/**
+ * Type-safe auth context that guarantees userId is non-null.
+ * Use this as the Extra type in registerRoute for authenticated routes.
+ */
+export type AuthContext = {
+  userId: string
+}

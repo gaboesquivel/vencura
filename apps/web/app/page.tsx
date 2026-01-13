@@ -59,7 +59,6 @@ export default function Home() {
   return (
     <main className="min-h-screen bg-background flex items-center justify-center p-4">
       <div className="max-w-2xl w-full space-y-8">
-
         <div className="space-y-4">
           <h2 className="text-2xl font-semibold">Authentication</h2>
           {!user ? (

@@ -20,7 +20,10 @@ export default defineConfig({
     alias: {
       '@vencura/types': resolve(__dirname, '../../packages/types/dist/index.mjs'),
       '@vencura/types/schemas': resolve(__dirname, '../../packages/types/dist/schemas/index.mjs'),
-      '@vencura/types/contracts': resolve(__dirname, '../../packages/types/dist/contracts/index.mjs'),
+      '@vencura/types/contracts': resolve(
+        __dirname,
+        '../../packages/types/dist/contracts/index.mjs',
+      ),
       '@vencura/core': resolve(__dirname, '../../packages/core/src'),
     },
   },

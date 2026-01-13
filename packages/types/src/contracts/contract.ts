@@ -7,13 +7,7 @@ export type ZodAny = z.ZodTypeAny
 // Elysia `detail` extends OpenAPI Operation Object, so we keep this compatible
 export type OperationMeta = Pick<
   OpenAPIV3.OperationObject,
-  | 'summary'
-  | 'description'
-  | 'tags'
-  | 'operationId'
-  | 'deprecated'
-  | 'security'
-  | 'externalDocs'
+  'summary' | 'description' | 'tags' | 'operationId' | 'deprecated' | 'security' | 'externalDocs'
 >
 
 // Minimal MCP meta (optional; keep it separate from OpenAPI)

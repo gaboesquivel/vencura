@@ -1,4 +1,4 @@
-import { createPublicClient, http, type Address, getAddress, formatUnits, parseUnits } from 'viem'
+import { createPublicClient, http, type Address, getAddress, formatUnits } from 'viem'
 import { getChainMetadata } from './chain-utils'
 import { getWalletByChainType } from './wallet.service'
 import { getTokenMetadata } from './token-metadata.service'

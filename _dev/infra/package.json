@@ -7,7 +7,7 @@
   "scripts": {
     "build": "tsc",
     "lint": "eslint . --fix",
-    "check-types": "tsc --noEmit",
+    "typecheck": "tsc --noEmit",
     "preview": "pulumi preview",
     "up": "pulumi up",
     "destroy": "pulumi destroy"

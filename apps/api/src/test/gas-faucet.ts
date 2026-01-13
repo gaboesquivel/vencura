@@ -1,4 +1,4 @@
-import { createWalletClient, createPublicClient, http, parseEther, formatEther } from 'viem'
+import { createWalletClient, createPublicClient, http } from 'viem'
 import { arbitrumSepolia } from 'viem/chains'
 import { privateKeyToAccount } from 'viem/accounts'
 import { zEnv } from '../lib/env'

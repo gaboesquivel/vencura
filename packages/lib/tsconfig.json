@@ -5,7 +5,10 @@
     "paths": {
       "@vencura/lib/*": ["./src/*"]
     },
-    "types": ["bun-types", "node"]
+    "types": ["bun-types", "node"],
+    "moduleResolution": "bundler",
+    "resolvePackageJsonExports": true,
+    "resolvePackageJsonImports": true
   },
   "include": [".", "../../config/typescript/reset.d.ts"],
   "exclude": ["node_modules", "dist"]

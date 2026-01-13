@@ -9,7 +9,6 @@ import {
   BalanceSchema,
   SendTransactionResultSchema,
   ChainTypeSchema,
-  type ChainType,
 } from '@vencura/types'
 
 const chatMessageSchema = z.object({
@@ -142,7 +141,12 @@ const walletTools = [
   },
 ]
 
-async function executeTool({
+/**
+ * Execute a tool call for AI agent.
+ * Exported for use in integration tests and future AI integration.
+ * @internal
+ */
+export async function executeTool({
   toolCall,
   userId,
 }: {
@@ -211,10 +215,11 @@ export const chatRoute = new Elysia()
   })
   .post(
     '/chat',
-    async ({ body, userId }) => {
+    async () => {
       // For now, return a simple response indicating tool calls are supported
       // In a full implementation, this would integrate with an AI provider (OpenAI, Anthropic, etc.)
       // and handle tool calls automatically
+      // body and userId would be used when calling _executeTool
       return {
         message: {
           role: 'assistant' as const,
