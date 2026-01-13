@@ -80,7 +80,7 @@ export async function sendTransactionService({
       to: to as `0x${string}`,
       value: parseEther(amount.toString()),
       ...(data && { data: data as Hex }),
-    } as any)
+    } as unknown as Parameters<typeof walletClient.sendTransaction>[0])
 
     return {
       transactionHash: hash,
