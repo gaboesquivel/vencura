@@ -1,9 +1,0 @@
-{
-  "core": "@vencura/core",
-  "react": "@vencura/react",
-  "ui": "@vencura/ui",
-  "types": "@vencura/types",
-  "lib": "@vencura/lib",
-  "evm": "@vencura/evm",
-  "tools": "@vencura/tools"
-}

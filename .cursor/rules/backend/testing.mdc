@@ -1,77 +1,62 @@
 ---
-description: Backend testing standards and patterns for Elysia
-globs: *.spec.ts,**/*.e2e-spec.ts,**/*test.ts
+description: Backend testing standards and patterns for Fastify
 alwaysApply: false
 ---
-
 # Backend Testing Rules
 
-## Testing Philosophy
-**CRITICAL**: All tests use real APIs with real API keys. NO MOCKS allowed for core functionality.
-- E2E tests hit real Dynamic SDK endpoints (no unit tests)
-- Integration tests use real blockchain RPCs
-- Tests run exclusively against Arbitrum Sepolia testnet (chain ID: 421614)
-- Automated gas faucet funds wallets with minimum ETH required (calculated dynamically with 20% buffer)
+See @.cursor/rules/base/testing.mdc for common testing philosophy, coverage requirements, and mocking guidelines.
 
 ## Test Structure
 ### E2E Tests (Blackbox API Testing)
 - **Location**: `test/*.e2e-spec.ts` or `src/**/*.spec.ts`
 - **Pattern**: Tests only interact with HTTP endpoints, not internal implementation
-- **Real APIs**: All tests use real Dynamic SDK endpoints (no mocks)
-- **Elysia Testing**: Use `app.handle()` to simulate HTTP requests for blackbox testing
-
-## Test Coverage Requirements
-**For endpoints only, never unit test in API:**
-- Wallet Creation (EVM and Solana via Dynamic SDK)
-- Balance Queries (both chain types)
-- Message Signing (both chain types)
-- Transaction Sending (with automated gas funding)
-- Error Handling (all error cases and validation)
-- User Isolation (users can only access their own wallets)
-- Multichain Support (all supported chains)
+- **Real APIs**: All tests use real external service endpoints (no mocks)
+- **Fastify Testing**: Use `fastify.inject()` to simulate HTTP requests for blackbox testing
 
 ## Vitest Configuration
-**All Elysia tests run in ESM mode** - Vitest is ESM-native and tests TypeScript source directly:
+**All Fastify tests run in ESM mode** - Vitest is ESM-native and tests TypeScript source directly:
 - Tests run against TypeScript source files (ESM), not built output
 - Vitest config uses `vitest.config.ts` with ESM syntax
-- Path aliases configured in Vitest config for `@vencura/*` imports
-- Test utilities available in `src/test/utils/elysia.ts` for route testing
+- Path aliases configured in Vitest config for `@repo/*` imports
+- Test utilities available in `src/test/utils/fastify.ts` for route testing
 
-## Elysia Route Testing Pattern
-
-Use `app.handle()` for blackbox testing of routes:
-
+## Fastify Route Testing Pattern
+Use `fastify.inject()` for blackbox testing of routes:
 ```typescript
-import { describe, it, expect } from 'vitest'
-import { Elysia } from 'elysia'
-import { helloRoute } from '../routes/hello'
-import { testRoute } from '../test/utils/elysia'
+import Fastify from 'fastify'
+import { walletRoutes } from '../routes/wallet'
 
-describe('helloRoute', () => {
-  it('should return hello message via HTTP endpoint', async () => {
-    // Blackbox test: hit HTTP endpoint, not internal handler
-    const response = await testRoute(helloRoute, {
-      method: 'GET',
-      path: '/hello',
-    })
-    const data = await response.json()
-    
-    // Validate response matches contract
-    expect(response.status).toBe(200)
-    expect(data).toEqual({ message: 'Hello, World!' })
-  })
+const fastify = Fastify({ logger: false })
+await fastify.register(walletRoutes)
+
+const response = await fastify.inject({
+  method: 'POST',
+  url: '/wallets',
+  payload: { name: 'Test Wallet' },
+})
+
+expect(response.statusCode).toBe(201)
+expect(JSON.parse(response.body)).toMatchObject({
+  id: expect.any(String),
+  name: 'Test Wallet',
 })
 ```
 
+## Response Validation Pattern
+Test that responses match OpenAPI schemas:
+```typescript
+import { createApi } from '@repo/core'
+import { WalletSchema } from '@repo/core'
+
+const api = createApi({ baseUrl: 'http://localhost:3000' })
+const wallet = await api.wallets.getWallet({ params: { id: '123' } })
+
+WalletSchema.parse(wallet) // Validate against schema
+```
+
 ## Running Tests
-
 ```bash
-# Run all tests
-bun run test
-
-# Run tests in watch mode
-bun run test:watch
-
-# Run tests with coverage
-bun run test:cov
+pnpm test              # Run all tests
+pnpm test:watch        # Run tests in watch mode
+pnpm test:cov          # Run tests with coverage
 ```

@@ -11,10 +11,10 @@
   },
   "iconLibrary": "lucide",
   "aliases": {
-    "components": "@vencura/ui/components",
-    "utils": "@vencura/ui/lib/utils",
-    "hooks": "@vencura/ui/hooks",
-    "lib": "@vencura/ui/lib",
-    "ui": "@vencura/ui/components"
+    "components": "@repo/ui/components",
+    "utils": "@repo/ui/lib/utils",
+    "hooks": "@repo/ui/hooks",
+    "lib": "@repo/ui/lib",
+    "ui": "@repo/ui/components"
   }
 }

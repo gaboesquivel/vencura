@@ -1,9 +1,9 @@
+import type { Program } from '@coral-xyz/anchor'
 import * as anchor from '@coral-xyz/anchor'
-import { Program } from '@coral-xyz/anchor'
-import { TestToken } from '../target/types/test_token'
-import { TOKEN_PROGRAM_ID, createMint, createAccount, getAccount, getMint } from '@solana/spl-token'
+import { createAccount, createMint, getAccount, getMint, TOKEN_PROGRAM_ID } from '@solana/spl-token'
+import { Keypair, PublicKey } from '@solana/web3.js'
 import { expect } from 'chai'
-import { PublicKey, Keypair } from '@solana/web3.js'
+import type { TestToken } from '../target/types/test_token'
 
 describe('test-token', () => {
   const provider = anchor.AnchorProvider.env()
@@ -13,7 +13,7 @@ describe('test-token', () => {
 
   let mint: PublicKey
   let mintAuthority: PublicKey
-  let mintAuthorityBump: number
+  let _mintAuthorityBump: number
   let user1: Keypair
   let user2: Keypair
   let user1TokenAccount: PublicKey
@@ -25,17 +25,26 @@ describe('test-token', () => {
     user2 = Keypair.generate()
 
     // Airdrop SOL to users
-    await provider.connection.requestAirdrop(user1.publicKey, 2 * anchor.web3.LAMPORTS_PER_SOL)
-    await provider.connection.requestAirdrop(
+    const sig1 = await provider.connection.requestAirdrop(
+      user1.publicKey,
+      2 * anchor.web3.LAMPORTS_PER_SOL,
+    )
+    const sig2 = await provider.connection.requestAirdrop(
       user2.publicKey,
-      2 * anchor.web3.LAMPORTS_PER_SOL
+      2 * anchor.web3.LAMPORTS_PER_SOL,
     )
 
+    // Wait for airdrops to be confirmed
+    await provider.connection.confirmTransaction(sig1, 'confirmed')
+    await provider.connection.confirmTransaction(sig2, 'confirmed')
+
     // Find mint authority PDA
-    [mintAuthority, mintAuthorityBump] = PublicKey.findProgramAddressSync(
+    const [mintAuthorityPDA, mintAuthorityBumpValue] = PublicKey.findProgramAddressSync(
       [Buffer.from('mint')],
       program.programId,
     )
+    mintAuthority = mintAuthorityPDA
+    _mintAuthorityBump = mintAuthorityBumpValue
 
     // Create mint
     mint = await createMint(

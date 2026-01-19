@@ -1,6 +1,7 @@
 // Load environment variables from .env file (for local development)
 // In CI/CD, these are set via GitHub secrets
 import * as dotenv from 'dotenv'
+
 dotenv.config()
 
 // Set GCP provider environment variables from .env BEFORE importing GCP
@@ -48,14 +49,15 @@ const gcpProvider = new gcp.Provider('gcp-provider', {
   project: config.projectId,
   region: config.region,
 })
-import { createNetwork } from './lib/network'
+
+import { createArtifactRegistry } from './lib/artifact-registry'
+import { createCloudRun } from './lib/cloud-run'
 import { createDatabase } from './lib/database'
+import { createDockerBuild } from './lib/docker-build'
+import { createNetwork } from './lib/network'
+import { createOutputs } from './lib/outputs'
 import { createSecrets } from './lib/secrets'
 import { createServiceAccounts } from './lib/service-accounts'
-import { createArtifactRegistry } from './lib/artifact-registry'
-import { createDockerBuild } from './lib/docker-build'
-import { createCloudRun } from './lib/cloud-run'
-import { createOutputs } from './lib/outputs'
 
 // Create network resources
 const network = createNetwork(config, gcpProvider)

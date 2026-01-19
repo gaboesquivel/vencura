@@ -1,10 +1,10 @@
 {
-  "extends": "@workspace/typescript-config/nextjs.json",
+  "extends": "@repo/typescript-config/nextjs.json",
   "compilerOptions": {
     "baseUrl": ".",
     "paths": {
       "@/*": ["./*"],
-      "@vencura/ui/*": ["../../packages/ui/src/*"]
+      "@repo/ui/*": ["../../packages/ui/src/*"]
     },
     "plugins": [
       {
@@ -20,5 +20,13 @@
     ".next/types/**/*.ts",
     "../../config/typescript/reset.d.ts"
   ],
-  "exclude": ["node_modules"]
+  "exclude": [
+    "node_modules",
+    "vitest.config.ts",
+    "vitest.setup.ts",
+    "vitest.setup.lucide.ts",
+    "jest.config.cjs",
+    "jest.setup.js",
+    "jest.setup.lucide.js"
+  ]
 }

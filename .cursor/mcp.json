@@ -1,35 +1,53 @@
 {
   "mcpServers": {
-    "shadcn": {
-      "command": "bunx",
-      "args": ["shadcn@latest", "mcp"]
+    "shadcnui-official": {
+      "command": "npx",
+      "args": ["shadcn@latest", "mcp"],
+      "description": "Official shadcn/ui components, variants, and definitions"
     },
-    "v0": {
-      "command": "bunx",
-      "args": [
-        "mcp-remote",
-        "https://mcp.v0.dev",
-        "--header",
-        "Authorization: Bearer ${V0_API_KEY}"
-      ]
+    "shadcnui-jpisnice-react": {
+      "command": "npx",
+      "args": ["@jpisnice/shadcn-ui-mcp-server"],
+      "env": {
+        "GITHUB_PERSONAL_ACCESS_TOKEN": "${GITHUB_TOKEN}"
+      },
+      "description": "shadcn/ui v4 components, blocks, and demos for React"
+    },
+    "shadcnui-jpisnice-react-native": {
+      "command": "npx",
+      "args": ["@jpisnice/shadcn-ui-mcp-server", "--framework", "react-native"],
+      "env": {
+        "GITHUB_PERSONAL_ACCESS_TOKEN": "${GITHUB_TOKEN}"
+      },
+      "description": "shadcn/ui v4 components, blocks, and demos for react native"
     },
     "github": {
-      "command": "bunx",
+      "command": "npx",
       "args": [
-        "mcp-remote",
-        "https://mcp.github.com",
-        "--header",
-        "Authorization: Bearer ${GITHUB_TOKEN}"
-      ]
+        "@modelcontextprotocol/server-github",
+        "--toolsets",
+        "context,repos,issues,pull_requests,users,actions"
+      ],
+      "env": {
+        "GITHUB_PERSONAL_ACCESS_TOKEN": "${GITHUB_TOKEN}"
+      },
+      "description": "GitHub repository operations, issue management, and Actions logs"
     },
-    "vercel": {
-      "command": "bunx",
-      "args": [
-        "mcp-remote",
-        "https://mcp.vercel.com",
-        "--header",
-        "Authorization: Bearer ${VERCEL_API_TOKEN}"
-      ]
+    "coderabbit": {
+      "command": "npx",
+      "args": ["coderabbitai-mcp@latest"],
+      "env": {
+        "GITHUB_PAT": "${GITHUB_TOKEN}"
+      },
+      "description": "Expose CodeRabbit PR review comments via MCP"
+    },
+    "basilic-docu": {
+      "url": "https://mcp.vercel.com/gaboesquivel/basilic-docu",
+      "description": "Vercel project documentation context"
+    },
+    "basilic-fastify": {
+      "url": "https://mcp.vercel.com/gaboesquivel/basilic-fastify",
+      "description": "Vercel Fastify API package context"
     }
   }
 }

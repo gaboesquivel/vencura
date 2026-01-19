@@ -1,7 +1,8 @@
 // @ts-check
+
+import { config as baseConfig } from '@workspace/eslint-config/base'
 import globals from 'globals'
 import tseslint from 'typescript-eslint'
-import { config as baseConfig } from '@workspace/eslint-config/base'
 
 export default tseslint.config(
   ...baseConfig,

@@ -1,11 +1,11 @@
 import * as pulumi from '@pulumi/pulumi'
-import type { CloudRunResources } from './cloud-run'
-import type { DatabaseResources } from './database'
-import type { ServiceAccountResources } from './service-accounts'
-import type { SecretResources } from './secrets'
-import type { NetworkResources } from './network'
 import type { ArtifactRegistryResources } from './artifact-registry'
+import type { CloudRunResources } from './cloud-run'
 import type { Config } from './config'
+import type { DatabaseResources } from './database'
+import type { NetworkResources } from './network'
+import type { SecretResources } from './secrets'
+import type { ServiceAccountResources } from './service-accounts'
 
 export function createOutputs(
   config: Config,

@@ -1,12 +1,11 @@
 'use client'
 
-import * as React from 'react'
+import { Button } from '@repo/ui/components/button'
+import { Input } from '@repo/ui/components/input'
+import { Textarea } from '@repo/ui/components/textarea'
+import { cn } from '@repo/ui/lib/utils'
 import { cva, type VariantProps } from 'class-variance-authority'
-
-import { cn } from '@vencura/ui/lib/utils'
-import { Button } from '@vencura/ui/components/button'
-import { Input } from '@vencura/ui/components/input'
-import { Textarea } from '@vencura/ui/components/textarea'
+import type * as React from 'react'
 
 function InputGroup({ className, ...props }: React.ComponentProps<'div'>) {
   return (

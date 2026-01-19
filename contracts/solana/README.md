@@ -48,8 +48,8 @@ A test SPL Token program designed for testing and faucet purposes. Key features:
 - [Rust](https://www.rust-lang.org/tools/install) (latest stable)
 - [Solana CLI](https://docs.solana.com/cli/install-solana-cli-tools) (latest)
 - [Anchor](https://www.anchor-lang.com/docs/installation) (latest)
-- Node.js >= 20
-- Bun >= 1.3.2 (package manager - see [ADR 005: Package Manager](../../apps/docs/content/docs/adrs/005-package-manager/index.mdx))
+- Node.js >= 22
+- pnpm (package manager)
 
 ## Installation
 
@@ -57,7 +57,7 @@ Install dependencies:
 
 ```bash
 # From monorepo root
-bun install
+pnpm install
 ```
 
 Install Anchor (if not already installed):
@@ -76,7 +76,7 @@ Build the program:
 ```bash
 anchor build
 # or from monorepo root
-bun run contracts:solana:build
+pnpm --filter @repo/contracts-solana build
 ```
 
 This will:
@@ -92,13 +92,13 @@ Run tests with local validator:
 ```bash
 anchor test
 # or from monorepo root
-bun run contracts:solana:test
+pnpm --filter @repo/contracts-solana test
 ```
 
 Run tests without starting local validator (requires running `solana-test-validator` separately):
 
 ```bash
-bun run contracts:solana:test:local
+pnpm --filter @repo/contracts-solana test:local
 ```
 
 ### Deploy
@@ -108,7 +108,7 @@ Deploy to localnet:
 ```bash
 anchor deploy
 # or from monorepo root
-bun run contracts:solana:deploy:local
+pnpm --filter @repo/contracts-solana deploy:local
 ```
 
 Deploy to devnet:
@@ -116,7 +116,7 @@ Deploy to devnet:
 ```bash
 anchor deploy --provider.cluster devnet
 # or from monorepo root
-bun run contracts:solana:deploy:devnet
+pnpm --filter @repo/contracts-solana deploy:devnet
 ```
 
 Deploy to testnet:
@@ -124,7 +124,7 @@ Deploy to testnet:
 ```bash
 anchor deploy --provider.cluster testnet
 # or from monorepo root
-bun run contracts:solana:deploy:testnet
+pnpm --filter @repo/contracts-solana deploy:testnet
 ```
 
 ### Run Deployment Script

@@ -1,15 +1,16 @@
 'use client'
 
-import { useAsyncFn } from 'react-use'
-import groupBy from 'lodash-es/groupBy'
-import sumBy from 'lodash-es/sumBy'
-import isPlainObject from 'lodash-es/isPlainObject'
 import {
   useDynamicContext,
-  useUserUpdateRequest,
   useRefreshUser,
+  useUserUpdateRequest,
 } from '@dynamic-labs/sdk-react-core'
-import { getErrorMessage } from '@vencura/lib'
+import { getErrorMessage } from '@repo/error/nextjs'
+import groupBy from 'lodash-es/groupBy'
+import isPlainObject from 'lodash-es/isPlainObject'
+import sumBy from 'lodash-es/sumBy'
+import { useAsyncFn } from 'react-use'
+import type { UserMetadata } from '../types/user-metadata'
 
 export interface GameHistoryEntry {
   date: string // ISO date string (YYYY-MM-DD)
@@ -19,11 +20,6 @@ export interface GameHistoryEntry {
   status: 'won' | 'lost'
   guessCount: number
   completedAt: string // ISO timestamp
-}
-
-interface UserMetadata {
-  mathlerHistory?: GameHistoryEntry[]
-  [key: string]: unknown
 }
 
 interface GameStats {

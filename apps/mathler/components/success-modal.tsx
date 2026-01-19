@@ -1,5 +1,6 @@
 'use client'
 
+import { Button } from '@repo/ui/components/button'
 import {
   Dialog,
   DialogContent,
@@ -7,8 +8,7 @@ import {
   DialogFooter,
   DialogHeader,
   DialogTitle,
-} from '@vencura/ui/components/dialog'
-import { Button } from '@vencura/ui/components/button'
+} from '@repo/ui/components/dialog'
 
 interface SuccessModalProps {
   open: boolean

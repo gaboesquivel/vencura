@@ -23,7 +23,7 @@ export function GuessRow({
   const showCursor = isCurrentRow && cursorPosition >= 0
 
   return (
-    <div className="flex gap-1 justify-center">
+    <div className="flex gap-1 justify-center" role="row" aria-live="polite">
       {[...Array(maxLength)].map((_, i) => {
         const char = displayValue[i] || ''
         const isActive = i < displayValue.length
@@ -38,10 +38,18 @@ export function GuessRow({
           else if (feedbackType === 'absent') bgColor = 'bg-gray-500 border-2 border-gray-600'
         }
 
+        const ariaLabel =
+          hasFeedback && feedbackType
+            ? `Tile ${i + 1}: ${char || 'empty'}, ${feedbackType}`
+            : `Tile ${i + 1}: ${char || 'empty'}, no feedback`
+
         return (
           <div
             key={i}
+            role={isClickable ? 'button' : 'gridcell'}
             onClick={() => isClickable && onTileClick(i)}
+            aria-label={ariaLabel}
+            tabIndex={isClickable ? 0 : undefined}
             className={`
               relative w-12 h-12 flex items-center justify-center text-xl font-bold
               rounded transition-all duration-200 ${bgColor}

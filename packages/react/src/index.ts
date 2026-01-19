@@ -1,17 +1,11 @@
-/**
- * @vencura/react
- *
- * React hooks for the Vencura API using TanStack Query.
- * Built on top of @vencura/core with contract-first architecture.
- *
- * @packageDocumentation
- */
+// Export generated SDK
 
-export { VencuraProvider } from './provider'
-export { useVencuraClient } from './hooks/use-vencura-client'
-export { useWallets } from './hooks/use-wallets'
-export { useCreateWallet } from './hooks/use-create-wallet'
-export { useWalletBalance } from './hooks/use-wallet-balance'
-export { useSendTransaction } from './hooks/use-send-transaction'
-export type { UseSendTransactionInput } from './hooks/use-send-transaction'
-export * from './queries'
+export { useReactApiConfig } from './context.js'
+export * from './gen/index.js'
+// Export hooks
+export { useHealthCheck } from './hooks/useHealthCheck.js'
+// Export provider and context
+export { ReactApiProvider } from './provider.js'
+export type { ReactApiConfig } from './setup.js'
+// Export setup/config
+export { createReactApiConfig } from './setup.js'

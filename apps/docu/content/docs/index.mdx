@@ -1,0 +1,128 @@
+---
+title: "Introduction"
+description: "Basilic - A TypeScript-first monorepo template for projects that need to publish SDKs, develop modular services with code reuse, and leverage AI-friendly documentation."
+---
+
+## Perfect For
+
+This boilerplate is **specially targeted** for projects that:
+
+- **Need to publish SDKs** - Generate multi-language SDKs from OpenAPI specs
+- **Want modular architecture** - Develop multiple services while reusing software
+- **Value separation of concerns** - Clear package boundaries (types → contracts → core → react)
+- **Prefer TypeScript-first** - Full type safety with automatic SDK generation for other languages
+
+### SDK Publishing Strategy
+
+**TypeScript**: Generated type-safe clients via `@hey-api/openapi-ts` from OpenAPI specs. **Other languages**: Generate SDKs from the same OpenAPI specs using standard tools (`openapi-generator`, `oapi-codegen`, `progenitor`).
+
+### AI-Friendly Documentation
+
+MDX files designed for both humans and AI workflows—use directly in prompts as reference. Includes Cursor rules and MCP server integration.
+
+## Who is this for?
+
+### 🚀 Builders
+Starting a TypeScript project that needs SDKs or modular services? Get:
+- REST API with OpenAPI and automatic client generation
+- Multi-language SDK generation from OpenAPI specs
+- Type-safe frontend-backend communication
+- Shared component library
+- Testing and linting configured
+- AI-friendly documentation
+
+### 🔧 Contributors
+Want to customize or extend? You'll find:
+- Clear architecture decisions (ADRs)
+- Documented patterns and conventions
+- Portable design (easy to swap services)
+
+### 🎯 Evaluators
+Deciding if this fits? Review:
+- Tech stack decisions and rationale
+- Migration paths and exit strategies
+- Real examples of monorepo patterns
+
+## What problems does this solve?
+
+### Problem 1: Type Safety Across Boundaries
+**Solution:** OpenAPI specs with hey-api-generated clients ensure end-to-end type safety
+
+### Problem 2: Monorepo Package Management
+**Solution:** Clear package boundaries (core → react) with OpenAPI specs defining the API, enabling service reuse and separation of concerns
+
+### Problem 3: Vendor Lock-in
+**Solution:** Portable-by-default architecture
+
+### Problem 4: Multi-Language SDK Needs
+**Solution:** TypeScript-first with OpenAPI generation for other languages
+
+## Basilic has different parts:
+
+<div className="grid grid-cols-1 gap-4 md:grid-cols-2 my-8">
+  <div className="rounded-lg border border-border bg-card p-6">
+    <div className="mb-2 flex items-center gap-2">
+      <span className="text-2xl">🏗️</span>
+      <h3 className="text-lg font-semibold">Architecture</h3>
+    </div>
+    <p className="text-sm text-muted-foreground">
+      Monorepo architecture with Turborepo, REST API with OpenAPI, and portable-by-default design.
+    </p>
+    <div className="mt-4">
+      <a href="/docs/architecture" className="text-sm font-medium text-primary hover:underline">
+        Learn more →
+      </a>
+    </div>
+  </div>
+
+  <div className="rounded-lg border border-border bg-card p-6">
+    <div className="mb-2 flex items-center gap-2">
+      <span className="text-2xl">⚡</span>
+      <h3 className="text-lg font-semibold">Development</h3>
+    </div>
+    <p className="text-sm text-muted-foreground">
+      Type-safe full-stack TypeScript, AI-assisted workflows with MCP servers, and modern tooling.
+    </p>
+    <div className="mt-4">
+      <a href="/docs/ai-workflow" className="text-sm font-medium text-primary hover:underline">
+        Learn more →
+      </a>
+    </div>
+  </div>
+
+  <div className="rounded-lg border border-border bg-card p-6">
+    <div className="mb-2 flex items-center gap-2">
+      <span className="text-2xl">🚀</span>
+      <h3 className="text-lg font-semibold">Deployment</h3>
+    </div>
+    <p className="text-sm text-muted-foreground">
+      Zero vendor lock-in architecture with migration paths from Vercel to GCP/AWS for production security.
+    </p>
+    <div className="mt-4">
+      <a href="/docs/architecture/portability" className="text-sm font-medium text-primary hover:underline">
+        Learn more →
+      </a>
+    </div>
+  </div>
+
+  <div className="rounded-lg border border-border bg-card p-6">
+    <div className="mb-2 flex items-center gap-2">
+      <span className="text-2xl">📦</span>
+      <h3 className="text-lg font-semibold">Packages</h3>
+    </div>
+    <p className="text-sm text-muted-foreground">
+      Shared packages for core API client with types, React hooks, UI components, and utilities.
+    </p>
+    <div className="mt-4">
+      <a href="/docs/architecture/package-conventions" className="text-sm font-medium text-primary hover:underline">
+        Learn more →
+      </a>
+    </div>
+  </div>
+</div>
+
+## Next Steps
+
+- **New to this?** → [Getting Started](/docs/getting-started)
+- **Understand the patterns** → [Monorepo Structure](/docs/core-concepts/monorepo-structure)
+- **See the architecture** → [Architecture Overview](/docs/architecture)

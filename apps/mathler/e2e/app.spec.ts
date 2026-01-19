@@ -1,8 +1,12 @@
-import { test, expect } from '@playwright/test'
+import { expect, test } from '@playwright/test'
 
 test.describe('Mathler App', () => {
+  // Tests run with authenticated state (via storageState in playwright.config.ts)
+  // The auth.setup.ts file handles authentication before these tests run
   test.beforeEach(async ({ page }) => {
     await page.goto('/')
+    // Wait for auth guard to check authentication and show game
+    await page.waitForSelector('h1:has-text("Mathler")', { timeout: 10000 })
   })
 
   test('should load the game page', async ({ page }) => {

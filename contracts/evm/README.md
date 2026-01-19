@@ -115,7 +115,7 @@ To update Foundry dependencies (e.g., OpenZeppelin Contracts):
 ```bash
 forge update
 # or from monorepo root
-bun run contracts:evm:build  # Updates dependencies during build
+pnpm --filter @repo/contracts-evm deps:update
 ```
 
 **Important**: The `lib/` directory should never be manually edited. All dependencies are managed through Foundry's dependency system. The directory is excluded from formatting via `foundry.toml` and `.prettierignore`.
@@ -127,7 +127,7 @@ bun run contracts:evm:build  # Updates dependencies during build
 ```bash
 forge build
 # or from monorepo root
-bun run contracts:evm:build
+pnpm --filter @repo/contracts-evm build
 ```
 
 ### Test
@@ -135,7 +135,7 @@ bun run contracts:evm:build
 ```bash
 forge test
 # or from monorepo root
-bun run contracts:evm:test
+pnpm --filter @repo/contracts-evm test
 ```
 
 Run with verbosity:
@@ -163,62 +163,12 @@ Start a local Anvil node:
 ```bash
 anvil
 # or
-bun run contracts:evm:deploy:anvil
+pnpm --filter @repo/contracts-evm deploy:anvil
 ```
-
-### Integration with API Tests
-
-API E2E tests use the deployed mock tokens on Arbitrum Sepolia:
-
-- **API tests run against Arbitrum Sepolia testnet** (chain ID: 421614)
-- **Wallets are auto-funded** with minimum ETH required using `ARB_TESTNET_GAS_FAUCET_KEY`
-- **Test tokens**: DNMC, USDC, and USDT are deployed on Arbitrum Sepolia and used in tests
-- **No local blockchain**: Tests use real testnet because Dynamic SDK doesn't support localhost chains
-
-See [API Test Documentation](../apps/api/test/README.md) for details on automated gas faucet.
 
 ## Testing Strategy
 
-### Blackbox Testing with Testnet Networks
-
-Our testing strategy emphasizes **blackbox testing** using testnet networks for automation. This approach ensures end-to-end validation while maintaining fast, reliable test execution.
-
-#### Core Principles
-
-1. **Testnet-Based Testing**: API E2E tests run against Arbitrum Sepolia testnet (chain ID: 421614) to ensure compatibility with the Dynamic SDK, which doesn't support localhost chains
-2. **Automated Gas Funding**: Wallets are auto-funded with minimum ETH required using `ARB_TESTNET_GAS_FAUCET_KEY` before tests run
-3. **Test Tokens with Open Mint**: Test tokens (USDT, USDC, DNMC) are deployed on Arbitrum Sepolia using the `TestToken` contract with open minting functionality, allowing any wallet to mint tokens as a faucet
-4. **Blackbox Testing**: All API tests are blackbox - they only interact with HTTP endpoints, no unit tests. This ensures we test the complete flow from HTTP request to blockchain transaction
-5. **Dynamic SDK Integration**: All transaction signing uses the real Dynamic SDK (no mocks), ensuring we test against actual wallet infrastructure
-
-#### Token Mocking Strategy
-
-We mock three tokens for automated transfer testing:
-
-- **USDT (Mocked)**: Tether USD token mock with 6 decimals
-- **USDC (Mocked)**: USD Coin token mock with 6 decimals
-- **DNMC**: Dynamic Arcade Token (arcade utility token) with 18 decimals
-
-All three tokens are deployed on Arbitrum Sepolia using the `TestToken` contract which provides:
-
-- **Open Minting**: Anyone can call `mint()` to create tokens (perfect for faucets)
-- **Open Burning**: Anyone can call `burn()` to destroy tokens (useful for testing)
-- **Standard ERC20 Interface**: Full compatibility with standard token operations
-
-This allows tests to automatically mint tokens via the API transaction endpoint (`mintTestTokenViaFaucet` helper) without requiring special faucet wallets or manual funding.
-
-#### Testing Flow
-
-1. **Auto-fund wallets**: Wallets are automatically funded with ETH from the gas faucet before tests run
-2. **Use deployed test tokens**: Test tokens (USDT, USDC, DNMC) are already deployed on Arbitrum Sepolia and used in tests
-3. **Use Dynamic SDK**: All wallet operations and transaction signing use the real Dynamic SDK
-4. **Blackbox test endpoints**: Tests hit HTTP endpoints only, verifying complete end-to-end functionality
-
-#### Testnet Deployment
-
-Test tokens are deployed on Arbitrum Sepolia testnet. The deployment addresses are documented in the [Deployed Contracts](#deployed-contracts) section above. For local development and contract testing, you can still use Anvil (see [Local Development](#local-development) section), but API E2E tests use the testnet deployment.
-
-See [API Test Documentation](../apps/api/test/README.md) for complete testing strategy details.
+Contracts use Foundry's testing framework for unit and integration tests. Test tokens are deployed on Arbitrum Sepolia testnet for integration testing.
 
 ### Environment Setup
 
@@ -265,7 +215,7 @@ Deploy DNMC (Dynamic Arcade Token) to Arbitrum Sepolia:
 
 ```bash
 # Using package.json script (requires .env file, from monorepo root)
-bun run deploy:dnmc
+pnpm --filter @repo/contracts-evm deploy:dnmc
 
 # Or using forge directly
 forge script script/DNMC.s.sol:DNMCScript \
@@ -280,7 +230,7 @@ Deploy mocked USDC token to Arbitrum Sepolia:
 
 ```bash
 # Using package.json script (requires .env file, from monorepo root)
-bun run deploy:usdc
+pnpm --filter @repo/contracts-evm deploy:usdc
 
 # Or using forge directly
 forge script script/USDC.s.sol:USDCScript \
@@ -294,8 +244,8 @@ forge script script/USDC.s.sol:USDCScript \
 Deploy mocked USDT token to Arbitrum Sepolia:
 
 ```bash
-# Using package.json script (requires .env file)
-bun run deploy:usdt
+# Using package.json script (requires .env file, from monorepo root)
+pnpm --filter @repo/contracts-evm deploy:usdt
 
 # Or using forge directly
 forge script script/USDT.s.sol:USDTScript \
@@ -310,10 +260,10 @@ To deploy to a different network, override the `RPC_URL` environment variable:
 
 ```bash
 # Deploy to Base Sepolia
-RPC_URL=https://sepolia.base.org bun run deploy:usdc
+RPC_URL=https://sepolia.base.org pnpm --filter @repo/contracts-evm deploy:usdc
 
 # Deploy to local Anvil
-RPC_URL=http://localhost:8545 bun run deploy:dnmc
+RPC_URL=http://localhost:8545 pnpm --filter @repo/contracts-evm deploy:dnmc
 ```
 
 ### Cast

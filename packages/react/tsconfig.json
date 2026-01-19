@@ -1,15 +1,9 @@
 {
-  "extends": "@workspace/typescript-config/base.json",
+  "extends": "@repo/typescript-config/react-library.json",
   "compilerOptions": {
-    "baseUrl": ".",
-    "paths": {
-      "@vencura/react/*": ["./src/*"]
-    },
-    "jsx": "react-jsx",
-    "moduleResolution": "bundler",
-    "resolvePackageJsonExports": true,
-    "resolvePackageJsonImports": true
+    "outDir": "dist",
+    "rootDir": "src",
+    "declaration": true
   },
-  "include": [".", "../../config/typescript/reset.d.ts"],
-  "exclude": ["node_modules", "dist"]
+  "include": ["src"]
 }

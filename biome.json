@@ -3,38 +3,29 @@
   "files": {
     "includes": [
       "**",
-      "!**/node_modules/**",
-      "!**/.next/**",
-      "!**/out/**",
-      "!**/dist/**",
-      "!**/build/**",
-      "!**/bin/**",
-      "!**/.turbo/**",
-      "!**/.vercel/**",
-      "!**/.cache/**",
-      "!**/bun/**",
-      "!**/coverage/**",
-      "!**/test-results/**",
-      "!**/playwright-report/**",
-      "!**/playwright/.cache/**",
-      "!contracts/evm/out/**",
-      "!contracts/evm/cache/**",
-      "!contracts/evm/broadcast/**",
-      "!contracts/evm/lib/**",
-      "!contracts/solana/target/**",
-      "!contracts/solana/.anchor/**",
-      "!contracts/solana/tests/**",
-      "!contracts/**/*.so",
-      "!**/target/**",
+      "!**/node_modules",
+      "!**/.next",
+      "!**/out",
+      "!**/dist",
+      "!**/build",
+      "!**/bin",
+      "!**/.turbo",
+      "!**/.source",
+      "!**/.vercel",
+      "!**/.cache",
+      "!**/coverage",
+      "!**/test-results",
+      "!**/playwright-report",
+      "!**/target",
+      "!**/gen",
+      "!**/*.gen.ts",
+      "!**/*.gen.js",
       "!*.generated.*",
       "!*.log",
       "!pnpm-lock.yaml",
-      "!package-lock.json",
-      "!yarn.lock",
       "!.pnp.js",
       "!.DS_Store",
-      "!*.pem",
-      "!__dev/**"
+      "!*.pem"
     ],
     "maxSize": 1048576
   },
@@ -62,6 +53,21 @@
     "enabled": true,
     "rules": {
       "recommended": true,
+      "a11y": {
+        "recommended": false
+      },
+      "suspicious": {
+        "noArrayIndexKey": "off",
+        "noConsole": {
+          "level": "error"
+        }
+      },
+      "correctness": {
+        "useExhaustiveDependencies": "off"
+      },
+      "security": {
+        "noDangerouslySetInnerHtml": "off"
+      },
       "style": {
         "noRestrictedImports": {
           "options": {
@@ -73,6 +79,23 @@
       }
     }
   },
+  "overrides": [
+    {
+      "includes": [
+        "scripts/**/*.mjs",
+        "scripts/**/*.js",
+        "**/scripts/**/*.ts",
+        "**/scripts/**/*.js"
+      ],
+      "linter": {
+        "rules": {
+          "suspicious": {
+            "noConsole": "off"
+          }
+        }
+      }
+    }
+  ],
   "css": {
     "parser": {
       "tailwindDirectives": true

@@ -1,8 +1,8 @@
+import * as pulumi from '@pulumi/pulumi'
 import { execSync } from 'child_process'
 import { GoogleAuth } from 'google-auth-library'
-import isString from 'lodash-es/isString'
 import isPlainObject from 'lodash-es/isPlainObject'
-import * as pulumi from '@pulumi/pulumi'
+import isString from 'lodash-es/isString'
 
 export const isCi = (): boolean => Boolean(process.env.CI || process.env.GITHUB_ACTIONS)
 

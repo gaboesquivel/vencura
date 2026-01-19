@@ -1,24 +1,13 @@
-import { createContext, type ReactNode } from 'react'
-import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
-import { createVencuraClient, type VencuraClient } from '@vencura/core'
+import { type ReactNode, useMemo } from 'react'
+import { ReactApiContext } from './context.js'
+import type { ReactApiConfig } from './setup.js'
+import { createReactApiConfig } from './setup.js'
 
-export interface VencuraProviderProps {
-  baseUrl: string
-  headers?: Record<string, string>
-  children: ReactNode
+export function ReactApiProvider({
+  children,
+  ...config
+}: ReactApiConfig & { children: ReactNode }): React.JSX.Element {
+  const apiConfig = useMemo(() => createReactApiConfig(config), [config])
+
+  return <ReactApiContext.Provider value={apiConfig}>{children}</ReactApiContext.Provider>
 }
-
-const VencuraContext = createContext<{ client: VencuraClient } | null>(null)
-
-export const VencuraProvider = ({ baseUrl, headers, children }: VencuraProviderProps) => {
-  const queryClient = new QueryClient()
-  const client = createVencuraClient({ baseUrl, headers })
-
-  return (
-    <QueryClientProvider client={queryClient}>
-      <VencuraContext.Provider value={{ client }}>{children}</VencuraContext.Provider>
-    </QueryClientProvider>
-  )
-}
-
-export { VencuraContext }

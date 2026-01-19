@@ -1,8 +1,8 @@
 import * as docker from '@pulumi/docker'
 import * as pulumi from '@pulumi/pulumi'
-import type { Config } from './config'
 import type { ArtifactRegistryResources } from './artifact-registry'
-import { shouldBuildInCi, getGcpAccessToken } from './utils/docker'
+import type { Config } from './config'
+import { getGcpAccessToken, shouldBuildInCi } from './utils/docker'
 
 export interface DockerBuildResources {
   image: docker.Image | null

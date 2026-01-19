@@ -1,29 +1,28 @@
 'use client'
 
-import * as React from 'react'
 import { Slot } from '@radix-ui/react-slot'
-import { cva, type VariantProps } from 'class-variance-authority'
-import { PanelLeftIcon } from 'lucide-react'
-
-import { useIsMobile } from '@vencura/ui/hooks/use-mobile'
-import { cn } from '@vencura/ui/lib/utils'
-import { Button } from '@vencura/ui/components/button'
-import { Input } from '@vencura/ui/components/input'
-import { Separator } from '@vencura/ui/components/separator'
+import { Button } from '@repo/ui/components/button'
+import { Input } from '@repo/ui/components/input'
+import { Separator } from '@repo/ui/components/separator'
 import {
   Sheet,
   SheetContent,
   SheetDescription,
   SheetHeader,
   SheetTitle,
-} from '@vencura/ui/components/sheet'
-import { Skeleton } from '@vencura/ui/components/skeleton'
+} from '@repo/ui/components/sheet'
+import { Skeleton } from '@repo/ui/components/skeleton'
 import {
   Tooltip,
   TooltipContent,
   TooltipProvider,
   TooltipTrigger,
-} from '@vencura/ui/components/tooltip'
+} from '@repo/ui/components/tooltip'
+import { useIsMobile } from '@repo/ui/hooks/use-mobile'
+import { cn } from '@repo/ui/lib/utils'
+import { cva, type VariantProps } from 'class-variance-authority'
+import { PanelLeftIcon } from 'lucide-react'
+import * as React from 'react'
 
 const SIDEBAR_COOKIE_NAME = 'sidebar_state'
 const SIDEBAR_COOKIE_MAX_AGE = 60 * 60 * 24 * 7
@@ -83,6 +82,7 @@ function SidebarProvider({
       }
 
       // This sets the cookie to keep the sidebar state.
+      // biome-ignore lint/suspicious/noDocumentCookie: necessary for sidebar persistence
       document.cookie = `${SIDEBAR_COOKIE_NAME}=${openState}; path=/; max-age=${SIDEBAR_COOKIE_MAX_AGE}`
     },
     [setOpenProp, open],
@@ -588,9 +588,7 @@ function SidebarMenuSkeleton({
   showIcon?: boolean
 }) {
   // Random width between 50 to 90%.
-  const width = React.useMemo(() => {
-    return `${Math.floor(Math.random() * 40) + 50}%`
-  }, [])
+  const width = React.useState(() => `${Math.floor(Math.random() * 40) + 50}%`)[0]
 
   return (
     <div

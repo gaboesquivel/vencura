@@ -1,6 +1,6 @@
 'use client'
 
-import type React from 'react'
+import { Button } from '@repo/ui/components/button'
 
 interface GameKeypadProps {
   onInput: (value: string) => void
@@ -8,6 +8,7 @@ interface GameKeypadProps {
   onSubmit: () => void
   currentInput: string
   onInputAtPosition?: (char: string) => void
+  isPending?: boolean
 }
 
 export function GameKeypad({
@@ -16,6 +17,7 @@ export function GameKeypad({
   onSubmit,
   currentInput,
   onInputAtPosition,
+  isPending = false,
 }: GameKeypadProps) {
   const numbers = ['0', '1', '2', '3', '4', '5', '6', '7', '8', '9']
   const operators = ['+', '-', '×', '÷']
@@ -30,44 +32,56 @@ export function GameKeypad({
       {/* Numbers Grid */}
       <div className="grid grid-cols-5 gap-2">
         {numbers.map(num => (
-          <button
+          <Button
             key={num}
+            variant="secondary"
+            size="lg"
             onClick={() => handleClick(num)}
-            className="py-3 font-semibold rounded-lg bg-secondary text-secondary-foreground hover:bg-primary hover:text-primary-foreground focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2 transition-colors"
+            aria-label={`Input number ${num}`}
+            className="py-3 font-semibold"
           >
             {num}
-          </button>
+          </Button>
         ))}
       </div>
 
       {/* Operators */}
       <div className="grid grid-cols-4 gap-2">
         {operators.map(op => (
-          <button
+          <Button
             key={op}
+            variant="outline"
+            size="lg"
             onClick={() => handleClick(op)}
-            className="py-3 font-semibold text-lg rounded-lg bg-accent text-accent-foreground hover:bg-primary hover:text-primary-foreground focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2 transition-colors"
+            aria-label={`Input operator ${op}`}
+            className="py-3 font-semibold text-lg"
           >
             {op}
-          </button>
+          </Button>
         ))}
       </div>
 
       {/* Action Buttons */}
       <div className="grid grid-cols-2 gap-2">
-        <button
+        <Button
+          variant="destructive"
+          size="lg"
           onClick={onBackspace}
-          className="py-3 font-semibold rounded-lg bg-destructive text-destructive-foreground hover:opacity-90 focus:outline-none focus:ring-2 focus:ring-destructive focus:ring-offset-2 transition-opacity"
+          aria-label="Backspace"
+          className="py-3 font-semibold"
         >
           ← Back
-        </button>
-        <button
+        </Button>
+        <Button
+          variant="default"
+          size="lg"
           onClick={onSubmit}
-          disabled={!currentInput}
-          className="py-3 font-semibold rounded-lg bg-primary text-primary-foreground hover:opacity-90 disabled:opacity-50 focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2 transition-opacity"
+          disabled={!currentInput || isPending}
+          aria-label="Submit guess"
+          className="py-3 font-semibold"
         >
-          Submit
-        </button>
+          {isPending ? 'Processing...' : 'Submit'}
+        </Button>
       </div>
     </div>
   )

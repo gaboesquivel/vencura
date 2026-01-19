@@ -1,9 +1,0 @@
-{
-  "extends": "./tsconfig.json",
-  "include": [
-    "**/*.spec.ts",
-    "**/*.test.ts",
-    "../../config/typescript/reset.d.ts"
-  ],
-  "exclude": ["node_modules", "dist"]
-}

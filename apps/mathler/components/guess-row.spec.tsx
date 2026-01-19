@@ -1,7 +1,6 @@
-import React from 'react'
-import { describe, it, expect, vi } from 'vitest'
 import { render, screen } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
+import { describe, expect, it, vi } from 'vitest'
 import { GuessRow } from './guess-row'
 
 describe('GuessRow', () => {
@@ -123,7 +122,9 @@ describe('GuessRow', () => {
     )
 
     const cells = screen.getAllByText(/^[0-9]?$/)
-    await user.click(cells[0])
+    if (cells[0]) {
+      await user.click(cells[0])
+    }
 
     expect(mockOnTileClick).not.toHaveBeenCalled()
   })

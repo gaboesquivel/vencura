@@ -1,11 +1,4 @@
-/**
- * @vencura/core
- *
- * TypeScript SDK for the Vencura API.
- * Provides a typed HTTP client that consumes contracts from @vencura/types.
- *
- * @packageDocumentation
- */
-
-export * from './client'
-export * from '@vencura/types'
+export { createApi } from './api.js'
+export type { CoreClientOptions } from './config.js'
+export { ApiError } from './errors.js'
+export type * from './gen/types.gen.js'

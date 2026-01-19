@@ -2,90 +2,101 @@
   "$schema": "https://turbo.build/schema.json",
   "ui": "tui",
   "tasks": {
+    "generate": {
+      "dependsOn": [],
+      "inputs": ["$TURBO_DEFAULT$", "../../apps/fastify/openapi/openapi.json"],
+      "outputs": ["src/gen/**"],
+      "env": ["NODE_ENV"]
+    },
     "build": {
-      "dependsOn": ["^build"],
+      "dependsOn": ["^build", "generate"],
       "inputs": ["$TURBO_DEFAULT$", ".env*"],
-      "outputs": [".next/**", "!.next/cache/**", "dist/**", "bin/**", "src/**/*.ts"],
+      "outputs": [".next/**", "!.next/cache/**", "dist/**"],
       "env": [
-        "DYNAMIC_ENVIRONMENT_ID",
-        "DYNAMIC_API_TOKEN",
-        "ENCRYPTION_KEY",
-        "RPC_URL_*",
-        "ARBITRUM_SEPOLIA_RPC_URL",
-        "SOLANA_RPC_URL",
-        "USE_LOCAL_BLOCKCHAIN",
         "NODE_ENV",
+        "NEXT_RUNTIME",
         "PORT",
-        "OPEN_AI_KEY",
+        "HOST",
+        "DATABASE_URL",
+        "REDIS_URL",
         "SENTRY_DSN",
         "SENTRY_ENVIRONMENT",
-        "ENABLE_SWAGGER_UI",
-        "FAUCET_PRIVATE_KEY",
-        "ARB_TESTNET_GAS_FAUCET_KEY",
-        "SEPOLIA_RPC_URL",
-        "CORS_ORIGIN",
-        "GCP_PROJECT_ID",
-        "GOOGLE_PROJECT",
-        "GCLOUD_PROJECT",
-        "GOOGLE_CLOUD_PROJECT",
-        "GCP_REGION",
-        "GOOGLE_REGION",
-        "CLOUDFLARE_BASE_DOMAIN",
-        "GCP_IMAGE_TAG",
-        "GITHUB_SHA",
-        "GITHUB_ACTIONS",
-        "GITHUB_EVENT_WORKFLOW_RUN_HEAD_SHA"
+        "SENTRY_TRACES_SAMPLE_RATE",
+        "SENTRY_REPLACES_HEADERS",
+        "SENTRY_REPLACES_PROD_ENV",
+        "SENTRY_ORG",
+        "SENTRY_PROJECT",
+        "NEXT_PUBLIC_API_URL",
+        "NEXT_PUBLIC_SENTRY_DSN",
+        "NEXT_PUBLIC_SENTRY_ENVIRONMENT",
+        "NEXT_PUBLIC_SITE_URL",
+        "LOG_ENABLED",
+        "LOG_LEVEL",
+        "LOG_SERVICE",
+        "VERCEL_ENV",
+        "NEXT_PUBLIC_LOG_ENABLED",
+        "NEXT_PUBLIC_LOG_LEVEL",
+        "OPENAI_API_KEY"
       ]
     },
     "lint": {
-      "dependsOn": ["^lint"],
+      "dependsOn": ["^lint"]
+    },
+    "lint:eslint": {
+      "dependsOn": ["^lint:eslint"],
       "env": [
         "NODE_ENV",
-        "CI",
         "NEXT_RUNTIME",
-        "NEXT_PUBLIC_SENTRY_DSN",
-        "SENTRY_ORG",
-        "SENTRY_PROJECT",
-        "GCP_PROJECT_ID",
-        "GOOGLE_PROJECT",
-        "GCLOUD_PROJECT",
-        "GOOGLE_CLOUD_PROJECT",
-        "GCP_REGION",
-        "GOOGLE_REGION",
-        "CLOUDFLARE_BASE_DOMAIN",
-        "GCP_IMAGE_TAG",
-        "GITHUB_SHA",
-        "GITHUB_ACTIONS",
-        "GITHUB_EVENT_WORKFLOW_RUN_HEAD_SHA",
-        "CORS_ORIGIN",
-        "TEST_SERVER_URL",
-        "TEST_SERVER_PORT",
-        "TEST_SERVER_PID",
-        "ARB_TESTNET_GAS_FAUCET_KEY",
-        "PLAYWRIGHT_TEST_BASE_URL"
+        "CI",
+        "PLAYWRIGHT_TEST_BASE_URL",
+        "PORT",
+        "OPENAI_API_KEY"
       ]
     },
-    "typecheck": {
-      "dependsOn": ["^build"]
+    "lint:eslint:fix": {
+      "dependsOn": ["^lint:eslint:fix"],
+      "env": [
+        "NODE_ENV",
+        "NEXT_RUNTIME",
+        "CI",
+        "PLAYWRIGHT_TEST_BASE_URL",
+        "PORT",
+        "OPENAI_API_KEY"
+      ]
+    },
+    "checktypes": {
+      "dependsOn": ["^checktypes"]
     },
     "test": {
       "dependsOn": ["^build"],
-      "cache": false,
-      "outputs": []
-    },
-    "test:coverage": {
-      "dependsOn": ["^build"],
-      "cache": false,
-      "outputs": []
-    },
-    "test:e2e": {
-      "dependsOn": ["^build"],
-      "cache": false,
-      "outputs": []
+      "env": ["NODE_ENV", "OPENAI_API_KEY", "CI"]
     },
     "dev": {
+      "dependsOn": ["^build"],
       "cache": false,
-      "persistent": true
+      "persistent": true,
+      "env": [
+        "NODE_ENV",
+        "NEXT_RUNTIME",
+        "PORT",
+        "HOST",
+        "DATABASE_URL",
+        "REDIS_URL",
+        "SENTRY_DSN",
+        "SENTRY_ENVIRONMENT",
+        "SENTRY_ORG",
+        "SENTRY_PROJECT",
+        "NEXT_PUBLIC_API_URL",
+        "NEXT_PUBLIC_SENTRY_DSN",
+        "NEXT_PUBLIC_SENTRY_ENVIRONMENT",
+        "NEXT_PUBLIC_SITE_URL",
+        "LOG_ENABLED",
+        "LOG_LEVEL",
+        "LOG_SERVICE",
+        "VERCEL_ENV",
+        "NEXT_PUBLIC_LOG_ENABLED",
+        "NEXT_PUBLIC_LOG_LEVEL"
+      ]
     }
   }
 }

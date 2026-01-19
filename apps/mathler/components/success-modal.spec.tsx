@@ -1,11 +1,11 @@
-import React from 'react'
-import { describe, it, expect, vi, beforeEach } from 'vitest'
 import { render, screen } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
+import type React from 'react'
+import { beforeEach, describe, expect, it, vi } from 'vitest'
 import { SuccessModal } from './success-modal'
 
 // Mock the dialog component since it might have complex dependencies
-vi.mock('@vencura/ui/components/dialog', () => ({
+vi.mock('@repo/ui/components/dialog', () => ({
   Dialog: ({ open, children }: { open: boolean; children: React.ReactNode }) =>
     open ? <div data-testid="dialog">{children}</div> : null,
   DialogContent: ({ children }: { children: React.ReactNode }) => (
@@ -25,7 +25,7 @@ vi.mock('@vencura/ui/components/dialog', () => ({
   ),
 }))
 
-vi.mock('@vencura/ui/components/button', () => ({
+vi.mock('@repo/ui/components/button', () => ({
   Button: ({ children, onClick }: { children: React.ReactNode; onClick?: () => void }) => (
     <button onClick={onClick}>{children}</button>
   ),

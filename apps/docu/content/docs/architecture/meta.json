@@ -1,0 +1,14 @@
+{
+  "title": "Architecture",
+  "pages": [
+    "index",
+    "backend-stack",
+    "frontend-stack",
+    "esm-strategy",
+    "package-conventions",
+    "portability",
+    "dev-tooling",
+    "error-handling",
+    "logging"
+  ]
+}

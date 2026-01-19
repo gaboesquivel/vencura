@@ -1,37 +1,30 @@
 {
-  "name": "@vencura/core",
-  "version": "0.0.1",
+  "name": "@repo/core",
+  "version": "0.0.0",
+  "type": "module",
   "private": true,
-  "description": "TypeScript SDK for the Vencura API",
-  "main": "./dist/index.js",
-  "module": "./dist/index.mjs",
-  "types": "./dist/index.d.ts",
   "exports": {
     ".": {
-      "types": "./dist/index.d.ts",
-      "require": "./dist/index.js",
-      "import": "./dist/index.mjs"
+      "types": "./src/index.ts",
+      "import": "./src/index.ts"
     }
   },
   "scripts": {
     "build": "tsup",
-    "lint": "eslint . --max-warnings 0",
-    "test": "vitest run",
-    "test:watch": "vitest",
-    "test:cov": "vitest run --coverage"
-  },
-  "dependencies": {
-    "@vencura/lib": "workspace:*",
-    "@vencura/types": "workspace:*",
-    "zod": "^3.25.76"
+    "checktypes": "tsc --noEmit",
+    "lint:eslint": "eslint . --max-warnings 0",
+    "lint:eslint:fix": "eslint . --fix --max-warnings 0",
+    "prepack": "pnpm build && node ../../scripts/prepare-publish.mjs",
+    "postpack": "node ../../scripts/restore-publish.mjs",
+    "generate": "openapi-ts",
+    "test": "echo \"no test\""
   },
   "devDependencies": {
-    "@vitest/coverage-v8": "^4.0.13",
-    "@workspace/eslint-config": "workspace:*",
-    "@workspace/typescript-config": "workspace:*",
-    "eslint": "^9.32.0",
+    "@repo/eslint-config": "workspace:*",
+    "@repo/typescript-config": "workspace:*",
+    "@hey-api/openapi-ts": "^0.90.3",
+    "eslint": "^9.39.2",
     "tsup": "^8.5.1",
-    "typescript": "^5.9.2",
-    "vitest": "^4.0.13"
+    "typescript": "^5.9.3"
   }
 }

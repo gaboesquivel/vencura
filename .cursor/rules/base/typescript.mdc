@@ -1,66 +1,49 @@
 ---
-description: TypeScript coding standards and best practices
-globs: *.tsx,*.ts
-alwaysApply: false
+alwaysApply: true
 ---
-
 # TypeScript Rules
 
-## Core Principles
-- Prefer interfaces over types for object definitions
-  - Exception: unions, utility types (e.g., `z.infer<typeof schema>`), mapped types use `type`
-- Avoid enums; use maps or union types instead
-- Use descriptive variable names with auxiliary verbs (e.g., `isLoading`, `hasError`)
-- Follow RORO for function arguments only when there are multiple parameters
-- Use lowercase-with-dashes for directories (e.g., `components/auth-wizard`)
-- Favor named exports (exception: Next.js pages/layouts require default exports)
-- Prefer functional & declarative patterns; avoid classes
-- Infer types and keep them inline unless you need to reuse them
-- CRITICAL: Always follow eslint rules when generating code
+## Project Context
+- **TypeScript**: v5.9.3 (strict mode)
+- **ts-reset**: `@total-typescript/ts-reset` configured globally
+- **Module system**: ESM with bundler/Node resolution
+- **Monorepo**: Shared packages via `@repo/*` with subpath exports
 
-## Framework Exceptions
-- Next.js: `app/**/page.tsx` and `app/**/layout.tsx` require default exports
-- Elysia: fully functional; no classes or decorators
+## Type Declarations
+- **Interfaces** for object shapes, **types** for unions/utilities/mapped/Zod inference
+- **Avoid enums**: use const objects or union types
+- **Infer when possible**: only declare when reusing
 
-## Code Style
-- Allow single-line if without braces: `if (!value) return null`
-- Allow single-line arrow bodies: `const double = (x: number) => x * 2`
-- Prefer simple one-liners for trivial conditionals; avoid extra braces/elses
+## Naming
+- **Variables**: camelCase, booleans with aux verbs (`isLoading`, `hasError`, `canEdit`)
+- **Directories**: lowercase-with-dashes (`components/auth-wizard`)
+- **Exports**: named (exception: Next.js pages/layouts require default)
 
-## Modularization and Imports
-- Use `@vencura/lib` for shared utilities (error, async, env, zod helpers)
-- Use Zod for schema validation + inference (`z.infer<typeof schema>`)
-- Prefer importing types from `@vencura/core` over `@vencura/types` when re-exported
-- Schema imports should use `@vencura/types/schemas` when not re-exported from `@vencura/core`
-- Lodash: prefer `lodash-es` and per-function imports for tree-shaking + RSC safety  
-  - ✅ `import isEmpty from "lodash-es/isEmpty"`  
-  - ❌ `import { isEmpty } from "lodash-es"`
+## Function Patterns
+- **RORO**: `({ name, email }: Input) => ({ id, name, email })`
+- **Functional**: avoid classes/decorators (exception: framework requirements)
+- **Single-line**: `if (!value) return null`, `const double = (x: number) => x * 2`
+- **Early returns**: guard clauses, avoid unnecessary `else`
 
-## ESM & Architecture Safety
-- Use `import type { X } from "..."` for type-only imports
-- Avoid barrel `index.ts` re-exports across layers (especially in shared packages); prefer explicit module imports
-- Exported API functions and route handlers must use explicit `Promise<...>` return types
-- Zod schemas live next to the feature that owns them; only re-export centrally when there is real reuse
+## Imports
+- **Type-only**: `import type` for types
+- **Subpath exports**: Always use subpaths (`@repo/utils/async`, `@repo/error/nextjs`)
+- **Lodash**: `import isEmpty from "lodash-es/isEmpty"` (per-function imports)
 
-## ts-reset Type Safety
-This monorepo uses `@total-typescript/ts-reset` configured globally via `config/typescript/reset.d.ts`.
+## Type Safety
+- **Zod-first**: Validate at boundaries (API routes, forms, external APIs)
+- **Infer types**: `type User = z.infer<typeof userSchema>`
+- **Colocate schemas**: `app/api/users/schema.ts` (feature-specific)
+- **Disabled TS ESLint rules**: `no-unsafe-*` disabled for Zod-first validation
 
-## Type Safety Model: Zod-First, Boundary-Driven Validation
-Validate untrusted data at runtime boundaries with Zod; rely on inferred types internally.
+## Architecture
+- **Explicit return types**: Required for exported functions/API handlers
+- **Validation functions**: Return result objects, never throw
 
-The following TS ESLint "unsafe" rules are intentionally disabled globally:
-- `@typescript-eslint/no-unsafe-assignment`
-- `@typescript-eslint/no-unsafe-call`
-- `@typescript-eslint/no-unsafe-member-access`
-- `@typescript-eslint/no-unsafe-return`
-- `@typescript-eslint/no-unsafe-argument`
+## Framework-Specific
+- **Next.js**: Default exports for `page.tsx`/`layout.tsx`, Server Components by default
+- **Fastify**: Functional patterns, type-safe route schemas
 
-## Error Handling
-- Fail fast with guard clauses and early returns; avoid unnecessary `else`
-- Place the happy path last when it improves readability
-- Validation functions that return result objects must never throw; always return a consistent `{ valid, error? }` shape
-
-## Related Rules
-- [React Rules](../frontend/react.mdc)
-- [React Hooks Rules](../frontend/react-hooks.mdc)
-- [Next.js Rules](../frontend/nextjs.mdc)
+## Related
+- @.cursor/rules/base/linting.mdc - Linting architecture
+- @.cursor/rules/base/error-handling.mdc - Error patterns

@@ -114,17 +114,7 @@ export function useMathlerInput({ maxLength, gameStatus, onSubmit }: UseMathlerI
 
     window.addEventListener('keydown', handleKey)
     return () => window.removeEventListener('keydown', handleKey)
-  }, [
-    gameStatus,
-    state.input,
-    state.cursor,
-    maxLength,
-    onSubmit,
-    moveCursor,
-    clear,
-    insertAt,
-    backspace,
-  ])
+  }, [gameStatus, state.input, moveCursor, clear, insertAt, backspace, onSubmit])
 
   const reset = () => {
     setState({ input: '', cursor: 0 })

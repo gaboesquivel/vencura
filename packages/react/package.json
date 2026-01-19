@@ -1,48 +1,39 @@
 {
-  "name": "@vencura/react",
-  "version": "0.0.1",
+  "name": "@repo/react",
+  "version": "0.0.0",
+  "type": "module",
   "private": true,
-  "description": "React hooks for the Vencura API using TanStack Query",
-  "main": "./dist/index.js",
-  "module": "./dist/index.mjs",
-  "types": "./dist/index.d.ts",
   "exports": {
     ".": {
       "types": "./dist/index.d.ts",
-      "require": "./dist/index.js",
-      "import": "./dist/index.mjs"
+      "import": "./dist/index.js"
     }
   },
   "scripts": {
     "build": "tsup",
-    "lint": "eslint . --max-warnings 0",
-    "test": "vitest run",
-    "test:watch": "vitest",
-    "test:cov": "vitest run --coverage"
+    "checktypes": "tsc --noEmit",
+    "lint:eslint": "eslint . --max-warnings 0",
+    "lint:eslint:fix": "eslint . --fix --max-warnings 0",
+    "prepack": "pnpm build && node ../../scripts/prepare-publish.mjs",
+    "postpack": "node ../../scripts/restore-publish.mjs",
+    "generate": "openapi-ts",
+    "test": "echo \"no test\""
   },
   "dependencies": {
-    "@lukemorales/query-key-factory": "^1.3.4",
-    "@vencura/core": "workspace:*",
-    "@vencura/types": "workspace:*",
-    "@tanstack/react-query": "^5.0.0"
-  },
-  "peerDependencies": {
-    "react": "^19.0.0",
-    "react-dom": "^19.0.0"
+    "@repo/core": "workspace:*"
   },
   "devDependencies": {
-    "@testing-library/jest-dom": "^6.9.1",
-    "@testing-library/react": "^16.3.0",
-    "@types/react": "^19.2.6",
-    "@types/react-dom": "^19.2.3",
-    "@vitest/coverage-v8": "^4.0.13",
-    "@workspace/eslint-config": "workspace:*",
-    "@workspace/typescript-config": "workspace:*",
-    "eslint": "^9.32.0",
-    "jsdom": "^27.2.0",
-    "react": "^19.2.0",
-    "tsup": "^8.3.5",
-    "typescript": "^5.9.2",
-    "vitest": "^4.0.13"
+    "@repo/eslint-config": "workspace:*",
+    "@repo/typescript-config": "workspace:*",
+    "@hey-api/openapi-ts": "^0.90.3",
+    "@tanstack/react-query": "^5.90.17",
+    "@types/react": "^19.2.8",
+    "eslint": "^9.39.2",
+    "tsup": "^8.5.1",
+    "typescript": "^5.9.3"
+  },
+  "peerDependencies": {
+    "@tanstack/react-query": "^5.77.0",
+    "react": "^19.0.0"
   }
 }

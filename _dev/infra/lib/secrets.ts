@@ -1,6 +1,6 @@
 import * as gcp from '@pulumi/gcp'
+import type * as pulumi from '@pulumi/pulumi'
 import * as random from '@pulumi/random'
-import * as pulumi from '@pulumi/pulumi'
 import type { Config } from './config'
 import { secretName } from './config'
 

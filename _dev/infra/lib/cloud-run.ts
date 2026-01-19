@@ -1,12 +1,12 @@
 import * as gcp from '@pulumi/gcp'
+import type { ArtifactRegistryResources } from './artifact-registry'
 import type { Config } from './config'
 import { resourceName } from './config'
-import type { NetworkResources } from './network'
 import type { DatabaseResources } from './database'
+import type { DockerBuildResources } from './docker-build'
+import type { NetworkResources } from './network'
 import type { SecretResources } from './secrets'
 import type { ServiceAccountResources } from './service-accounts'
-import type { ArtifactRegistryResources } from './artifact-registry'
-import type { DockerBuildResources } from './docker-build'
 
 export interface CloudRunResources {
   service: gcp.cloudrun.Service

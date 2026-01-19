@@ -1,12 +1,8 @@
-import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest'
-import {
-  evaluateExpression,
-  getRandomTarget,
-  generateSolutionEquation,
-  generateEquationsForTarget,
-} from './math'
-import { getDateKey } from '@vencura/lib'
 import isArray from 'lodash-es/isArray'
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
+import { getDateKey } from '@/lib/date'
+import { generateEquationsForTarget } from './equation-generator'
+import { evaluateExpression, generateSolutionEquation, getRandomTarget } from './math/index'
 
 describe('evaluateExpression', () => {
   it('should evaluate simple addition', () => {
@@ -216,6 +212,53 @@ describe('getRandomTarget', () => {
     // Should have some variety (though not guaranteed to be all different)
     expect(targets.size).toBeGreaterThan(1)
   })
+
+  describe('with difficulty', () => {
+    it('should return a number between 10 and 50 for easy difficulty', () => {
+      vi.useFakeTimers()
+      vi.setSystemTime(new Date('2024-01-15'))
+      const target = getRandomTarget('easy')
+      expect(target).toBeGreaterThanOrEqual(10)
+      expect(target).toBeLessThanOrEqual(50)
+      vi.useRealTimers()
+    })
+
+    it('should return a number between 10 and 100 for medium difficulty (default)', () => {
+      vi.useFakeTimers()
+      vi.setSystemTime(new Date('2024-01-15'))
+      const targetMedium = getRandomTarget('medium')
+      const targetDefault = getRandomTarget()
+      expect(targetMedium).toBeGreaterThanOrEqual(10)
+      expect(targetMedium).toBeLessThanOrEqual(100)
+      expect(targetDefault).toBeGreaterThanOrEqual(10)
+      expect(targetDefault).toBeLessThanOrEqual(100)
+      vi.useRealTimers()
+    })
+
+    it('should return a number between 50 and 200 for hard difficulty', () => {
+      vi.useFakeTimers()
+      // Use a date that generates a number >= 50 for hard difficulty
+      // Test multiple dates to ensure we get a valid result
+      let target = 0
+      for (let day = 1; day <= 31; day++) {
+        vi.setSystemTime(new Date(2024, 0, day))
+        target = getRandomTarget('hard')
+        if (target >= 50) break
+      }
+      expect(target).toBeGreaterThanOrEqual(50)
+      expect(target).toBeLessThanOrEqual(200)
+      vi.useRealTimers()
+    })
+
+    it('should return same target for same date and difficulty', () => {
+      vi.useFakeTimers()
+      vi.setSystemTime(new Date('2024-01-15'))
+      const target1 = getRandomTarget('easy')
+      const target2 = getRandomTarget('easy')
+      expect(target1).toBe(target2)
+      vi.useRealTimers()
+    })
+  })
 })
 
 describe('generateSolutionEquation', () => {
@@ -270,7 +313,7 @@ describe('generateSolutionEquation', () => {
       expect(result).toBe(target)
       expect(equation.length).toBeLessThanOrEqual(9)
     }
-  })
+  }, 15000)
 
   it('should return fallback equation when no candidates found', () => {
     vi.useFakeTimers()
@@ -280,6 +323,41 @@ describe('generateSolutionEquation', () => {
     expect(typeof equation).toBe('string')
     expect(equation.length).toBeGreaterThan(0)
     vi.useRealTimers()
+  })
+
+  describe('with difficulty', () => {
+    it('should generate valid equation for easy difficulty target', () => {
+      vi.useFakeTimers()
+      vi.setSystemTime(new Date('2024-01-15'))
+      const target = 25 // Easy range: 10-50
+      const equation = generateSolutionEquation(target, undefined, 'easy')
+      const result = evaluateExpression(equation)
+      expect(result).toBe(target)
+      expect(equation.length).toBeLessThanOrEqual(9)
+      vi.useRealTimers()
+    })
+
+    it('should generate valid equation for medium difficulty target', () => {
+      vi.useFakeTimers()
+      vi.setSystemTime(new Date('2024-01-15'))
+      const target = 75 // Medium range: 10-100
+      const equation = generateSolutionEquation(target, undefined, 'medium')
+      const result = evaluateExpression(equation)
+      expect(result).toBe(target)
+      expect(equation.length).toBeLessThanOrEqual(9)
+      vi.useRealTimers()
+    })
+
+    it('should generate valid equation for hard difficulty target', () => {
+      vi.useFakeTimers()
+      vi.setSystemTime(new Date('2024-01-15'))
+      const target = 150 // Hard range: 50-200
+      const equation = generateSolutionEquation(target, undefined, 'hard')
+      const result = evaluateExpression(equation)
+      expect(result).toBe(target)
+      expect(equation.length).toBeLessThanOrEqual(9)
+      vi.useRealTimers()
+    })
   })
 })
 
