@@ -8,19 +8,27 @@ export default defineConfig({
   workers: process.env.CI ? 1 : undefined,
   reporter: process.env.CI ? 'github' : 'html',
   use: {
-    baseURL: process.env.PLAYWRIGHT_TEST_BASE_URL || 'http://localhost:3000',
+    baseURL: process.env.PLAYWRIGHT_TEST_BASE_URL || 'http://localhost:3002',
     trace: 'on-first-retry',
     screenshot: 'only-on-failure',
   },
   projects: [
     {
+      name: 'setup',
+      testMatch: /.*\.setup\.ts/,
+    },
+    {
       name: 'chromium',
-      use: { ...devices['Desktop Chrome'] },
+      use: {
+        ...devices['Desktop Chrome'],
+        storageState: 'playwright/.auth/user.json',
+      },
+      dependencies: ['setup'],
     },
   ],
   webServer: {
-    command: `PORT=${process.env.PORT || '3000'} pnpm run start`,
-    url: process.env.PLAYWRIGHT_TEST_BASE_URL || 'http://localhost:3000',
+    command: `PORT=${process.env.PORT || '3002'} bun run start`,
+    url: process.env.PLAYWRIGHT_TEST_BASE_URL || 'http://localhost:3002',
     reuseExistingServer: !process.env.CI,
     timeout: 120000,
   },

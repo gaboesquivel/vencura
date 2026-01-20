@@ -1,41 +1,39 @@
 {
-  "name": "@vencura/react",
-  "version": "0.0.1",
+  "name": "@repo/react",
+  "version": "0.0.0",
   "type": "module",
   "private": true,
-  "description": "React hooks for Vencura API using TanStack Query",
-  "license": "PROPRIETARY",
-  "scripts": {
-    "lint": "eslint . --max-warnings 0"
-  },
   "exports": {
-    ".": "./src/index.ts",
-    "./provider": "./src/provider.tsx",
-    "./hooks/*": "./src/hooks/*.ts"
+    ".": {
+      "types": "./dist/index.d.ts",
+      "import": "./dist/index.js"
+    }
+  },
+  "scripts": {
+    "build": "tsup",
+    "checktypes": "tsc --noEmit",
+    "lint:eslint": "eslint . --max-warnings 0",
+    "lint:eslint:fix": "eslint . --fix --max-warnings 0",
+    "prepack": "pnpm build && node ../../scripts/prepare-publish.mjs",
+    "postpack": "node ../../scripts/restore-publish.mjs",
+    "generate": "openapi-ts",
+    "test": "echo \"no test\""
   },
   "dependencies": {
-    "@lukemorales/query-key-factory": "^1.3.4",
-    "@tanstack/react-query": "^5.90.8",
-    "@vencura/core": "workspace:*",
-    "@vencura/lib": "workspace:*",
-    "@vencura/types": "workspace:*",
-    "nanoid": "^5.0.7",
-    "react": "^19.1.1",
-    "react-dom": "^19.1.1",
-    "zod": "3.25.76",
-    "zod-validation-error": "^5.0.0"
+    "@repo/core": "workspace:*"
   },
   "devDependencies": {
-    "@tanstack/react-query-devtools": "^5.90.2",
-    "@types/react": "^19.1.9",
-    "@types/react-dom": "^19.1.7",
-    "@workspace/eslint-config": "workspace:*",
-    "@workspace/typescript-config": "workspace:*",
-    "eslint": "^9.32.0",
-    "typescript": "^5.9.2"
+    "@repo/eslint-config": "workspace:*",
+    "@repo/typescript-config": "workspace:*",
+    "@hey-api/openapi-ts": "^0.90.3",
+    "@tanstack/react-query": "^5.90.17",
+    "@types/react": "^19.2.8",
+    "eslint": "^9.39.2",
+    "tsup": "^8.5.1",
+    "typescript": "^5.9.3"
   },
   "peerDependencies": {
-    "react": "^19.0.0",
-    "react-dom": "^19.0.0"
+    "@tanstack/react-query": "^5.77.0",
+    "react": "^19.0.0"
   }
 }

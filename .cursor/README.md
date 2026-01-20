@@ -1,66 +1,135 @@
 # Cursor Directory
 
-This directory contains rules, context information, and configurations for AI assistants (like GitHub Copilot, Claude, etc.) to better understand and work with our codebase.
+AI-assisted development configuration for this codebase. Contains rules, commands, skills, and guides that enhance the development workflow with Cursor AI.
 
-## Context
+## Getting Started
 
-The `context` directory holds specialized context or role files that provide factual information and background about the project:
+**New to this codebase?** Start here:
 
-- `architecture.md`: High-level architecture of the project
-- `backend.md`: Backend architecture and infrastructure details
-- `frontend.md`: Frontend architecture and technology stack
-- `project.md`: Overall project information and guidelines
+- [`commands/`](commands/) - Task-specific commands (code review, git, testing, etc.)
+- [`rules/`](rules/) - Coding standards organized by domain
 
-Context files should contain factual information, not behavioral rules. They help AI assistants understand how the system works but don't prescribe how to write code.
+**Experienced developer?** Jump to:
+- [`commands/`](commands/) - Task-specific commands (code review, git, testing, etc.)
+- [`rules/`](rules/) - Coding standards organized by domain
 
-## Rules
+## Directory Structure
 
-The `rules` directory contains coding standards, patterns, and best practices that should be followed when writing code for this project. Rules are organized by domain:
+### Workflow Documentation
 
-- `base/`: Foundational rules applicable across the codebase
-- `frontend/`: Frontend-specific rules (React, Next.js, etc.)
-- `web3/`: Web3 and blockchain-specific rules
-- `backend/`: Backend-specific rules
-- `ai/`: AI integration rules and patterns
+Human-facing workflow documentation for AI-assisted development is now in the [documentation site](https://vencura-docs.vercel.app/docs/cursor-workflow).
 
-### Rule Structure
+**Start here:** [Cursor Workflow Overview](https://vencura-docs.vercel.app/docs/cursor-workflow)
 
-Good rules are focused, actionable, and scoped:
+Key guides:
+- [Quick Start](https://vencura-docs.vercel.app/docs/cursor-workflow/quick-start) - 5-minute reference card with essential patterns
+- [Complete Workflow](https://vencura-docs.vercel.app/docs/cursor-workflow/complete-workflow) - Complete development lifecycle (discovery → architecture → planning → execution → review)
+- [Extensions](https://vencura-docs.vercel.app/docs/cursor-workflow/extensions) - VS Code/Cursor extensions and their roles
 
-- Each rule file has frontmatter with `description` and appropriate `globs` patterns
-- Rules use clear, direct language stating what to do and what to avoid
-- Each rule file focuses on a specific technology or concern
-- Rules include practical code examples to illustrate patterns
-- Rules are under ~1.5K words to remain focused and digestible
+### Rules (`rules/`)
 
-### Using Rules
+Coding standards and best practices organized by domain.
 
-Rules can be referenced in prompts to AI assistants:
+**Structure:**
+- `base/` - Foundation (TypeScript, linting, error handling, logging, testing, environment)
+- `frontend/` - React, Next.js, mobile-first, ShadcnUI, testing
+- `backend/` - Fastify, testing
+- `web3/` - Cosmos, Solana, Solidity, Viem, Wagmi, Ponder, multichain
 
+**Usage pattern:**
 ```
-Please apply the TypeScript rules from .cursor/rules/base/typescript.mdc when refactoring this code.
+Please apply @.cursor/rules/base/typescript.mdc when refactoring this code.
 ```
+
+**Guidelines:**
+- **Brutally concise**: Focused and actionable, remove duplication and verbose examples
+- **No duplication**: Each concept lives in one place (e.g., Biome/ESLint only in `linting.mdc`, error handling only in `error-handling.mdc`)
+- **No code examples from skills**: Remove examples that exist in skills (TanStack Query, Fastify routes, CVA patterns, etc.)
+- **Focused scope**: Each rule covers only what its filename/description targets
+- **Industry conventions**: Keep basic patterns and framework conventions, remove verbose explanations
+- **Reference, don't repeat**: Use `@` references to other rules/docs instead of re-explaining
+- **Iterate**: Add rules when AI produces undesirable output or forgets standards
+- **Centralize**: Single source of truth—consolidate standards here, not elsewhere
+
+### Commands (`commands/`)
+
+Task-specific command definitions for common development workflows.
+
+**Categories:**
+- **Code quality**: `code-review.md`, `lint-fix.md`, `refactor-code.md`
+- **Testing**: `write-unit-tests.md`, `write-api-test.md`, `run-all-tests-and-fix.md`
+- **Git workflows**: `git-commit.md`, `git-push.md`, `create-pr.md`, `fix-git-issues.md`
+- **Documentation**: `add-documentation.md`, `generate-api-docs.md`
+- **Debugging**: `debug-issue.md`, `fix-compile-errors.md`, `docker-logs.md`
+- **Planning**: `roadmap.md`, `setup-new-feature.md`, `clarify-task.md`
+- **Architecture**: `info-architecture.md`, `diagrams.md`, `visualize.md`
+- **Audits**: `security-audit.md`, `security-review.md`, `accessibility-audit.md`, `optimize-performance.md`
+
+**Usage pattern:**
+```
+@.cursor/README.md /info-architecture
+```
+
+### Skills (`skills/`)
+
+Specialized knowledge bundles for technologies and patterns.
+
+**Categories:**
+- **Framework skills**: Next.js 15, React best practices (Vercel Labs), Tailwind v4
+- **Backend skills**: Fastify, Drizzle ORM, TypeBox, OpenTelemetry
+- **AI skills**: Vercel AI SDK (core & UI)
+- **Web3 skills**: Ethereum development, Solidity, Solana, smart contract security, web3 frontend
+- **Tools & Patterns**: TypeScript advanced patterns, OpenAPI codegen
+
+**Usage:** Read skill files for detailed guidance on specific technologies or patterns.
 
 ## MCP Configuration
 
-The `mcp.json` file configures Model Context Protocol (MCP) servers that enhance AI assistants with specialized capabilities:
+Model Context Protocol (MCP) servers extend Cursor with specialized capabilities. Configuration is in `mcp.json`.
 
-- `shadcn`: Provides UI component management capabilities using shadcn/ui
-- `v0`: Connects to v0.dev for UI design and generation capabilities
-- `github`: Connects to GitHub for repository management and operations
-- `vercel`: Connects to Vercel for deployment and project management
+**Available servers:**
+- `shadcnui-official` - Canonical shadcn/ui component definitions, variants, and single primitives (no auth required)
+- `shadcnui-jpisnice-react` - shadcn/ui v4 blocks, demos, and page templates for React (requires `GITHUB_TOKEN`)
+- `github` - Repository operations, issue management, and GitHub Actions logs (requires `GITHUB_TOKEN`)
+- `coderabbit` - CodeRabbit AI code review comments and PR insights (requires `GITHUB_TOKEN`)
+- `vencura-docu` - Vencura project documentation context (no auth required)
+- `vencura-fastify` - Vencura API package context (no auth required)
 
-### Authentication
+**Note:** `shadcnui-jpisnice-react-native` exists for future React Native support but is not included in the current React workflow.
 
-- **shadcn**: Uses local CLI command execution (no API key required)
-- **v0**: Requires `V0_API_KEY` environment variable
-- **github**: Requires `GITHUB_TOKEN` environment variable
-- **vercel**: Requires `VERCEL_API_TOKEN` environment variable
+**Setup:**
 
-### Package Manager
+1. Add required environment variables to your shell profile (`~/.zshrc` or `~/.bashrc`):
 
-All MCP servers use `pnpm dlx` to execute commands, consistent with the project's package manager choice.
+```bash
+export GITHUB_TOKEN=your_token_here  # Required for github, coderabbit, and shadcnui-jpisnice-react
+export GITHUB_PAT="$GITHUB_TOKEN"     # CodeRabbit MCP expects GITHUB_PAT
+```
 
-For detailed usage documentation, see [MCP Servers Guide](../../docs/mcp-servers.md).
+2. Reload shell: `source ~/.zshrc` (or `~/.bashrc`)
+3. Restart Cursor
+4. Enable MCP servers in Cursor:
+   - Go to **Settings** > **Tools & MCP**
+   - Turn on the MCP servers you want to use
+   - Some servers (like `github`, `coderabbit`, `shadcnui-jpisnice-react`) require authentication - configure credentials from the settings panel if prompted
 
-For more information on Cursor rules and MCP, see the [official documentation](https://cursor.com/docs/context/rules) and [MCP documentation](https://cursor.com/docs/context/model-context-protocol).
+**Get API keys:**
+- [GitHub Personal Access Tokens](https://github.com/settings/tokens) - GITHUB_TOKEN (required for GitHub MCP, CodeRabbit MCP, and shadcnui-jpisnice-react)
+
+**CodeRabbit MCP Configuration:**
+- Package: `coderabbitai-mcp@latest` (configured in `.cursor/mcp.json`)
+- Environment variable: Set `GITHUB_PAT` in your shell (maps from `GITHUB_TOKEN` via `export GITHUB_PAT="$GITHUB_TOKEN"`)
+- MCP config: Also configured in `.cursor/mcp.json` with `GITHUB_PAT: "${GITHUB_TOKEN}"` for redundancy
+- Token scopes: Requires `repo` scope for private repositories or `public_repo` for public repositories
+
+**Note:** All servers use `pnpm dlx` for command execution.
+
+## Related Resources
+
+**Project documentation:**
+- [Cursor Setup Guide](apps/docu/content/docs/getting-started/cursor-setup.mdx) - MCP servers and IDE configuration
+- Project tech stack - See main repository README
+
+**External documentation:**
+- [Cursor Rules](https://cursor.com/docs/context/rules) - Official rules documentation
+- [MCP Protocol](https://cursor.com/docs/context/model-context-protocol) - MCP specification

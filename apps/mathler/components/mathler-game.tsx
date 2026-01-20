@@ -1,17 +1,40 @@
 'use client'
 
-import { useEffect, useCallback } from 'react'
+import { useDynamicContext } from '@dynamic-labs/sdk-react-core'
+import { captureError } from '@repo/error/nextjs'
+import {
+  SidebarInset,
+  SidebarProvider,
+  SidebarTrigger,
+  useSidebar,
+} from '@repo/ui/components/sidebar'
+import { logger } from '@repo/utils/logger'
+import { useEffect, useTransition } from 'react'
 import { useSetState } from 'react-use'
-import { evaluateExpression, getRandomTarget, generateSolutionEquation } from '@/lib/math'
-import { getDateKey } from '@vencura/lib'
-import { calculateFeedback } from '@/lib/feedback'
+import { toast } from 'sonner'
 import { useGameHistory } from '@/hooks/use-game-history'
 import { useMathlerInput } from '@/hooks/use-mathler-input'
-import { GuessRow } from './guess-row'
+import { useUserSettings } from '@/hooks/use-user-settings'
+import { getDateKey } from '@/lib/date'
+import { calculateFeedback } from '@/lib/feedback'
+import { evaluateExpression, generateSolutionEquation, getRandomTarget } from '@/lib/math'
 import { GameKeypad } from './game-keypad'
+import { GameSidebar } from './game-sidebar'
 import { GameStatus } from './game-status'
+import { GuessRow } from './guess-row'
 import { SuccessModal } from './success-modal'
-import { VoiceControl } from './voice-control'
+
+function MobileSidebarTrigger() {
+  const { isMobile } = useSidebar()
+
+  if (!isMobile) return null
+
+  return (
+    <div className="fixed right-4 top-4 z-50 md:hidden">
+      <SidebarTrigger />
+    </div>
+  )
+}
 
 interface GameState {
   target: number
@@ -23,6 +46,8 @@ interface GameState {
 }
 
 export function MathlerGame() {
+  const { user, primaryWallet, sdkHasLoaded, setShowAuthFlow } = useDynamicContext()
+  const { difficulty } = useUserSettings()
   const [gameState, setGameState] = useSetState<GameState>({
     target: 0,
     solution: '',
@@ -31,17 +56,56 @@ export function MathlerGame() {
     feedback: [],
     showSuccessModal: false,
   })
-  const { saveGame } = useGameHistory()
+  const { saveGame, saveGameError } = useGameHistory()
+  const [isPending, startTransition] = useTransition()
 
-  const handleSubmit = useCallback(
-    (value: string) => {
-      if (!value || gameState.gameStatus !== 'playing') return
+  // Auto-open auth modal when SDK loads and user is not authenticated
+  useEffect(() => {
+    if (sdkHasLoaded && !user) {
+      setShowAuthFlow(true)
+      logger.info('User not authenticated - opening auth modal')
+    }
+  }, [sdkHasLoaded, user, setShowAuthFlow])
 
+  // Log authentication state changes for monitoring
+  useEffect(() => {
+    if (sdkHasLoaded && user) {
+      logger.info(
+        {
+          userId: user.userId,
+          email: user.email,
+          walletAddress: primaryWallet?.address,
+        },
+        'User authenticated - game access granted',
+      )
+    }
+  }, [sdkHasLoaded, user, primaryWallet])
+
+  const handleSubmit = (value: string) => {
+    // Urgent: Basic validation
+    if (!value || gameState.gameStatus !== 'playing') return
+
+    // Check authentication before processing guess
+    if (!user) {
+      setShowAuthFlow(true)
+      return
+    }
+
+    // Non-urgent: Expensive operations (evaluation, feedback calculation)
+    startTransition(() => {
       try {
         const result = evaluateExpression(value)
 
         if (result === null) {
-          alert('Invalid expression')
+          const error = new Error('Invalid expression')
+          captureError({
+            code: 'INVALID_EXPRESSION',
+            error,
+            label: 'Expression Validation',
+            tags: { app: 'mathler' },
+            data: { expression: value },
+          })
+          toast.error('Invalid expression. Please check your equation.')
           return
         }
 
@@ -53,8 +117,9 @@ export function MathlerGame() {
         // Calculate feedback comparing guess to solution equation
         const feedbackRow = calculateFeedback(normalizedGuess, gameState.solution)
 
-        // Check win condition (result equals target AND guess matches solution exactly)
-        const isWin = result === gameState.target && normalizedGuess === gameState.solution
+        // Accept any equation that evaluates to the target (supports cumulative solutions)
+        // Examples: 1+5*15 and 15*5+1 both win for target 76
+        const isWin = result === gameState.target
         const isGameOver = isWin || newGuesses.length >= 6
 
         if (isWin) {
@@ -64,12 +129,14 @@ export function MathlerGame() {
             gameStatus: 'won',
             showSuccessModal: true,
           })
+          resetInput()
         } else if (newGuesses.length >= 6) {
           setGameState({
             guesses: newGuesses,
             feedback: [...gameState.feedback, feedbackRow],
             gameStatus: 'lost',
           })
+          resetInput()
         } else {
           setGameState({
             guesses: newGuesses,
@@ -80,28 +147,52 @@ export function MathlerGame() {
         // Save game history when game ends
         if (isGameOver) {
           const finalStatus: 'won' | 'lost' = isWin ? 'won' : 'lost'
+          const date = getDateKey()
+          logger.info(
+            {
+              status: finalStatus,
+              guessCount: newGuesses.length,
+              date,
+              target: gameState.target,
+            },
+            'Game completed',
+          )
           saveGame({
-            date: getDateKey(),
+            date,
             target: gameState.target,
             solution: gameState.solution,
             guesses: newGuesses,
             status: finalStatus,
             guessCount: newGuesses.length,
+          }).catch(error => {
+            captureError({
+              code: 'SAVE_GAME_FAILED',
+              error,
+              label: 'Save Game History',
+              tags: { app: 'mathler' },
+              data: { date, status: finalStatus },
+            })
+            toast.error('Failed to save game history. Your progress may not be saved.')
           })
         }
-      } catch {
-        alert('Invalid expression')
+      } catch (error) {
+        captureError({
+          code: 'EXPRESSION_EVALUATION_ERROR',
+          error: error instanceof Error ? error : new Error(String(error)),
+          label: 'Expression Evaluation',
+          tags: { app: 'mathler' },
+          data: { expression: value },
+        })
+        toast.error('Invalid expression. Please check your equation.')
       }
-    },
-    [gameState, saveGame, setGameState],
-  )
+    })
+  }
 
   const {
     input: currentInput,
     cursor: cursorPosition,
     insertAt: handleInputAtPosition,
     backspace: handleBackspace,
-    clear: handleClear,
     setCursor: setCursorPosition,
     reset: resetInput,
   } = useMathlerInput({
@@ -110,9 +201,19 @@ export function MathlerGame() {
     onSubmit: handleSubmit,
   })
 
-  const resetGame = useCallback(() => {
-    const newTarget = getRandomTarget()
-    const newSolution = generateSolutionEquation(newTarget)
+  const initializeGame = () => {
+    const newTarget = getRandomTarget(difficulty)
+    const newSolution = generateSolutionEquation(newTarget, undefined, difficulty)
+    const date = getDateKey()
+    logger.info(
+      {
+        target: newTarget,
+        solution: newSolution,
+        date,
+        difficulty,
+      },
+      'Game initialized',
+    )
     setGameState({
       target: newTarget,
       solution: newSolution,
@@ -122,115 +223,154 @@ export function MathlerGame() {
       showSuccessModal: false,
     })
     resetInput()
-  }, [resetInput, setGameState])
+  }
+
+  // Reinitialize game when difficulty changes
+  useEffect(() => {
+    if (gameState.target > 0) {
+      // Only reinitialize if game has been initialized
+      initializeGame()
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- difficulty change should reinitialize
+  }, [difficulty])
+
+  const simulateGame = async () => {
+    // Generate new target and solution for simulation
+    const newTarget = getRandomTarget(difficulty)
+    const newSolution = generateSolutionEquation(newTarget, undefined, difficulty)
+
+    // Reset game first
+    initializeGame()
+
+    // Wait for game to initialize
+    await new Promise(resolve => setTimeout(resolve, 800))
+
+    // Simulate 1-2 invalid expressions
+    const invalidExpressions = ['1+', '++2']
+    for (const invalidExpr of invalidExpressions) {
+      await new Promise(resolve => setTimeout(resolve, 1200))
+      handleSubmit(invalidExpr)
+    }
+
+    // Wait a bit, then submit correct solution
+    await new Promise(resolve => setTimeout(resolve, 1500))
+    handleSubmit(newSolution)
+  }
 
   useEffect(() => {
-    resetGame()
-  }, [resetGame])
+    initializeGame()
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- initializeGame should only run once on mount
+  }, [])
 
-  const handleInputChange = useCallback(
-    (value: string) => {
-      if (gameState.gameStatus !== 'playing') return
-      // Replace entire input
-      resetInput()
-      for (const char of value) {
-        handleInputAtPosition(char)
-      }
-    },
-    [gameState.gameStatus, resetInput, handleInputAtPosition],
-  )
+  const resetGame = () => {
+    initializeGame()
+  }
 
-  const handleVoiceResult = useCallback(
-    (text: string) => {
-      if (gameState.gameStatus !== 'playing') return
-      // Insert voice input at cursor position
-      for (const char of text) {
-        handleInputAtPosition(char)
-      }
-    },
-    [gameState.gameStatus, handleInputAtPosition],
-  )
+  // Handle save game errors
+  useEffect(() => {
+    if (saveGameError) {
+      captureError({
+        code: 'SAVE_GAME_FAILED',
+        error: saveGameError instanceof Error ? saveGameError : new Error(String(saveGameError)),
+        label: 'Save Game History',
+        tags: { app: 'mathler' },
+      })
+      toast.error('Failed to save game history. Your progress may not be saved.')
+    }
+  }, [saveGameError])
 
-  const handleVoiceCommand = useCallback(
-    (command: 'backspace' | 'delete' | 'enter' | 'submit' | 'clear') => {
-      if (gameState.gameStatus !== 'playing') return
-      if (command === 'backspace' || command === 'delete') {
-        handleBackspace()
-      } else if (command === 'enter' || command === 'submit') {
-        if (currentInput) {
-          handleSubmit(currentInput)
-        }
-      } else if (command === 'clear') {
-        handleClear()
-      }
-    },
-    [gameState.gameStatus, handleBackspace, handleSubmit, handleClear, currentInput],
-  )
+  const handleInputChange = (value: string) => {
+    if (gameState.gameStatus !== 'playing') return
+
+    // Check authentication before processing input
+    if (!user) {
+      setShowAuthFlow(true)
+      return
+    }
+
+    // Replace entire input
+    resetInput()
+    for (const char of value) {
+      handleInputAtPosition(char)
+    }
+  }
+
+  const handleInputAtPositionWithAuth = (char: string) => {
+    // Check authentication before processing keypad clicks
+    if (!user) {
+      setShowAuthFlow(true)
+      return
+    }
+    handleInputAtPosition(char)
+  }
 
   return (
-    <div className="w-full max-w-sm space-y-6">
-      {/* Header */}
-      <div className="text-center">
-        <h1 className="text-4xl font-bold text-foreground mb-2">Mathler</h1>
-        <p className="text-lg text-muted-foreground">
-          Find the equation that equals{' '}
-          <span className="font-bold text-primary">{gameState.target}</span>
-        </p>
-      </div>
+    <SidebarProvider>
+      <SidebarInset>
+        <MobileSidebarTrigger />
+        <div className="w-full max-w-sm mx-auto space-y-6 p-4">
+          {/* Header */}
+          <div className="text-center">
+            <h1 className="text-4xl font-bold text-foreground mb-2">Mathler</h1>
+            <p className="text-lg text-muted-foreground">
+              Find the equation that equals{' '}
+              <span className="font-bold text-primary">{gameState.target}</span>
+            </p>
+          </div>
 
-      {/* Game Board */}
-      <div className="space-y-2">
-        {[...Array(6)].map((_, i) => {
-          const isCurrentRow = i === gameState.guesses.length && gameState.gameStatus === 'playing'
-          return (
-            <GuessRow
-              key={i}
-              guess={gameState.guesses[i] || ''}
-              feedback={gameState.feedback[i] || []}
-              isCurrentRow={isCurrentRow}
-              currentInput={i === gameState.guesses.length ? currentInput : ''}
-              cursorPosition={i === gameState.guesses.length ? cursorPosition : -1}
-              onTileClick={
-                i === gameState.guesses.length ? pos => setCursorPosition(pos) : undefined
-              }
+          {/* Game Board */}
+          <div className="space-y-2">
+            {[...Array(6)].map((_, i) => {
+              const isCurrentRow =
+                i === gameState.guesses.length && gameState.gameStatus === 'playing'
+              return (
+                <GuessRow
+                  key={i}
+                  guess={gameState.guesses[i] || ''}
+                  feedback={gameState.feedback[i] || []}
+                  isCurrentRow={isCurrentRow}
+                  currentInput={isCurrentRow ? currentInput : ''}
+                  cursorPosition={isCurrentRow ? cursorPosition : -1}
+                  onTileClick={isCurrentRow ? pos => setCursorPosition(pos) : undefined}
+                />
+              )
+            })}
+          </div>
+
+          {/* Game Status */}
+          {gameState.gameStatus !== 'playing' ? (
+            <GameStatus
+              status={gameState.gameStatus}
+              target={gameState.target}
+              guessCount={gameState.guesses.length}
+              onReset={resetGame}
             />
-          )
-        })}
-      </div>
+          ) : null}
 
-      {/* Game Status */}
-      {gameState.gameStatus !== 'playing' ? (
-        <GameStatus
-          status={gameState.gameStatus}
-          target={gameState.target}
-          guessCount={gameState.guesses.length}
-          onReset={resetGame}
-        />
-      ) : null}
+          {/* Keypad */}
+          {gameState.gameStatus === 'playing' ? (
+            <GameKeypad
+              onInput={handleInputChange}
+              onBackspace={handleBackspace}
+              onSubmit={() => {
+                if (currentInput) handleSubmit(currentInput)
+              }}
+              currentInput={currentInput}
+              onInputAtPosition={handleInputAtPositionWithAuth}
+              isPending={isPending}
+            />
+          ) : null}
 
-      {/* Keypad */}
-      {gameState.gameStatus === 'playing' ? (
-        <div className="space-y-4">
-          <VoiceControl onResult={handleVoiceResult} onCommand={handleVoiceCommand} />
-          <GameKeypad
-            onInput={handleInputChange}
-            onBackspace={handleBackspace}
-            onSubmit={() => {
-              if (currentInput) handleSubmit(currentInput)
-            }}
-            currentInput={currentInput}
-            onInputAtPosition={handleInputAtPosition}
+          {/* Success Modal */}
+          <SuccessModal
+            open={gameState.showSuccessModal}
+            onOpenChange={open => setGameState({ showSuccessModal: open })}
+            guessCount={gameState.guesses.length}
+            onPlayAgain={resetGame}
           />
         </div>
-      ) : null}
-
-      {/* Success Modal */}
-      <SuccessModal
-        open={gameState.showSuccessModal}
-        onOpenChange={open => setGameState({ showSuccessModal: open })}
-        guessCount={gameState.guesses.length}
-        onPlayAgain={resetGame}
-      />
-    </div>
+      </SidebarInset>
+      <GameSidebar onSimulateGame={simulateGame} />
+    </SidebarProvider>
   )
 }

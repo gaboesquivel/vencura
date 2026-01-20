@@ -1,12 +1,13 @@
 import { render, screen } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
+import { beforeEach, describe, expect, it, vi } from 'vitest'
 import { GameStatus } from './game-status'
 
 describe('GameStatus', () => {
-  const mockOnReset = jest.fn()
+  const mockOnReset = vi.fn()
 
   beforeEach(() => {
-    jest.clearAllMocks()
+    vi.clearAllMocks()
   })
 
   it('should display win message correctly', () => {

@@ -1,26 +1,33 @@
 ---
 description: Solidity development standards with Foundry
-globs: **/contracts/**/*.sol,*.sol
 alwaysApply: false
 ---
 # Solidity & Foundry Rules
 
+## Versions
+- **Solidity**: v0.8.24 (from `contracts/evm/foundry.toml`)
+
 ## Core Principles
-- Use latest stable Solidity version (^0.8.20)
+- Use Solidity v0.8.24 (as configured in `foundry.toml`)
 - Use custom errors instead of revert strings (when validation is needed)
 - For test contracts with intentionally open access (e.g., faucet tokens), custom errors may not be necessary
 
-## Foundry Dependencies
+## Foundry Setup
+- **Installation**: Use `pnpm setup:evm` to install Foundry automatically, or install manually via Homebrew/foundryup
+- **Package location**: EVM contracts are in `contracts/evm/` and use `@repo/contracts-evm` package name
+- **Build behavior**: If Foundry isn't installed, builds skip gracefully without failing the pipeline
+- **Solidity version**: Configured in `foundry.toml` as `solc = "0.8.24"`
 
-- **Never manually edit files in `lib/` directory**: The `lib/` directory contains third-party dependencies (e.g., OpenZeppelin Contracts) managed by Foundry
-- **Update dependencies via Foundry**: Use `forge update` or `pnpm run deps:update` to update dependencies
-- **Formatting protection**: The `lib/` directory is excluded from formatting via `foundry.toml` (`[fmt] exclude = ["lib/**"]`) and `.prettierignore`
-- **Dependency management**: All dependencies are installed and updated through Foundry's dependency system (`forge install`, `forge update`)
+## Foundry Dependencies
+- **Never manually edit files in `lib/` directory**: Contains third-party dependencies (e.g., OpenZeppelin Contracts) managed by Foundry
+- **Update dependencies via Foundry**: Use `forge update` or `pnpm --filter @repo/contracts-evm deps:update`
+- **Formatting protection**: `lib/` directory excluded from formatting via `foundry.toml` and `.prettierignore`
+- **Dependency management**: All dependencies installed/updated through Foundry (`forge install`, `forge update`)
 
 ## Contract Structure
 ```solidity
 // SPDX-License-Identifier: MIT
-pragma solidity ^0.8.20;
+pragma solidity 0.8.24;
 
 import {Ownable} from "@openzeppelin/contracts/access/Ownable.sol";
 import {ReentrancyGuard} from "@openzeppelin/contracts/security/ReentrancyGuard.sol";
@@ -29,22 +36,14 @@ error Unauthorized();
 error InvalidAmount();
 
 contract ExampleContract is Ownable, ReentrancyGuard {
-    // Events
     event Deposited(address indexed user, uint256 amount);
     
-    // State variables
     uint256 public constant MIN_DEPOSIT = 0.1 ether;
     mapping(address => uint256) public balances;
     
-    // Functions
     function deposit() external payable nonReentrant {
-        // Checks
         if (msg.value < MIN_DEPOSIT) revert InvalidAmount();
-        
-        // Effects
         balances[msg.sender] += msg.value;
-        
-        // Interactions
         emit Deposited(msg.sender, msg.value);
     }
 }
@@ -57,7 +56,6 @@ contract ExampleContract is Ownable, ReentrancyGuard {
 
 ```solidity
 contract GasOptimized {
-    // Pack related variables
     struct UserInfo {
         uint96 balance;
         uint96 stakedAmount;
@@ -67,9 +65,7 @@ contract GasOptimized {
 ```
 
 ## Test Token Patterns
-
 For test tokens and faucet contracts (e.g., DNMC, mocked USDC/USDT):
-
 - **Reuse existing contracts**: Use `TestToken.sol` with separate deployment scripts rather than creating duplicate contracts
 - **Open minting/burning**: Test tokens may have intentionally open access controls for faucet functionality
 - **Configurable decimals**: Support different decimal values (6 for stablecoins, 18 for utility tokens)

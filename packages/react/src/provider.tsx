@@ -1,85 +1,13 @@
-'use client'
+import { type ReactNode, useMemo } from 'react'
+import { ReactApiContext } from './context.js'
+import type { ReactApiConfig } from './setup.js'
+import { createReactApiConfig } from './setup.js'
 
-import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
-import { useMemo, type ReactNode } from 'react'
-import { createVencuraClient } from '@vencura/core'
-import { VencuraContext } from './context'
-
-export interface VencuraProviderProps {
-  /**
-   * Base URL for the Vencura API.
-   * @example "https://api.vencura.com"
-   */
-  baseUrl?: string
-  /**
-   * Default headers to include with all requests.
-   * @example { Authorization: "Bearer token" }
-   */
-  headers?: Record<string, string>
-  /**
-   * Optional QueryClient instance. If not provided, a default one will be created.
-   */
-  queryClient?: QueryClient
-  /**
-   * React children to render.
-   */
-  children: ReactNode
-}
-
-/**
- * Provider component that wraps your app and provides the Vencura API client
- * and React Query context to all child components.
- *
- * @example
- * ```tsx
- * import { VencuraProvider } from '@vencura/react'
- *
- * function App() {
- *   return (
- *     <VencuraProvider
- *       baseUrl="https://api.vencura.com"
- *       headers={{ Authorization: 'Bearer token' }}
- *     >
- *       <YourApp />
- *     </VencuraProvider>
- *   )
- * }
- * ```
- */
-export function VencuraProvider({
-  baseUrl,
-  headers,
-  queryClient: providedQueryClient,
+export function ReactApiProvider({
   children,
-}: VencuraProviderProps) {
-  const queryClient = useMemo(
-    () =>
-      providedQueryClient ??
-      new QueryClient({
-        defaultOptions: {
-          queries: {
-            staleTime: 0,
-            gcTime: 5 * 60 * 1000, // 5 minutes
-            retry: 3,
-            refetchOnWindowFocus: false,
-          },
-        },
-      }),
-    [providedQueryClient],
-  )
+  ...config
+}: ReactApiConfig & { children: ReactNode }): React.JSX.Element {
+  const apiConfig = useMemo(() => createReactApiConfig(config), [config])
 
-  const apiClient = useMemo(
-    () =>
-      createVencuraClient({
-        baseUrl,
-        headers,
-      }),
-    [baseUrl, headers],
-  )
-
-  return (
-    <QueryClientProvider client={queryClient}>
-      <VencuraContext.Provider value={apiClient}>{children}</VencuraContext.Provider>
-    </QueryClientProvider>
-  )
+  return <ReactApiContext.Provider value={apiConfig}>{children}</ReactApiContext.Provider>
 }

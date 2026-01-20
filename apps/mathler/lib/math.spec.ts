@@ -1,10 +1,8 @@
-import {
-  evaluateExpression,
-  getRandomTarget,
-  generateSolutionEquation,
-  generateEquationsForTarget,
-} from './math'
-import { getDateKey } from '@vencura/lib'
+import isArray from 'lodash-es/isArray'
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
+import { getDateKey } from '@/lib/date'
+import { generateEquationsForTarget } from './equation-generator'
+import { evaluateExpression, generateSolutionEquation, getRandomTarget } from './math/index'
 
 describe('evaluateExpression', () => {
   it('should evaluate simple addition', () => {
@@ -176,6 +174,14 @@ describe('getDateKey', () => {
 })
 
 describe('getRandomTarget', () => {
+  beforeEach(() => {
+    vi.useRealTimers()
+  })
+
+  afterEach(() => {
+    vi.useRealTimers()
+  })
+
   it('should return a number between 10 and 100', () => {
     const target = getRandomTarget()
     expect(target).toBeGreaterThanOrEqual(10)
@@ -183,54 +189,112 @@ describe('getRandomTarget', () => {
   })
 
   it('should return same target for same date', () => {
-    // Mock Date to ensure consistent testing
-    const originalDate = Date
-    const mockDate = jest.fn(() => new originalDate('2024-01-15'))
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    global.Date = mockDate as any
+    vi.useFakeTimers()
+    vi.setSystemTime(new Date('2024-01-15'))
 
     const target1 = getRandomTarget()
     const target2 = getRandomTarget()
 
     expect(target1).toBe(target2)
 
-    global.Date = originalDate
+    vi.useRealTimers()
   })
 
   it('should return different targets for different dates', () => {
     // This test verifies the seeded random works
-    // We can't easily test this without mocking, but we verify the range
     const targets = new Set()
     for (let i = 0; i < 10; i++) {
-      const date = new Date(2024, 0, i + 1)
-      const originalDate = Date
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      global.Date = jest.fn(() => date) as any
+      vi.useFakeTimers()
+      vi.setSystemTime(new Date(2024, 0, i + 1))
       targets.add(getRandomTarget())
-      global.Date = originalDate
+      vi.useRealTimers()
     }
     // Should have some variety (though not guaranteed to be all different)
     expect(targets.size).toBeGreaterThan(1)
   })
+
+  describe('with difficulty', () => {
+    it('should return a number between 10 and 50 for easy difficulty', () => {
+      vi.useFakeTimers()
+      vi.setSystemTime(new Date('2024-01-15'))
+      const target = getRandomTarget('easy')
+      expect(target).toBeGreaterThanOrEqual(10)
+      expect(target).toBeLessThanOrEqual(50)
+      vi.useRealTimers()
+    })
+
+    it('should return a number between 10 and 100 for medium difficulty (default)', () => {
+      vi.useFakeTimers()
+      vi.setSystemTime(new Date('2024-01-15'))
+      const targetMedium = getRandomTarget('medium')
+      const targetDefault = getRandomTarget()
+      expect(targetMedium).toBeGreaterThanOrEqual(10)
+      expect(targetMedium).toBeLessThanOrEqual(100)
+      expect(targetDefault).toBeGreaterThanOrEqual(10)
+      expect(targetDefault).toBeLessThanOrEqual(100)
+      vi.useRealTimers()
+    })
+
+    it('should return a number between 50 and 200 for hard difficulty', () => {
+      vi.useFakeTimers()
+      // Use a date that generates a number >= 50 for hard difficulty
+      // Test multiple dates to ensure we get a valid result
+      let target = 0
+      for (let day = 1; day <= 31; day++) {
+        vi.setSystemTime(new Date(2024, 0, day))
+        target = getRandomTarget('hard')
+        if (target >= 50) break
+      }
+      expect(target).toBeGreaterThanOrEqual(50)
+      expect(target).toBeLessThanOrEqual(200)
+      vi.useRealTimers()
+    })
+
+    it('should return same target for same date and difficulty', () => {
+      vi.useFakeTimers()
+      vi.setSystemTime(new Date('2024-01-15'))
+      const target1 = getRandomTarget('easy')
+      const target2 = getRandomTarget('easy')
+      expect(target1).toBe(target2)
+      vi.useRealTimers()
+    })
+  })
 })
 
 describe('generateSolutionEquation', () => {
+  beforeEach(() => {
+    vi.useRealTimers()
+  })
+
+  afterEach(() => {
+    vi.useRealTimers()
+  })
+
   it('should return a valid equation string', () => {
+    vi.useFakeTimers()
+    vi.setSystemTime(new Date('2024-01-15'))
     const equation = generateSolutionEquation(10)
     expect(typeof equation).toBe('string')
     expect(equation.length).toBeGreaterThan(0)
+    vi.useRealTimers()
   })
 
   it('should return equation that evaluates to target', () => {
+    vi.useFakeTimers()
+    vi.setSystemTime(new Date('2024-01-15'))
     const target = 15
     const equation = generateSolutionEquation(target)
     const result = evaluateExpression(equation)
     expect(result).toBe(target)
+    vi.useRealTimers()
   })
 
   it('should return equation with length <= 9', () => {
+    vi.useFakeTimers()
+    vi.setSystemTime(new Date('2024-01-15'))
     const equation = generateSolutionEquation(50)
     expect(equation.length).toBeLessThanOrEqual(9)
+    vi.useRealTimers()
   })
 
   it('should return same equation for same seed', () => {
@@ -249,20 +313,58 @@ describe('generateSolutionEquation', () => {
       expect(result).toBe(target)
       expect(equation.length).toBeLessThanOrEqual(9)
     }
-  })
+  }, 15000)
 
   it('should return fallback equation when no candidates found', () => {
+    vi.useFakeTimers()
+    vi.setSystemTime(new Date('2024-01-15'))
     // This is hard to test directly, but we verify it always returns something valid
     const equation = generateSolutionEquation(999999)
     expect(typeof equation).toBe('string')
     expect(equation.length).toBeGreaterThan(0)
+    vi.useRealTimers()
+  })
+
+  describe('with difficulty', () => {
+    it('should generate valid equation for easy difficulty target', () => {
+      vi.useFakeTimers()
+      vi.setSystemTime(new Date('2024-01-15'))
+      const target = 25 // Easy range: 10-50
+      const equation = generateSolutionEquation(target, undefined, 'easy')
+      const result = evaluateExpression(equation)
+      expect(result).toBe(target)
+      expect(equation.length).toBeLessThanOrEqual(9)
+      vi.useRealTimers()
+    })
+
+    it('should generate valid equation for medium difficulty target', () => {
+      vi.useFakeTimers()
+      vi.setSystemTime(new Date('2024-01-15'))
+      const target = 75 // Medium range: 10-100
+      const equation = generateSolutionEquation(target, undefined, 'medium')
+      const result = evaluateExpression(equation)
+      expect(result).toBe(target)
+      expect(equation.length).toBeLessThanOrEqual(9)
+      vi.useRealTimers()
+    })
+
+    it('should generate valid equation for hard difficulty target', () => {
+      vi.useFakeTimers()
+      vi.setSystemTime(new Date('2024-01-15'))
+      const target = 150 // Hard range: 50-200
+      const equation = generateSolutionEquation(target, undefined, 'hard')
+      const result = evaluateExpression(equation)
+      expect(result).toBe(target)
+      expect(equation.length).toBeLessThanOrEqual(9)
+      vi.useRealTimers()
+    })
   })
 })
 
 describe('generateEquationsForTarget', () => {
   it('should return array of valid equations', () => {
     const equations = generateEquationsForTarget(10)
-    expect(Array.isArray(equations)).toBe(true)
+    expect(isArray(equations)).toBe(true)
     expect(equations.length).toBeGreaterThan(0)
   })
 

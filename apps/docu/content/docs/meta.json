@@ -1,0 +1,13 @@
+{
+  "pages": [
+    "index",
+    "getting-started",
+    "core-concepts",
+    "architecture",
+    "security",
+    "testing",
+    "deployment",
+    "blockchain",
+    "adrs"
+  ]
+}

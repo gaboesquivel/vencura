@@ -2,56 +2,101 @@
   "$schema": "https://turbo.build/schema.json",
   "ui": "tui",
   "tasks": {
+    "generate": {
+      "dependsOn": [],
+      "inputs": ["$TURBO_DEFAULT$", "../../apps/fastify/openapi/openapi.json"],
+      "outputs": ["src/gen/**"],
+      "env": ["NODE_ENV"]
+    },
     "build": {
-      "dependsOn": ["^build"],
+      "dependsOn": ["^build", "generate"],
       "inputs": ["$TURBO_DEFAULT$", ".env*"],
-      "outputs": [".next/**", "!.next/cache/**", "dist/**", "bin/**", "src/**/*.ts"],
+      "outputs": [".next/**", "!.next/cache/**", "dist/**"],
       "env": [
-        "DYNAMIC_ENVIRONMENT_ID",
-        "DYNAMIC_API_TOKEN",
-        "SEPOLIA_RPC_URL",
-        "ENCRYPTION_KEY",
-        "RPC_URL_*",
-        "ARBITRUM_SEPOLIA_RPC_URL",
-        "SOLANA_RPC_URL",
-        "NODE_ENV"
+        "NODE_ENV",
+        "NEXT_RUNTIME",
+        "PORT",
+        "HOST",
+        "DATABASE_URL",
+        "REDIS_URL",
+        "SENTRY_DSN",
+        "SENTRY_ENVIRONMENT",
+        "SENTRY_TRACES_SAMPLE_RATE",
+        "SENTRY_REPLACES_HEADERS",
+        "SENTRY_REPLACES_PROD_ENV",
+        "SENTRY_ORG",
+        "SENTRY_PROJECT",
+        "NEXT_PUBLIC_API_URL",
+        "NEXT_PUBLIC_SENTRY_DSN",
+        "NEXT_PUBLIC_SENTRY_ENVIRONMENT",
+        "NEXT_PUBLIC_SITE_URL",
+        "LOG_ENABLED",
+        "LOG_LEVEL",
+        "LOG_SERVICE",
+        "VERCEL_ENV",
+        "NEXT_PUBLIC_LOG_ENABLED",
+        "NEXT_PUBLIC_LOG_LEVEL",
+        "OPENAI_API_KEY"
       ]
     },
     "lint": {
-      "dependsOn": ["^lint"],
-      "env": ["NODE_ENV", "CI", "NEXT_RUNTIME", "NEXT_PUBLIC_SENTRY_DSN", "SENTRY_ORG", "SENTRY_PROJECT"]
+      "dependsOn": ["^lint"]
     },
-    "check-types": {
-      "dependsOn": ["^check-types"]
+    "lint:eslint": {
+      "dependsOn": ["^lint:eslint"],
+      "env": [
+        "NODE_ENV",
+        "NEXT_RUNTIME",
+        "CI",
+        "PLAYWRIGHT_TEST_BASE_URL",
+        "PORT",
+        "OPENAI_API_KEY"
+      ]
+    },
+    "lint:eslint:fix": {
+      "dependsOn": ["^lint:eslint:fix"],
+      "env": [
+        "NODE_ENV",
+        "NEXT_RUNTIME",
+        "CI",
+        "PLAYWRIGHT_TEST_BASE_URL",
+        "PORT",
+        "OPENAI_API_KEY"
+      ]
+    },
+    "checktypes": {
+      "dependsOn": ["^build", "^checktypes"]
     },
     "test": {
       "dependsOn": ["^build"],
-      "inputs": ["$TURBO_DEFAULT$", ".env*"]
-    },
-    "test:coverage": {
-      "dependsOn": ["^build"],
-      "inputs": ["$TURBO_DEFAULT$", ".env*"],
-      "outputs": ["coverage/**"]
-    },
-    "test:e2e": {
-      "dependsOn": ["^build"],
-      "inputs": ["$TURBO_DEFAULT$", ".env*", "e2e/**", "playwright.config.ts"],
-      "outputs": ["playwright-report/**", "test-results/**"],
-      "env": [
-        "DYNAMIC_ENVIRONMENT_ID",
-        "DYNAMIC_API_TOKEN",
-        "ENCRYPTION_KEY",
-        "TEST_AUTH_TOKEN",
-        "NEXT_PUBLIC_DYNAMIC_ENVIRONMENT_ID",
-        "NEXT_PUBLIC_API_URL",
-        "PORT",
-        "PLAYWRIGHT_TEST_BASE_URL",
-        "CI"
-      ]
+      "env": ["NODE_ENV", "OPENAI_API_KEY", "CI"]
     },
     "dev": {
+      "dependsOn": ["^build"],
       "cache": false,
-      "persistent": true
+      "persistent": true,
+      "env": [
+        "NODE_ENV",
+        "NEXT_RUNTIME",
+        "PORT",
+        "HOST",
+        "DATABASE_URL",
+        "REDIS_URL",
+        "SENTRY_DSN",
+        "SENTRY_ENVIRONMENT",
+        "SENTRY_ORG",
+        "SENTRY_PROJECT",
+        "NEXT_PUBLIC_API_URL",
+        "NEXT_PUBLIC_SENTRY_DSN",
+        "NEXT_PUBLIC_SENTRY_ENVIRONMENT",
+        "NEXT_PUBLIC_SITE_URL",
+        "LOG_ENABLED",
+        "LOG_LEVEL",
+        "LOG_SERVICE",
+        "VERCEL_ENV",
+        "NEXT_PUBLIC_LOG_ENABLED",
+        "NEXT_PUBLIC_LOG_LEVEL"
+      ]
     }
   }
 }

@@ -1,188 +1,34 @@
 ---
-description: Next.js development standards and patterns
-globs: *.tsx,*.ts
+description: Next.js standards
 alwaysApply: false
 ---
 # Next.js Rules
 
-## Core Principles
-
-### React Server Components (CRITICAL)
-
+## React Server Components (CRITICAL)
 **ALWAYS default to Server Components. Only use `'use client'` when absolutely necessary.**
 
-Server Components provide significant performance benefits:
-- Reduced JavaScript bundle size (components render on server)
-- Faster initial page loads
-- Better SEO (content rendered on server)
-- Direct database/API access without exposing credentials
-- Automatic code splitting
+**When to Use Client Components**: Interactive features (`onClick`, `onChange`, `onSubmit`), Browser APIs (`window`, `document`, `localStorage`), React hooks (`useState`, `useEffect`, `useContext`), third-party libraries requiring client-side execution, event listeners/real-time subscriptions
 
-**Default Pattern:**
-```tsx
-// ✅ GOOD: Server Component (default, no directive needed)
-export default function Page() {
-  return <div>Server-rendered content</div>
-}
-```
-
-**When to Use Client Components (`'use client'`):**
-Only add `'use client'` when you need:
-- Interactive features: `onClick`, `onChange`, `onSubmit` handlers
-- Browser APIs: `window`, `document`, `localStorage`, `navigator`
-- React hooks: `useState`, `useEffect`, `useContext` (for client-side state)
-- Third-party libraries that require client-side execution
-- Event listeners or real-time subscriptions
-
-**Component Splitting Pattern:**
-Split pages into Server Components (default) and Client Components (when needed):
-
-```tsx
-// ✅ GOOD: Server Component page
-import { ClientInteractiveSection } from './client-interactive-section'
-
-export default function Page() {
-  // Server Component - can fetch data directly
-  const data = await fetchData()
-  
-  return (
-    <div>
-      <h1>{data.title}</h1>
-      {/* Only interactive parts are client components */}
-      <ClientInteractiveSection initialData={data} />
-    </div>
-  )
-}
-```
-
-```tsx
-// ✅ GOOD: Client Component (only when needed)
-'use client'
-
-export function ClientInteractiveSection({ initialData }) {
-  const [state, setState] = useState(initialData)
-  // Interactive logic here
-}
-```
-
-**Anti-Patterns:**
-```tsx
-// ❌ BAD: Unnecessary client component
-'use client'
-export default function Page() {
-  return <div>Static content</div> // No interactivity needed!
-}
-
-// ❌ BAD: Entire page as client component when only small part needs interactivity
-'use client'
-export default function Page() {
-  return (
-    <div>
-      <StaticHeader />
-      <StaticContent />
-      <InteractiveButton /> {/* Only this needs client */}
-    </div>
-  )
-}
-```
-
-- Use `nuqs` for URL search parameter state management
-  - Prefer `nuqs` over manual URL state management for filters, search, tabs, pagination
-  - See [React Rules](./react.mdc) for state management decision tree
-  - See [Frontend Stack](./stack.mdc) for nuqs usage patterns and examples
-
-## Exports
-- **Pages and Layouts**: Next.js requires default exports for pages (`app/**/page.tsx`) and layouts (`app/**/layout.tsx`)
-  - This is an exception to the general "prefer named exports" rule
-  - ESLint is configured to allow default exports for these specific file patterns
-- **Components**: All other components should use named exports
-
-## Code Style
-- See [TypeScript Rules](../base/typescript.mdc) for code style guidelines
-
-## Related Rules
-- See [React Hooks Rules](./react-hooks.mdc) for TanStack Query patterns
-- See [React Rules](./react.mdc) for component patterns
-
-## Server vs Client Components Decision Tree
-
-**Start here:** Is this a page or layout component?
-- **Yes** → Use Server Component (default, no `'use client'`)
-- **No** → Continue to next question
-
-**Does the component need any of these?**
-- Event handlers (`onClick`, `onChange`, etc.)
-- Browser APIs (`window`, `document`, `localStorage`, etc.)
-- React hooks for client-side state (`useState`, `useEffect`, etc.)
-- Third-party libraries requiring client-side execution
-
-**If YES to any above:**
-- Extract that specific functionality into a separate Client Component
-- Keep the parent as a Server Component
-- Pass data as props to the Client Component
-
-**If NO to all above:**
-- Use Server Component (default)
-
-**Example Refactoring:**
-
-```tsx
-// ❌ BAD: Entire page as client component
-'use client'
-export default function Page() {
-  const [mounted, setMounted] = useState(false)
-  useEffect(() => setMounted(true), [])
-  if (!mounted) return null
-  return <StaticContent />
-}
-
-// ✅ GOOD: Server Component with client wrapper only where needed
-export default function Page() {
-  return (
-    <ClientHydrationWrapper>
-      <StaticContent />
-    </ClientHydrationWrapper>
-  )
-}
-
-'use client'
-function ClientHydrationWrapper({ children }) {
-  const [mounted, setMounted] = useState(false)
-  useEffect(() => setMounted(true), [])
-  if (!mounted) return null
-  return <>{children}</>
-}
-```
+**Anti-Patterns**: Unnecessary client components, entire page as client when only small part needs interactivity
 
 ## Performance Optimization
-- Implement streaming with `Suspense` for progressive loading
-- Optimize Core Web Vitals:
-  - Largest Contentful Paint (LCP) < 2.5s
-  - First Input Delay (FID) < 100ms
-  - Cumulative Layout Shift (CLS) < 0.1
-- Optimize images:
-  - Use WebP format
-  - Include proper size data
-  - Implement lazy loading for below-fold images
 
-## Server Actions
-```tsx
-'use server'
-import { type ActionResult, success, failure } from '@repo/next'
-import { createSafeActionClient } from 'next-safe-action'
+### Concurrent Rendering Features
+**Suspense Boundaries**: Leverage automatic Suspense for Server Components via `loading.tsx` files, add manual Suspense boundaries for progressive loading in Client Components, use multiple Suspense boundaries for independent streaming sections
 
-export const saveAction = createSafeActionClient()
-  .schema(actionSchema)
-  .action(async ({ parsedInput }): Promise<ActionResult<T>> => {
-    try {
-      // Happy path
-      return success(result)
-    } catch (error) {
-      return failure({
-        code: 'UNEXPECTED_ERROR',
-        error,
-        label: 'saveAction'
-      })
-    }
-  })
-```
+**Transitions** (`useTransition` / `startTransition`): Use for search/filter inputs, tab switching, heavy state updates. Pattern: `startTransition(() => { setFilteredData(expensiveFilter(data)) })`. Use `isPending` to show loading states
+
+**Deferred Values** (`useDeferredValue`): Use for expensive filtering/computation that can be deferred. Pattern: `const deferredQuery = useDeferredValue(query)` then use in `useMemo` (only if computation is genuinely expensive). **Important**: Only use `useMemo` with `useDeferredValue` if computation is actually expensive (filtering 1000+ items, complex calculations). For simple operations, compute directly with deferred value
+
+**Streaming Patterns**: Use multiple Suspense boundaries for independent streaming sections, show critical content immediately, stream non-critical content progressively
+
+### Core Web Vitals & Image Optimization
+- Optimize Core Web Vitals (LCP < 2.5s, FID < 100ms, CLS < 0.1)
+- Optimize images: WebP format, proper size data, lazy loading
+
+## Related
+- @.cursor/rules/base/linting.mdc - Hybrid Biome + ESLint architecture
+- @.cursor/rules/frontend/react-hooks.mdc - TanStack Query patterns
+- @.cursor/rules/frontend/react.mdc - Component patterns
+- @.cursor/rules/base/environment.mdc - Environment variable patterns
+- @.cursor/rules/base/typescript.mdc - Code style guidelines

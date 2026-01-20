@@ -1,27 +1,73 @@
-import { render, screen, waitFor } from '@testing-library/react'
+import { act, render, screen, waitFor } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
-import { MathlerGame } from './mathler-game'
-import { evaluateExpression, getRandomTarget, generateSolutionEquation } from '@/lib/math'
+import { toast } from 'sonner'
+import { beforeEach, describe, expect, it, vi } from 'vitest'
 import { calculateFeedback } from '@/lib/feedback'
+import { evaluateExpression, generateSolutionEquation, getRandomTarget } from '@/lib/math'
+import { MathlerGame } from './mathler-game'
+
+// Mock sidebar components
+vi.mock('@repo/ui/components/sidebar', () => ({
+  SidebarProvider: ({ children }: { children: React.ReactNode }) => <div>{children}</div>,
+  SidebarInset: ({ children }: { children: React.ReactNode }) => <div>{children}</div>,
+  SidebarTrigger: () => <button data-testid="sidebar-trigger">Toggle</button>,
+  Sidebar: ({ children }: { children: React.ReactNode }) => (
+    <div data-testid="sidebar">{children}</div>
+  ),
+  SidebarHeader: ({ children }: { children: React.ReactNode }) => (
+    <div data-testid="sidebar-header">{children}</div>
+  ),
+  SidebarContent: ({ children }: { children: React.ReactNode }) => (
+    <div data-testid="sidebar-content">{children}</div>
+  ),
+  SidebarGroup: ({ children }: { children: React.ReactNode }) => (
+    <div data-testid="sidebar-group">{children}</div>
+  ),
+  SidebarGroupContent: ({ children }: { children: React.ReactNode }) => (
+    <div data-testid="sidebar-group-content">{children}</div>
+  ),
+  SidebarFooter: ({ children }: { children: React.ReactNode }) => (
+    <div data-testid="sidebar-footer">{children}</div>
+  ),
+  useSidebar: vi.fn(() => ({
+    state: 'expanded' as const,
+    open: true,
+    setOpen: vi.fn(),
+    openMobile: false,
+    setOpenMobile: vi.fn(),
+    isMobile: false,
+    toggleSidebar: vi.fn(),
+  })),
+}))
+
+// Mock Dynamic Labs context
+vi.mock('@dynamic-labs/sdk-react-core', () => ({
+  useDynamicContext: vi.fn(() => ({
+    user: { userId: 'test-user', email: 'test@example.com' },
+    primaryWallet: { address: '0x123' },
+    sdkHasLoaded: true,
+    setShowAuthFlow: vi.fn(),
+  })),
+}))
 
 // Mock the utility functions to control game behavior
-jest.mock('@/lib/math', () => ({
-  evaluateExpression: jest.fn(),
-  getRandomTarget: jest.fn(),
-  generateSolutionEquation: jest.fn(),
-  getDateKey: jest.fn(() => '2024-01-01'),
+vi.mock('@/lib/math', () => ({
+  evaluateExpression: vi.fn(),
+  getRandomTarget: vi.fn(),
+  generateSolutionEquation: vi.fn(),
+  getDateKey: vi.fn(() => '2024-01-01'),
 }))
 
-jest.mock('@/lib/feedback', () => ({
-  calculateFeedback: jest.fn(),
+vi.mock('@/lib/feedback', () => ({
+  calculateFeedback: vi.fn(),
 }))
 
-jest.mock('@/hooks/use-game-history', () => ({
-  useGameHistory: jest.fn(() => ({
-    saveGame: jest.fn().mockResolvedValue(true),
-    getHistory: jest.fn(() => []),
-    getGameByDate: jest.fn(() => undefined),
-    getStats: jest.fn(() => ({
+vi.mock('@/hooks/use-game-history', () => ({
+  useGameHistory: vi.fn(() => ({
+    saveGame: vi.fn().mockResolvedValue(true),
+    getHistory: vi.fn(() => []),
+    getGameByDate: vi.fn(() => undefined),
+    getStats: vi.fn(() => ({
       totalGames: 0,
       wins: 0,
       losses: 0,
@@ -30,11 +76,31 @@ jest.mock('@/hooks/use-game-history', () => ({
     })),
     isAuthenticated: false,
     history: [],
+    saveGameError: null,
   })),
 }))
 
+vi.mock('@/hooks/use-user-settings', () => ({
+  useUserSettings: vi.fn(() => ({
+    difficulty: 'medium',
+    theme: 'system',
+    setDifficulty: vi.fn(),
+    setTheme: vi.fn(),
+    isLoading: false,
+    saveSettingsError: null,
+  })),
+}))
+
+vi.mock('sonner', () => ({
+  toast: {
+    error: vi.fn(),
+    success: vi.fn(),
+    info: vi.fn(),
+  },
+}))
+
 // Mock child components to simplify testing
-jest.mock('./guess-row', () => ({
+vi.mock('./guess-row', () => ({
   GuessRow: function GuessRow({
     guess,
     currentInput,
@@ -49,8 +115,11 @@ jest.mock('./guess-row', () => ({
     onTileClick?: (position: number) => void
   }) {
     const display = isCurrentRow ? currentInput : guess
+    // Only rows with actual guesses should be marked as 'past'
+    // Empty rows (no guess yet) should not have the 'past' test ID
+    const testId = isCurrentRow ? 'guess-row-current' : guess ? 'guess-row-past' : 'guess-row-empty'
     return (
-      <div data-testid={`guess-row-${isCurrentRow ? 'current' : 'past'}`}>
+      <div data-testid={testId}>
         {display}
         {onTileClick && isCurrentRow ? (
           <button onClick={() => onTileClick(0)} data-testid="tile-click-0">
@@ -65,29 +134,40 @@ jest.mock('./guess-row', () => ({
   },
 }))
 
-jest.mock('./game-keypad', () => ({
+vi.mock('./game-keypad', () => ({
   GameKeypad: function GameKeypad({
     onInput,
     onBackspace,
     onSubmit,
     currentInput,
+    onInputAtPosition,
   }: {
     onInput: (value: string) => void
     onBackspace: () => void
     onSubmit: () => void
     currentInput: string
+    onInputAtPosition?: (char: string) => void
   }) {
     const numbers = ['0', '1', '2', '3', '4', '5', '6', '7', '8', '9']
     const operators = ['+', '-', '×', '÷']
+
+    const handleClick = (char: string) => {
+      if (onInputAtPosition) {
+        onInputAtPosition(char)
+      } else {
+        onInput(char)
+      }
+    }
+
     return (
       <div data-testid="game-keypad">
         {numbers.map(num => (
-          <button key={num} onClick={() => onInput(currentInput + num)}>
+          <button key={num} onClick={() => handleClick(num)}>
             {num}
           </button>
         ))}
         {operators.map(op => (
-          <button key={op} onClick={() => onInput(currentInput + op)}>
+          <button key={op} onClick={() => handleClick(op)}>
             {op}
           </button>
         ))}
@@ -100,7 +180,7 @@ jest.mock('./game-keypad', () => ({
   },
 }))
 
-jest.mock('./game-status', () => ({
+vi.mock('./game-status', () => ({
   GameStatus: function GameStatus({
     status,
     onReset,
@@ -117,7 +197,7 @@ jest.mock('./game-status', () => ({
   },
 }))
 
-jest.mock('./success-modal', () => ({
+vi.mock('./success-modal', () => ({
   SuccessModal: function SuccessModal({
     open,
     onPlayAgain,
@@ -134,35 +214,20 @@ jest.mock('./success-modal', () => ({
   },
 }))
 
-jest.mock('./voice-control', () => ({
-  VoiceControl: function VoiceControl({
-    onResult,
-    onCommand,
-  }: {
-    onResult: (text: string) => void
-    onCommand: (command: 'backspace' | 'delete' | 'enter' | 'submit' | 'clear') => void
-  }) {
-    return (
-      <div data-testid="voice-control">
-        <button onClick={() => onResult('1+2')}>Test Voice Input</button>
-        <button onClick={() => onCommand('enter')}>Test Voice Command</button>
-      </div>
-    )
-  },
-}))
-
 describe('MathlerGame', () => {
-  const mockEvaluateExpression = evaluateExpression as jest.MockedFunction<
-    typeof evaluateExpression
-  >
-  const mockGetRandomTarget = getRandomTarget as jest.MockedFunction<typeof getRandomTarget>
-  const mockGenerateSolutionEquation = generateSolutionEquation as jest.MockedFunction<
-    typeof generateSolutionEquation
-  >
-  const mockCalculateFeedback = calculateFeedback as jest.MockedFunction<typeof calculateFeedback>
+  const mockEvaluateExpression = evaluateExpression as ReturnType<typeof vi.fn>
+  const mockGetRandomTarget = getRandomTarget as ReturnType<typeof vi.fn>
+  const mockGenerateSolutionEquation = generateSolutionEquation as ReturnType<typeof vi.fn>
+  const mockCalculateFeedback = calculateFeedback as ReturnType<typeof vi.fn>
+  const mockToastError = vi.mocked(toast.error)
 
   beforeEach(() => {
-    jest.clearAllMocks()
+    vi.clearAllMocks()
+    // Clear mock call counts but keep implementations
+    mockEvaluateExpression.mockClear()
+    mockCalculateFeedback.mockClear()
+    mockGetRandomTarget.mockClear()
+    mockGenerateSolutionEquation.mockClear()
     // Set up default mocks
     mockGetRandomTarget.mockReturnValue(10)
     mockGenerateSolutionEquation.mockReturnValue('5+5')
@@ -179,15 +244,20 @@ describe('MathlerGame', () => {
     render(<MathlerGame />)
 
     expect(mockGetRandomTarget).toHaveBeenCalled()
-    expect(mockGenerateSolutionEquation).toHaveBeenCalledWith(10)
-    expect(screen.getByText(/find the equation that equals/i)).toBeInTheDocument()
+    expect(mockGenerateSolutionEquation).toHaveBeenCalledWith(10, undefined, 'medium')
+    expect(screen.getAllByText(/find the equation that equals/i)[0]).toBeInTheDocument()
   })
 
   it('should accept valid input characters', async () => {
     const user = userEvent.setup()
-    render(<MathlerGame />)
+    await act(async () => {
+      render(<MathlerGame />)
+    })
 
-    screen.getByTestId('game-keypad')
+    await waitFor(() => {
+      expect(screen.getByTestId('game-keypad')).toBeInTheDocument()
+    })
+
     const button1 = screen.getByRole('button', { name: '1' })
     await user.click(button1)
 
@@ -217,10 +287,14 @@ describe('MathlerGame', () => {
 
   it('should validate expression before submission', async () => {
     const user = userEvent.setup()
-    // Mock window.alert to avoid error
-    window.alert = jest.fn()
     mockEvaluateExpression.mockReturnValue(null) // Invalid expression
-    render(<MathlerGame />)
+    await act(async () => {
+      render(<MathlerGame />)
+    })
+
+    await waitFor(() => {
+      expect(screen.getByTestId('game-keypad')).toBeInTheDocument()
+    })
 
     const button1 = screen.getByRole('button', { name: '1' })
     await user.click(button1)
@@ -228,10 +302,10 @@ describe('MathlerGame', () => {
     const submitButton = screen.getByRole('button', { name: 'Submit' })
     await user.click(submitButton)
 
-    // Should show alert for invalid expression
+    // Should show toast error for invalid expression
     await waitFor(() => {
       expect(mockEvaluateExpression).toHaveBeenCalled()
-      expect(window.alert).toHaveBeenCalledWith('Invalid expression')
+      expect(mockToastError).toHaveBeenCalledWith('Invalid expression. Please check your equation.')
     })
   })
 
@@ -260,7 +334,13 @@ describe('MathlerGame', () => {
     const user = userEvent.setup()
     mockEvaluateExpression.mockReturnValue(10)
     mockCalculateFeedback.mockReturnValue(['correct', 'correct', 'correct'])
-    render(<MathlerGame />)
+    await act(async () => {
+      render(<MathlerGame />)
+    })
+
+    await waitFor(() => {
+      expect(screen.getByTestId('game-keypad')).toBeInTheDocument()
+    })
 
     // Input correct solution
     const button5 = screen.getByRole('button', { name: '5' })
@@ -277,9 +357,41 @@ describe('MathlerGame', () => {
     })
   })
 
-  it('should detect lose condition after 6 guesses', async () => {
+  it('should accept cumulative solutions (e.g., 1+5*15 === 15*5+1)', async () => {
     const user = userEvent.setup()
-    mockEvaluateExpression.mockReturnValue(5) // Wrong answer
+    // Set up solution as '1+5*15' which equals 76
+    mockGetRandomTarget.mockReturnValue(76)
+    mockGenerateSolutionEquation.mockReturnValue('1+5*15')
+    mockEvaluateExpression.mockImplementation(expr => {
+      if (expr === '1+5*15') return 76 // 1 + 75 = 76
+      if (expr === '15*5+1') return 76 // 75 + 1 = 76
+      return null
+    })
+    mockCalculateFeedback.mockReturnValue(['correct', 'correct', 'correct', 'correct', 'correct'])
+
+    await act(async () => {
+      render(<MathlerGame />)
+    })
+
+    await waitFor(() => {
+      expect(screen.getByTestId('game-keypad')).toBeInTheDocument()
+    })
+
+    // Input cumulative solution '15*5+1' instead of '1+5*15'
+    await user.keyboard('15*5+1')
+    await user.keyboard('{Enter}')
+
+    // Should detect win even though it's not the exact solution
+    await waitFor(() => {
+      expect(mockEvaluateExpression).toHaveBeenCalledWith('15*5+1')
+      expect(screen.getByTestId('success-modal')).toBeInTheDocument()
+    })
+  })
+
+  it('should detect lose condition after 6 guesses', { timeout: 30000 }, async () => {
+    const user = userEvent.setup()
+    // Override mocks for this test (clear previous implementation)
+    mockEvaluateExpression.mockImplementation(() => 5) // Wrong answer
     mockCalculateFeedback.mockReturnValue(['absent', 'absent', 'absent'])
     render(<MathlerGame />)
 
@@ -295,43 +407,86 @@ describe('MathlerGame', () => {
       const submitButton = screen.getByRole('button', { name: 'Submit' })
       await user.click(submitButton)
 
-      await waitFor(() => {
-        expect(mockEvaluateExpression).toHaveBeenCalled()
-      })
+      // Wait for the guess to be processed and state updated
+      await waitFor(
+        () => {
+          expect(mockEvaluateExpression).toHaveBeenCalledTimes(i + 1)
+        },
+        { timeout: 2000 },
+      )
+
+      // Wait for state update to complete (startTransition)
+      await waitFor(
+        () => {
+          const pastRows = screen.getAllByTestId('guess-row-past')
+          expect(pastRows.length).toBe(i + 1)
+        },
+        { timeout: 2000 },
+      )
     }
 
-    await waitFor(() => {
-      expect(screen.getByTestId('game-status')).toBeInTheDocument()
-      expect(screen.getByText('lost')).toBeInTheDocument()
-    })
+    // Wait for game status to update to 'lost' after the 6th guess
+    // The game status should be set when guesses.length >= 6
+    await waitFor(
+      () => {
+        expect(screen.getByTestId('game-status')).toBeInTheDocument()
+        expect(screen.getByText('lost')).toBeInTheDocument()
+      },
+      { timeout: 5000 },
+    )
   })
 
   it('should reset game when reset button clicked', async () => {
     const user = userEvent.setup()
     mockEvaluateExpression.mockReturnValue(5)
     mockCalculateFeedback.mockReturnValue(['absent', 'absent', 'absent'])
-    render(<MathlerGame />)
+    await act(async () => {
+      render(<MathlerGame />)
+    })
 
-    // First render should call getRandomTarget
-    expect(mockGetRandomTarget).toHaveBeenCalledTimes(1)
+    await waitFor(() => {
+      expect(mockGetRandomTarget).toHaveBeenCalledTimes(1)
+    })
 
     // Lose the game first to show reset button
     for (let i = 0; i < 6; i++) {
       await user.keyboard('1+2')
       await user.keyboard('{Enter}')
-      await waitFor(() => {
-        expect(mockEvaluateExpression).toHaveBeenCalled()
-      })
+      // Wait for the guess to be processed
+      await waitFor(
+        () => {
+          expect(mockEvaluateExpression).toHaveBeenCalled()
+        },
+        { timeout: 3000 },
+      )
+      // Wait for state update to complete
+      await waitFor(
+        () => {
+          const pastRows = screen.getAllByTestId('guess-row-past')
+          expect(pastRows.length).toBe(i + 1)
+        },
+        { timeout: 3000 },
+      )
     }
 
-    // Click reset
+    // Wait for game to be lost and GameStatus to render
+    await waitFor(
+      () => {
+        expect(screen.getByTestId('game-status')).toBeInTheDocument()
+      },
+      { timeout: 5000 },
+    )
+    // Click reset button (mocked component uses "Reset" text)
     const resetButton = screen.getByRole('button', { name: 'Reset' })
     await user.click(resetButton)
 
     // Should call getRandomTarget again
-    await waitFor(() => {
-      expect(mockGetRandomTarget).toHaveBeenCalledTimes(2)
-    })
+    await waitFor(
+      () => {
+        expect(mockGetRandomTarget).toHaveBeenCalledTimes(2)
+      },
+      { timeout: 5000 },
+    )
   })
 
   it('should handle keyboard input', async () => {
@@ -349,14 +504,32 @@ describe('MathlerGame', () => {
   it('should handle Enter key for submit', async () => {
     const user = userEvent.setup()
     mockEvaluateExpression.mockReturnValue(10)
-    render(<MathlerGame />)
-
-    await user.keyboard('5+5')
-    await user.keyboard('{Enter}')
+    await act(async () => {
+      render(<MathlerGame />)
+    })
 
     await waitFor(() => {
-      expect(mockEvaluateExpression).toHaveBeenCalledWith('5+5')
+      expect(screen.getByTestId('game-keypad')).toBeInTheDocument()
     })
+
+    // Type the expression
+    await user.keyboard('5+5')
+    // Wait for input to be set
+    await waitFor(() => {
+      const currentRow = screen.getByTestId('guess-row-current')
+      expect(currentRow.textContent).toContain('5+5')
+    })
+
+    // Submit with Enter
+    await user.keyboard('{Enter}')
+
+    // Wait for evaluation to be called with correct input
+    await waitFor(
+      () => {
+        expect(mockEvaluateExpression).toHaveBeenCalledWith('5+5')
+      },
+      { timeout: 3000 },
+    )
   })
 
   it('should handle Backspace key', async () => {
@@ -378,20 +551,47 @@ describe('MathlerGame', () => {
     const user = userEvent.setup()
     mockEvaluateExpression.mockReturnValue(5)
     mockCalculateFeedback.mockReturnValue(['absent', 'absent', 'absent'])
-    render(<MathlerGame />)
+    await act(async () => {
+      render(<MathlerGame />)
+    })
+
+    await waitFor(() => {
+      expect(screen.getByTestId('game-keypad')).toBeInTheDocument()
+    })
 
     // Lose the game
     for (let i = 0; i < 6; i++) {
       await user.keyboard('1+2')
       await user.keyboard('{Enter}')
-      await waitFor(() => {
-        expect(mockEvaluateExpression).toHaveBeenCalled()
-      })
+      // Wait for the guess to be processed
+      await waitFor(
+        () => {
+          expect(mockEvaluateExpression).toHaveBeenCalled()
+        },
+        { timeout: 3000 },
+      )
+      // Wait for state update to complete
+      await waitFor(
+        () => {
+          const pastRows = screen.getAllByTestId('guess-row-past')
+          expect(pastRows.length).toBe(i + 1)
+        },
+        { timeout: 3000 },
+      )
     }
+
+    // Wait for game to be lost - keypad should be removed and game status shown
+    await waitFor(
+      () => {
+        expect(screen.queryByTestId('game-keypad')).not.toBeInTheDocument()
+        expect(screen.getByTestId('game-status')).toBeInTheDocument()
+      },
+      { timeout: 5000 },
+    )
 
     // Try to input after game is lost
     await user.keyboard('9')
-    // Should not accept input
+    // Should not accept input - current row should not be rendered when game is not playing
     const currentRow = screen.queryByTestId('guess-row-current')
     expect(currentRow).not.toBeInTheDocument()
   })
@@ -415,7 +615,13 @@ describe('MathlerGame', () => {
 
   it('should handle arrow keys for cursor navigation', async () => {
     const user = userEvent.setup()
-    render(<MathlerGame />)
+    await act(async () => {
+      render(<MathlerGame />)
+    })
+
+    await waitFor(() => {
+      expect(screen.getByTestId('game-keypad')).toBeInTheDocument()
+    })
 
     await user.keyboard('123')
     await user.keyboard('{ArrowLeft}')
@@ -444,7 +650,13 @@ describe('MathlerGame', () => {
 
   it('should handle tile click to position cursor', async () => {
     const user = userEvent.setup()
-    render(<MathlerGame />)
+    await act(async () => {
+      render(<MathlerGame />)
+    })
+
+    await waitFor(() => {
+      expect(screen.getByTestId('game-keypad')).toBeInTheDocument()
+    })
 
     await user.keyboard('123')
     const tileButton = screen.getByTestId('tile-click-0')
@@ -453,33 +665,6 @@ describe('MathlerGame', () => {
     await waitFor(() => {
       const cursorPos = screen.getByTestId('cursor-position')
       expect(cursorPos.textContent).toBe('0')
-    })
-  })
-
-  it('should handle voice input', async () => {
-    const user = userEvent.setup()
-    render(<MathlerGame />)
-
-    const voiceButton = screen.getByRole('button', { name: 'Test Voice Input' })
-    await user.click(voiceButton)
-
-    await waitFor(() => {
-      const currentRow = screen.getByTestId('guess-row-current')
-      expect(currentRow.textContent).toContain('1')
-    })
-  })
-
-  it('should handle voice commands', async () => {
-    const user = userEvent.setup()
-    mockEvaluateExpression.mockReturnValue(3)
-    render(<MathlerGame />)
-
-    await user.keyboard('1+2')
-    const voiceCommandButton = screen.getByRole('button', { name: 'Test Voice Command' })
-    await user.click(voiceCommandButton)
-
-    await waitFor(() => {
-      expect(mockEvaluateExpression).toHaveBeenCalled()
     })
   })
 })

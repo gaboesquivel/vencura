@@ -114,8 +114,8 @@ To update Foundry dependencies (e.g., OpenZeppelin Contracts):
 
 ```bash
 forge update
-# or
-pnpm run deps:update
+# or from monorepo root
+pnpm --filter @repo/contracts-evm deps:update
 ```
 
 **Important**: The `lib/` directory should never be manually edited. All dependencies are managed through Foundry's dependency system. The directory is excluded from formatting via `foundry.toml` and `.prettierignore`.
@@ -126,16 +126,16 @@ pnpm run deps:update
 
 ```bash
 forge build
-# or
-pnpm run contracts:evm:build
+# or from monorepo root
+pnpm --filter @repo/contracts-evm build
 ```
 
 ### Test
 
 ```bash
 forge test
-# or
-pnpm run contracts:evm:test
+# or from monorepo root
+pnpm --filter @repo/contracts-evm test
 ```
 
 Run with verbosity:
@@ -163,8 +163,12 @@ Start a local Anvil node:
 ```bash
 anvil
 # or
-pnpm run contracts:evm:deploy:anvil
+pnpm --filter @repo/contracts-evm deploy:anvil
 ```
+
+## Testing Strategy
+
+Contracts use Foundry's testing framework for unit and integration tests. Test tokens are deployed on Arbitrum Sepolia testnet for integration testing.
 
 ### Environment Setup
 
@@ -210,8 +214,8 @@ forge script script/TestToken.s.sol:TestTokenScript \
 Deploy DNMC (Dynamic Arcade Token) to Arbitrum Sepolia:
 
 ```bash
-# Using package.json script (requires .env file)
-pnpm run deploy:dnmc
+# Using package.json script (requires .env file, from monorepo root)
+pnpm --filter @repo/contracts-evm deploy:dnmc
 
 # Or using forge directly
 forge script script/DNMC.s.sol:DNMCScript \
@@ -225,8 +229,8 @@ forge script script/DNMC.s.sol:DNMCScript \
 Deploy mocked USDC token to Arbitrum Sepolia:
 
 ```bash
-# Using package.json script (requires .env file)
-pnpm run deploy:usdc
+# Using package.json script (requires .env file, from monorepo root)
+pnpm --filter @repo/contracts-evm deploy:usdc
 
 # Or using forge directly
 forge script script/USDC.s.sol:USDCScript \
@@ -240,8 +244,8 @@ forge script script/USDC.s.sol:USDCScript \
 Deploy mocked USDT token to Arbitrum Sepolia:
 
 ```bash
-# Using package.json script (requires .env file)
-pnpm run deploy:usdt
+# Using package.json script (requires .env file, from monorepo root)
+pnpm --filter @repo/contracts-evm deploy:usdt
 
 # Or using forge directly
 forge script script/USDT.s.sol:USDTScript \
@@ -256,10 +260,10 @@ To deploy to a different network, override the `RPC_URL` environment variable:
 
 ```bash
 # Deploy to Base Sepolia
-RPC_URL=https://sepolia.base.org pnpm run deploy:usdc
+RPC_URL=https://sepolia.base.org pnpm --filter @repo/contracts-evm deploy:usdc
 
 # Deploy to local Anvil
-RPC_URL=http://localhost:8545 pnpm run deploy:dnmc
+RPC_URL=http://localhost:8545 pnpm --filter @repo/contracts-evm deploy:dnmc
 ```
 
 ### Cast

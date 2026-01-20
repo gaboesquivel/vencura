@@ -1,175 +1,45 @@
 ---
-description: TypeScript coding standards and best practices
-globs: *.tsx,*.ts
-alwaysApply: false
+alwaysApply: true
 ---
 # TypeScript Rules
 
-## Tooling
-- Use **pnpm** for package management (not bun, npm, or yarn)
-- Use **eslint + prettier** for linting and formatting
-- Run `pnpm format` to format code, `pnpm run lint` to lint code
+## Project Context
+- **TypeScript**: v5.9.3 (strict mode)
+- **ts-reset**: `@total-typescript/ts-reset` configured globally
+- **Module system**: ESM with bundler/Node resolution
+- **Monorepo**: Shared packages via `@repo/*` with subpath exports
 
-## Core Principles
-- Prefer interfaces over types for object definitions
-  - **Exception**: Union types, utility types (e.g., `z.infer<typeof schema>`), and mapped types should use `type`
-  - **Example**: `interface User { id: string }` ✅ vs `type User = { id: string }` ❌
-  - **Example**: `type ChainType = 'evm' | 'solana'` ✅ (union type)
-  - **Example**: `type EnvSchema = z.infer<typeof envSchema>` ✅ (utility type)
-- Avoid enums; use maps or union types instead
-- Use descriptive variable names with auxiliary verbs (e.g., `isLoading`, `hasError`)
-- Follow the RORO (Receive an Object, Return an Object) pattern for function arguments **only when there are multiple parameters**; single-parameter functions use direct parameters
-- Use lowercase-with-dashes for directories (e.g., `components/auth-wizard`)
-- Favor named exports for components
-  - **Exception**: Next.js pages (`app/**/page.tsx`) and layouts (`app/**/layout.tsx`) require default exports
-- Use functional & declarative programming patterns; avoid classes
-- Infer types and keep them inline unless you need to reuse them
+## Type Declarations
+- **Interfaces** for object shapes, **types** for unions/utilities/mapped/Zod inference
+- **Avoid enums**: use const objects or union types
+- **Infer when possible**: only declare when reusing
 
-## Type Inference Enforcement
+## Naming
+- **Variables**: camelCase, booleans with aux verbs (`isLoading`, `hasError`, `canEdit`)
+- **Directories**: lowercase-with-dashes (`components/auth-wizard`)
+- **Exports**: named (exception: Next.js pages/layouts require default)
 
-**Critical Rule**: Always enforce type inference - define return types in functions, never in consumers.
+## Function Patterns
+- **RORO**: `({ name, email }: Input) => ({ id, name, email })`
+- **Functional**: avoid classes/decorators (exception: framework requirements)
+- **Single-line**: `if (!value) return null`, `const double = (x: number) => x * 2`
+- **Early returns**: guard clauses, avoid unnecessary `else`
 
-### Function Definitions
-- **Functions MUST define explicit return types**: Always specify return types in function signatures
-  - ✅ **Good**: `function getUser(id: string): User { ... }`
-  - ✅ **Good**: `const getUser = (id: string): User => { ... }`
-  - ❌ **Bad**: `function getUser(id: string) { ... }` (missing return type)
-- **Use `ReturnType<typeof function>` only in function definitions**, not in consumers
-  - ✅ **Good**: `type Handler = ReturnType<typeof createHandler>` (in type definition)
-  - ❌ **Bad**: `const handler: ReturnType<typeof createHandler> = createHandler()` (in consumer)
+## Imports
+- **Type-only**: `import type` for types
+- **Subpath exports**: Always use subpaths (`@repo/utils/async`, `@repo/error/nextjs`)
+- **Lodash**: `import isEmpty from "lodash-es/isEmpty"` (per-function imports)
 
-### Consumer Code
-- **Consumers MUST infer types from function return values**: Never explicitly type variables that receive function results
-  - ✅ **Good**: `const user = getUser(id)` (type inferred from `getUser` return type)
-  - ✅ **Good**: `const response = await fetchWithTimeout({ url, options })` (type inferred)
-  - ❌ **Bad**: `const user: User = getUser(id)` (redundant explicit type)
-  - ❌ **Bad**: `const response: Promise<Response> = fetchWithTimeout({ url, options })` (should infer)
-- **Never add explicit type imports just to help inference**: If TypeScript isn't resolving function types correctly, fix the function definition instead
-  - ❌ **Bad**: Adding `import type { User } from './types'` just to type a consumer variable
-  - ✅ **Good**: Ensure the function has an explicit return type, then let consumers infer
+## Type Safety
+- **Zod-first**: Validate at boundaries (API routes, forms, external APIs)
+- **Infer types**: `type User = z.infer<typeof userSchema>`
+- **Colocate schemas**: `app/api/users/schema.ts` (feature-specific)
+- **Disabled TS ESLint rules**: `no-unsafe-*` disabled for Zod-first validation
 
-### Examples
+## Architecture
+- **Explicit return types**: Required for exported functions/API handlers
+- **Validation functions**: Return result objects, never throw
 
-**Correct Pattern**:
-```typescript
-// Function defines return type
-export async function fetchWithTimeout({
-  url,
-  options = {},
-  timeoutMs = 5000,
-}: {
-  url: string
-  options?: RequestInit
-  timeoutMs?: number
-}): Promise<Response> {
-  // ... implementation
-}
-
-// Consumer infers type
-const response = await fetchWithTimeout({ url: 'https://api.example.com' })
-// response is inferred as Promise<Response>
-```
-
-**Incorrect Pattern**:
-```typescript
-// Function missing return type
-export async function fetchWithTimeout({ url, options }: Params) {
-  // ... implementation
-}
-
-// Consumer trying to help inference (WRONG)
-const response: Promise<Response> = await fetchWithTimeout({ url })
-// Should fix the function definition instead
-```
-
-### Why This Matters
-- **Single source of truth**: Return types are defined once in the function, not duplicated in consumers
-- **Better maintainability**: Changing a function's return type automatically updates all consumers
-- **Type safety**: TypeScript's inference is powerful - trust it instead of fighting it
-- **Code clarity**: Explicit types in consumers add noise and can become stale
-
-## Framework Exceptions
-- **NestJS**: Classes are required for decorators (@Injectable, @Controller, etc.), so the "avoid classes" rule doesn't apply to NestJS services/controllers
-- **RORO Pattern**: Applies to utility functions, not NestJS method signatures (which use decorators)
-- **Next.js**: Pages (`app/**/page.tsx`) and layouts (`app/**/layout.tsx`) require default exports for framework routing
-
-## Code Style
-- **Enforce single-line if statements without brackets**: Use `if(cond) do()` or `cond && do()` for one-liners
-  - **Example**: `if (!value) return null` ✅ vs `if (!value) { return null }` ❌
-  - **Example**: `if (isLoading) return <Spinner />` ✅
-  - Multi-line if statements must use brackets
-- **Enforce single-line arrow functions without brackets**: Use `() => expr` for one-liners
-  - **Example**: `const double = (x: number) => x * 2` ✅ vs `const double = (x: number) => { return x * 2 }` ❌
-- Always use the less amount chars possible when writing code, while maintaining simplicity
-- Prefer one-liners for simple conditional logic
-- Avoid unnecessary curly braces in conditionals
-
-## ESLint Rules
-The following ESLint rules enforce these codestyle guidelines:
-- `curly: "off"` - Allows single-line if statements without brackets
-- `arrow-body-style: ["error", "as-needed"]` - Enforces arrow functions without brackets when possible
-- `semi: ["error", "never"]` - Enforces no semicolons
-- `@typescript-eslint/consistent-type-definitions: ["error", "interface"]` - Prefers interfaces over types
-- `import/no-default-export: "error"` - Enforces named exports (with Next.js exceptions)
-- `react/jsx-no-leaked-render: ["error", { validStrategies: ["ternary"] }]` - Prefers ternaries over && in JSX
-
-## Utility Libraries
-- **@vencura/lib**: Shared utility library for common operations
-  - **Async utilities**: `delay`, `fetchWithTimeout`
-  - **Error utilities**: `getErrorMessage`, `formatZodError`, `sanitizeErrorMessage`, `isZodError`
-  - **Date utilities**: `getDateKey`
-  - **Environment utilities**: `validateEnv`
-  - **Zod utilities**: `formatZodErrors`
-  - Import from `@vencura/lib`: `import { delay, getErrorMessage } from '@vencura/lib'`
-  - **Prefer @vencura/lib over custom implementations** for these utilities
-- **Prefer lodash over custom implementations** for common operations
-  - Use lodash for array manipulation (`isEmpty`, `uniq`, `groupBy`, `chunk`)
-  - Use lodash for object operations (`merge`, `pick`, `omit`, `isEmpty`)
-  - Use lodash for type checking (`isString`, `isNumber`, `isEmpty`, `isPlainObject`)
-  - Use lodash for string transformations (`camelCase`, `kebabCase`, `startCase`)
-  - Use lodash for functional utilities (`debounce`, `throttle`, `memoize`)
-  - Import specific functions: `import { isEmpty, uniq } from 'lodash'`
-- **Use zod for schema validation** (except NestJS DTOs which use class-validator)
-  - All schemas should use zod for runtime validation and type inference
-  - NestJS DTOs are the exception - they correctly use `class-validator` per NestJS conventions
-  - Use zod for environment variables, API responses, form validation, and tool parameters
-
-## ts-reset Type Safety
-
-This monorepo uses `@total-typescript/ts-reset` to enhance TypeScript's built-in type safety. The following changes apply automatically:
-
-- **`JSON.parse()` returns `unknown`**: Always validate parsed JSON data before use
-  - ✅ **Good**: `const data = mySchema.parse(JSON.parse(jsonString))` (validate with zod)
-  - ✅ **Good**: `const data = JSON.parse(jsonString) as Record<string, unknown>` (type assertion for test utilities)
-  - ❌ **Bad**: `const data = JSON.parse(jsonString); const value = data.property` (TypeScript error: property doesn't exist on unknown)
-
-- **`fetch().json()` returns `unknown`**: Always validate API responses before use
-  - ✅ **Good**: `const data = await response.json(); const validated = mySchema.parse(data)` (validate with zod)
-  - ✅ **Good**: `const data = (await response.json()) as Record<string, unknown>` (type assertion for test utilities)
-  - ❌ **Bad**: `const data = await response.json(); const value = data.property` (TypeScript error: property doesn't exist on unknown)
-
-- **`.filter(Boolean)` correctly filters falsy values**: Returns properly typed array without `undefined`, `null`, `false`, `0`, `NaN`, `""`
-  - ✅ **Good**: `const numbers = [1, 2, undefined, 3].filter(Boolean)` (type: `number[]`)
-
-- **`.includes()` on `as const` arrays**: Less strict type checking for array includes operations
-
-**Best Practice**: Since `JSON.parse()` and `response.json()` return `unknown`, always validate with zod schemas. This aligns with the monorepo's zod-first approach and ensures type safety at runtime.
-
-## Error Handling
-- Fail fast: Handle errors early using guard clauses & early returns
-- Place the happy path last for improved readability
-- Avoid unnecessary else statements; prefer `if-return` pattern
-- Throw errors from `@repo/errors` for consistency
-
-## File Structure & Organization
-Maintain a structured and logical order when organizing files:
-1. Main Component – The primary component that orchestrates logic and renders subcomponents
-2. Subcomponents – Smaller, reusable components that support the main component
-3. Helpers & Utilities – Functions or modules that provide reusable logic and utilities
-4. Static Content – Non-code assets such as constants, images, or localization files
-5. Types & Interfaces – Type definitions for TypeScript to ensure type safety and maintain consistency
-
-## Related Rules
-- See [React Rules](../frontend/react.mdc) for React-specific patterns
-- See [React Hooks Rules](../frontend/react-hooks.mdc) for hooks and data fetching patterns
-- See [Next.js Rules](../frontend/nextjs.mdc) for Next.js-specific patterns
+## Related
+- @.cursor/rules/base/linting.mdc - Linting architecture
+- @.cursor/rules/base/error-handling.mdc - Error patterns

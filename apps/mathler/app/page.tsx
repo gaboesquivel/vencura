@@ -1,5 +1,5 @@
-import { MathlerGame } from '@/components/mathler-game'
 import { ClientHydrationWrapper } from '@/components/client-hydration-wrapper'
+import { MathlerGame } from '@/components/mathler-game'
 
 export const dynamic = 'force-dynamic'
 

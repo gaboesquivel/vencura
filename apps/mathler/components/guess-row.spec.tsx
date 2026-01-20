@@ -1,5 +1,6 @@
 import { render, screen } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
+import { describe, expect, it, vi } from 'vitest'
 import { GuessRow } from './guess-row'
 
 describe('GuessRow', () => {
@@ -88,7 +89,7 @@ describe('GuessRow', () => {
   })
 
   it('should call onTileClick when tile is clicked', async () => {
-    const mockOnTileClick = jest.fn()
+    const mockOnTileClick = vi.fn()
     const user = userEvent.setup()
     const { container } = render(
       <GuessRow
@@ -108,7 +109,7 @@ describe('GuessRow', () => {
   })
 
   it('should not call onTileClick when not current row', async () => {
-    const mockOnTileClick = jest.fn()
+    const mockOnTileClick = vi.fn()
     const user = userEvent.setup()
     render(
       <GuessRow
@@ -121,7 +122,9 @@ describe('GuessRow', () => {
     )
 
     const cells = screen.getAllByText(/^[0-9]?$/)
-    await user.click(cells[0])
+    if (cells[0]) {
+      await user.click(cells[0])
+    }
 
     expect(mockOnTileClick).not.toHaveBeenCalled()
   })

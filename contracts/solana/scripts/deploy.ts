@@ -1,8 +1,8 @@
+import type { Program } from '@coral-xyz/anchor'
 import * as anchor from '@coral-xyz/anchor'
-import { Program } from '@coral-xyz/anchor'
-import { TestToken } from '../target/types/test_token'
 import { createMint, getMint } from '@solana/spl-token'
 import { PublicKey } from '@solana/web3.js'
+import type { TestToken } from '../target/types/test_token'
 
 async function main() {
   const provider = anchor.AnchorProvider.env()
@@ -22,7 +22,16 @@ async function main() {
 
   // Create a mint for testing
   const payer = provider.wallet as anchor.Wallet
-  const decimals = parseInt(process.env.DECIMALS || '9')
+  const decimalsRaw = process.env.DECIMALS || '9'
+  const decimalsParsed = parseInt(decimalsRaw, 10)
+
+  if (!Number.isInteger(decimalsParsed) || decimalsParsed < 0 || decimalsParsed > 9) {
+    throw new Error(
+      `Invalid DECIMALS value: ${decimalsRaw}. Must be an integer between 0 and 9 (SPL Token allowed range).`,
+    )
+  }
+
+  const decimals = decimalsParsed
 
   console.log(`Creating mint with ${decimals} decimals...`)
 

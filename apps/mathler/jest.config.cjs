@@ -13,7 +13,7 @@ const customJestConfig = {
   testEnvironment: 'jest-environment-jsdom',
   moduleNameMapper: {
     '^@/(.*)$': '<rootDir>/$1',
-    '^@workspace/ui/(.*)$': '<rootDir>/../../packages/ui/src/$1',
+    '^@repo/ui/(.*)$': '<rootDir>/../../packages/ui/src/$1',
     '^lucide-react$': '<rootDir>/jest.setup.lucide.js',
   },
   testMatch: ['**/*.spec.ts', '**/*.spec.tsx'],
@@ -30,4 +30,3 @@ const customJestConfig = {
 module.exports = createJestConfig(customJestConfig)
 /* eslint-enable @typescript-eslint/no-require-imports */
 /* eslint-enable no-undef */
-

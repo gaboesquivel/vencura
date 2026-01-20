@@ -9,13 +9,16 @@ A Mathler game built with Next.js - like Wordle but with numbers. Users have 6 g
 ## Features
 
 - ✅ Daily puzzles with changing target numbers
-- ✅ Dynamic SDK integration for authentication
+- ✅ Dynamic SDK integration for authentication (Ethereum & Solana wallet support)
+- ✅ Authentication guard - game requires sign-in before play
 - ✅ User history stored in Dynamic metadata
 - ✅ Color-coded feedback (green/yellow/grey tiles)
 - ✅ Order of operations support
+- ✅ Cumulative solutions support (e.g., `1+5*15` and `15*5+1` both win)
 - ✅ Keyboard and mouse controls
-- ✅ Voice input support
 - ✅ Responsive UI/UX design
+- ✅ Accessibility improvements (ARIA labels, keyboard navigation, screen reader support)
+- ✅ Concurrent rendering with React transitions for better performance
 - 🔜 Crypto-related features (NFT minting, token rewards, etc.)
 
 ## Tech Stack
@@ -25,20 +28,20 @@ A Mathler game built with Next.js - like Wordle but with numbers. Users have 6 g
 - TypeScript
 - Dynamic SDK
 - Tailwind CSS
-- Shadcn/ui components (via `@workspace/ui`)
+- Shadcn/ui components (via `@repo/ui`)
 - react-error-boundary for error handling
 - zod-validation-error for better validation error messages
 
 ## Design System & Dependencies
 
-This app uses `@workspace/ui` as the centralized design system:
+This app uses `@repo/ui` as the centralized design system:
 
-- **UI Components**: Import from `@workspace/ui/components/*`
-- **Radix Primitives**: Import from `@workspace/ui/radix`
-- **Utilities**: Import from `@workspace/ui/lib/utils`
-- **Icons**: Import from `lucide-react` via `@workspace/ui`
+- **UI Components**: Import from `@repo/ui/components/*`
+- **Radix Primitives**: Import from `@repo/ui/radix`
+- **Utilities**: Import from `@repo/ui/lib/utils`
+- **Icons**: Import from `lucide-react` via `@repo/ui`
 
-**Do NOT install** these design system dependencies directly in this app - they are managed centrally in `@workspace/ui`:
+**Do NOT install** these design system dependencies directly in this app - they are managed centrally in `@repo/ui`:
 
 - Any `@radix-ui/react-*` packages
 - `class-variance-authority`, `clsx`, `tailwind-merge`
@@ -58,51 +61,113 @@ This app follows **mobile-first responsive design**:
 
 See [Mobile-First Rules](../../.cursor/rules/frontend/mobile-first.mdc) for detailed guidelines.
 
+## Authentication
+
+Mathler requires authentication before playing. The app uses **Dynamic Labs** for wallet-based authentication supporting both **Ethereum** and **Solana** wallets.
+
+### How Authentication Works
+
+1. **Auth Guard Component**: The `AuthGuard` component wraps the game and checks authentication state:
+   - Shows loading spinner while Dynamic SDK initializes
+   - Displays `DynamicWidget` (login/register UI) if user is not authenticated
+   - Renders game content once user is authenticated
+
+2. **Authentication Flow**:
+   - User visits the app → Auth guard checks authentication
+   - If not authenticated → Shows DynamicWidget with sign-in options
+   - User signs in via email or wallet → Game becomes accessible
+   - Authentication state persists across sessions
+
+3. **Wallet Support**:
+   - **Ethereum wallets**: MetaMask, WalletConnect, Coinbase Wallet, etc.
+   - **Solana wallets**: Phantom, Solflare, etc.
+   - **Email authentication**: Magic link or OTP via Dynamic Labs
+
+### Authentication Implementation
+
+The authentication system consists of:
+
+- **`components/providers.tsx`**: Sets up `DynamicContextProvider` with Ethereum and Solana wallet connectors
+- **`components/auth-guard.tsx`**: Client component that guards game access and shows auth UI when needed
+- **`app/page.tsx`**: Wraps `MathlerGame` with `AuthGuard` to enforce authentication
+
+**Key Features:**
+- ✅ SSR-safe (client-side only initialization)
+- ✅ Graceful degradation when environment ID is missing
+- ✅ Loading states during SDK initialization
+- ✅ Automatic authentication state management
+- ✅ Multi-chain wallet support (Ethereum + Solana)
+- ✅ Error logging and monitoring for authentication events
+- ✅ Error boundary integration for graceful error handling
+
+### Authentication Monitoring
+
+The app includes logging and error handling for authentication events:
+
+- **Initialization Logging**: Logs when Dynamic SDK initializes with wallet connectors
+- **Authentication State Changes**: Logs when users authenticate or sign out (includes user ID, email, wallet address)
+- **Error Handling**: Authentication errors are captured via error boundary and Sentry (if configured)
+- **Production Monitoring**: Monitor authentication success/failure rates via logs
+
+Authentication events are logged using `@repo/utils/logger` and can be monitored in production environments. Configure Sentry (via `NEXT_PUBLIC_SENTRY_DSN`) for error tracking and monitoring.
+
 ## Getting Started
 
 ### Prerequisites
 
+- Bun >= 1.3.2
 - Node.js >= 20.0.0
-- pnpm (package manager)
 - Dynamic SDK environment ID (see Environment Variables below)
 
 ### Installation
 
 ```bash
 # From monorepo root
-pnpm install
+bun install
 
 # Or from this directory
 cd apps/mathler
-pnpm install
+bun install
 ```
 
 ### Running the Application
 
 ```bash
 # From monorepo root
-pnpm dev
+bun run dev
 
 # Or from this directory
 cd apps/mathler
-pnpm dev
+bun run dev
 ```
 
 The application will be available at `http://localhost:3002` (or the next available port).
 
 ### Environment Variables
 
-Create a `.env.local` file in the `apps/mathler` directory (you can copy from `.env.example`):
+This Next.js app uses environment-specific configuration files. Next.js automatically loads environment files in priority order:
 
-```env
-# Dynamic SDK Configuration
-# Get your Dynamic environment ID from https://app.dynamic.xyz/
-# Required for authentication to work properly
-NEXT_PUBLIC_DYNAMIC_ENVIRONMENT_ID=your_dynamic_environment_id
+1. `.env` (highest priority, sensitive data, never committed, overrides everything)
+2. `.env.development` / `.env.staging` / `.env.production` (based on NODE_ENV, committed configs)
 
-# Optional: Sentry error tracking
-NEXT_PUBLIC_SENTRY_DSN=https://your-sentry-dsn@sentry.io/project-id
-NEXT_PUBLIC_SENTRY_ENVIRONMENT=production
+**File Structure:**
+
+- `.env` - Sensitive data (API keys, tokens, secrets) - **NEVER COMMIT**
+- `.env.development` - Development configuration (committed, non-sensitive)
+- `.env.staging` - Staging configuration (committed, non-sensitive)
+- `.env.production` - Production configuration (committed, non-sensitive)
+- `.env-example` - Template for `.env` file (shows required sensitive variables)
+
+**Setup for Local Development:**
+
+```bash
+# Copy the example file for sensitive data
+cp .env-example .env
+
+# Fill in your actual sensitive values in .env
+# NEXT_PUBLIC_DYNAMIC_ENVIRONMENT_ID=your_dynamic_environment_id
+
+# .env.development is already committed with non-sensitive configs
 ```
 
 **Required Environment Variables:**
@@ -114,6 +179,27 @@ NEXT_PUBLIC_SENTRY_ENVIRONMENT=production
 - `NEXT_PUBLIC_SENTRY_DSN`: Sentry DSN URL for error tracking (optional, defaults to disabled)
 - `NEXT_PUBLIC_SENTRY_ENVIRONMENT`: Environment name for Sentry (optional, defaults to `NODE_ENV`)
 
+**Using Environment Variables in Code:**
+
+This app exports a validated environment configuration object (`env`) from `lib/env.ts`. Always import and use `env` instead of accessing `process.env` directly:
+
+```typescript
+import { env } from '@/lib/env'
+
+// Use env instead of process.env
+const envId = env.NEXT_PUBLIC_DYNAMIC_ENVIRONMENT_ID
+```
+
+The `env` object is validated at module load using `@t3-oss/env-nextjs` with Zod schemas. Validation fails fast in production if required variables are missing.
+
+**Environment-Specific Configuration:**
+
+- **Development** (`.env.development` + `.env`): Local development
+- **Staging** (`.env.staging` + `.env`): Staging environment
+- **Production** (`.env.production` + `.env`): Production environment
+
+**Note**: `.env.development`, `.env.staging`, and `.env.production` are committed files with non-sensitive configuration. Sensitive data (like `NEXT_PUBLIC_DYNAMIC_ENVIRONMENT_ID`) should be in `.env` file (never committed).
+
 **Getting Your Dynamic Environment ID:**
 
 1. Go to [app.dynamic.xyz](https://app.dynamic.xyz/)
@@ -124,23 +210,25 @@ NEXT_PUBLIC_SENTRY_ENVIRONMENT=production
 
 **Note**: If `NEXT_PUBLIC_DYNAMIC_ENVIRONMENT_ID` is not set, the app will use a placeholder ID and show warnings in development mode. Authentication will not work properly without a valid environment ID.
 
+See [ADR 014: Environment Strategy](../docs/content/docs/adrs/014-environment-strategy/index.mdx) for the complete architecture decision and [Environment Rules](../../.cursor/rules/base/environment.mdc) for implementation patterns.
+
 ## Development
 
 ```bash
 # Development mode
-pnpm dev
+bun run dev
 
 # Build for production
-pnpm build
+bun run build
 
 # Start production server
-pnpm start
+bun run start
 
 # Lint
-pnpm lint
+bun run lint
 
 # Type check
-pnpm typecheck
+bun run typecheck
 ```
 
 ## Testing
@@ -149,14 +237,28 @@ pnpm typecheck
 
 ```bash
 # Run unit tests
-pnpm test
+bun run test
 
 # Run tests in watch mode
-pnpm test:watch
+bun run test:watch
+
+# Run tests with UI mode (interactive)
+bun run test:ui
 
 # Run tests with coverage
-pnpm test:cov
+bun run test:cov
 ```
+
+**Testing Stack:**
+- **Vitest** - Fast unit testing framework with native ESM support
+- **@testing-library/react** - React component testing utilities
+- **jsdom** - DOM environment for browser-like testing
+- **@vitejs/plugin-react** - React JSX transform for Vitest (automatic runtime)
+
+**Testing Notes:**
+- Vitest is configured with `@vitejs/plugin-react` to handle JSX transforms automatically, matching Next.js's React runtime
+- Date-dependent tests (e.g., `getRandomTarget`, `generateSolutionEquation`) use `vi.useFakeTimers()` and `vi.setSystemTime()` for deterministic testing
+- All component tests use React Testing Library for black-box testing through public APIs
 
 ### E2E Tests
 
@@ -164,24 +266,63 @@ E2E tests use Playwright to test the application in a real browser environment.
 
 ```bash
 # Run e2e tests (builds and starts the app automatically)
-pnpm test:e2e
+bun run test:e2e
 
 # Run e2e tests with UI mode (interactive)
-pnpm test:e2e:ui
+bun run test:e2e:ui
 
 # Run e2e tests in debug mode
-pnpm test:e2e:debug
+bun run test:e2e:debug
 ```
 
 **E2E Test Coverage:**
 
+- Authentication flow (automatic sign-in via Sandbox environment)
 - Page loading and hydration
 - Game UI rendering (header, game board, keypad)
 - User interactions (keypad input, submit, backspace)
 - Responsive design on mobile viewports
 - Error handling and console error detection
 
-**Note**: E2E tests require the app to be built. The test runner will automatically build and start the production server before running tests.
+**E2E Test Configuration:**
+
+E2E tests use Dynamic Labs Sandbox environment for authentication. Configure the following in `.env.test`:
+
+```bash
+# Dynamic Labs Sandbox Environment ID (same as your .env file)
+NEXT_PUBLIC_DYNAMIC_ENVIRONMENT_ID=your_sandbox_environment_id
+
+# Base URL for E2E tests
+BASE_URL=http://localhost:3000
+
+# Test email for E2E authentication (must be configured in Dynamic Labs Sandbox)
+# This should be a test account email configured in your Dynamic Sandbox environment
+E2E_TEST_EMAIL=test@example.com
+
+# Static OTP for E2E authentication (configured in Dynamic Labs Sandbox environment)
+# This allows deterministic authentication in tests without email automation
+E2E_STATIC_OTP=123456
+```
+
+**Setting Up E2E Authentication:**
+
+1. **Configure Dynamic Labs Sandbox Test Account:**
+   - Go to your [Dynamic Labs Dashboard](https://app.dynamic.xyz/)
+   - Navigate to your Sandbox environment settings
+   - Enable "Test Accounts" or "Static OTP" feature
+   - Configure a test email and static OTP code
+
+2. **Update `.env.test`:**
+   - Copy `.env.test` if it doesn't exist
+   - Fill in `E2E_TEST_EMAIL` with your test account email
+   - Fill in `E2E_STATIC_OTP` with your configured static OTP
+
+3. **Run Tests:**
+   - The `auth.setup.ts` file automatically authenticates before running tests
+   - Authentication state is saved to `playwright/.auth/user.json`
+   - All E2E tests run with authenticated state
+
+**Note**: E2E tests require the app to be built. The test runner will automatically build and start the production server before running tests. Authentication happens automatically via the setup project in `playwright.config.ts`.
 
 ## Game Engine Documentation
 
@@ -194,9 +335,9 @@ Mathler is a daily puzzle game where players have **6 guesses** to find the equa
 1. **Target Number**: Each puzzle has a target number between 10-100, generated deterministically based on the date
 2. **Maximum Guesses**: Players have exactly 6 attempts to find the solution
 3. **Equation Length**: Solutions are always ≤ 9 characters (including operators and parentheses)
-4. **Win Condition**: To win, the guess must:
-   - Evaluate to the target number
-   - Match the solution equation exactly (character-for-character)
+4. **Win Condition**: To win, the guess must evaluate to the target number. **Cumulative solutions are supported** - any equation that evaluates to the target wins, not just the exact solution string.
+   - Examples: For target `76`, both `1+5*15` and `15*5+1` are winning solutions
+   - This allows multiple valid paths to the same answer
 
 #### Expression Constraints
 
@@ -372,7 +513,6 @@ Players can input guesses through multiple methods:
 
 - **Keyboard**: Type numbers and operators directly
 - **On-screen Keypad**: Click buttons to input characters
-- **Voice Input**: Speak numbers and operators (parsed and inserted)
 - **Cursor Navigation**: Click tiles or use arrow keys to move cursor
 
 **Input Constraints**:
@@ -423,15 +563,21 @@ After each guess:
 
 Player wins when:
 
-- The guess evaluates to the target number **AND**
-- The guess matches the solution equation exactly (character-for-character)
+- The guess evaluates to the target number
+
+**Cumulative Solutions Support**: Any equation that evaluates to the target wins, not just the exact solution string. This allows multiple valid paths to the same answer.
 
 **Example**:
 
-- Target: `15`
-- Solution: `"5+10"`
-- Valid winning guesses: `"5+10"` ✅
-- Invalid (evaluates correctly but wrong equation): `"3*5"` ❌ (evaluates to 15 but doesn't match solution)
+- Target: `76`
+- Solution: `"1+5*15"` (which equals 76)
+- Valid winning guesses:
+  - `"1+5*15"` ✅ (exact match)
+  - `"15*5+1"` ✅ (different order, same result)
+  - `"5*15+1"` ✅ (different order, same result)
+- Invalid (doesn't evaluate to target): `"1+5*14"` ❌ (equals 71, not 76)
+
+**Breaking Change**: Previously, the game required an exact character-for-character match with the solution. This has been changed to accept any equation that evaluates to the target. Existing saved games may show different win states after this change.
 
 #### 6. Loss Condition
 
@@ -499,11 +645,12 @@ mathler/
 │   ├── page.tsx           # Main page component
 │   └── layout.tsx         # Root layout
 ├── components/             # React components
+│   ├── auth-guard.tsx     # Authentication guard component
+│   ├── providers.tsx      # App providers (Dynamic, Theme, etc.)
 │   ├── mathler-game.tsx   # Main game component
 │   ├── guess-row.tsx      # Individual guess row display
 │   ├── game-keypad.tsx    # On-screen keypad
-│   ├── game-status.tsx    # Win/loss status display
-│   └── voice-control.tsx  # Voice input component
+│   └── game-status.tsx    # Win/loss status display
 ├── lib/                    # Utilities
 │   ├── math-utils.ts      # Expression evaluation & equation generation
 │   └── feedback-utils.ts  # Feedback calculation algorithm
@@ -511,6 +658,7 @@ mathler/
 │   ├── use-mathler-input.ts    # Input handling hook
 │   └── use-game-history.ts     # Game history persistence
 └── types/                  # TypeScript type definitions
+    └── user-metadata.ts    # Shared UserMetadata type for Dynamic SDK (extensible for crypto features)
 ```
 
 ## License

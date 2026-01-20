@@ -1,13 +1,16 @@
 'use client'
 
-import { useMemo } from 'react'
-import { useAsyncFn } from 'react-use'
-import { groupBy, sumBy } from 'lodash'
 import {
   useDynamicContext,
-  useUserUpdateRequest,
   useRefreshUser,
+  useUserUpdateRequest,
 } from '@dynamic-labs/sdk-react-core'
+import { getErrorMessage } from '@repo/error/nextjs'
+import groupBy from 'lodash-es/groupBy'
+import isPlainObject from 'lodash-es/isPlainObject'
+import sumBy from 'lodash-es/sumBy'
+import { useAsyncFn } from 'react-use'
+import type { UserMetadata } from '../types/user-metadata'
 
 export interface GameHistoryEntry {
   date: string // ISO date string (YYYY-MM-DD)
@@ -17,11 +20,6 @@ export interface GameHistoryEntry {
   status: 'won' | 'lost'
   guessCount: number
   completedAt: string // ISO timestamp
-}
-
-interface UserMetadata {
-  mathlerHistory?: GameHistoryEntry[]
-  [key: string]: unknown
 }
 
 interface GameStats {
@@ -37,17 +35,11 @@ export function useGameHistory() {
   const { updateUser } = useUserUpdateRequest()
   const refreshUser = useRefreshUser()
 
-  const history = useMemo(() => {
-    if (!user?.metadata) return []
-    const metadata = user.metadata as UserMetadata
-    return metadata.mathlerHistory ?? []
-  }, [user?.metadata])
+  const history = user?.metadata ? ((user.metadata as UserMetadata).mathlerHistory ?? []) : []
 
   const [saveGameState, saveGame] = useAsyncFn(
-    async (gameData: Omit<GameHistoryEntry, 'completedAt'>) => {
-      if (!user) {
-        throw new Error('Cannot save game: user not authenticated')
-      }
+    async (gameData: Omit<GameHistoryEntry, 'completedAt'>): Promise<boolean> => {
+      if (!user) throw new Error('Cannot save game: user not authenticated')
 
       const metadata = (user.metadata as UserMetadata) || {}
       const existingHistory = metadata.mathlerHistory ?? []
@@ -74,26 +66,16 @@ export function useGameHistory() {
       })
 
       // Check for updateUser errors or unsuccessful responses
-      if (!result) {
-        throw new Error('Failed to save game history: updateUser returned no result')
-      }
+      if (!result) throw new Error('Failed to save game history: updateUser returned no result')
 
       // Type-safe error checking
       const hasError =
-        typeof result === 'object' &&
-        result !== null &&
+        isPlainObject(result) &&
         ('error' in result || ('success' in result && result.success === false))
 
       if (hasError) {
         const errorMessage =
-          (typeof result === 'object' &&
-            result !== null &&
-            'error' in result &&
-            typeof result.error === 'object' &&
-            result.error !== null &&
-            'message' in result.error &&
-            typeof result.error.message === 'string' &&
-            result.error.message) ||
+          (isPlainObject(result) && 'error' in result && getErrorMessage(result.error)) ||
           'Failed to update user metadata. Please try again.'
         throw new Error(errorMessage)
       }
@@ -102,9 +84,7 @@ export function useGameHistory() {
       // (no verification required)
       const requiresVerification =
         result.isEmailVerificationRequired || result.isSmsVerificationRequired
-      if (!requiresVerification) {
-        await refreshUser()
-      }
+      if (!requiresVerification) await refreshUser()
 
       return !requiresVerification
     },

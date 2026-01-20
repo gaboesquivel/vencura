@@ -21,18 +21,16 @@ export function useMathlerInput({ maxLength, gameStatus, onSubmit }: UseMathlerI
     (char: string, position = state.cursor) => {
       if (gameStatus !== 'playing') return
       const next = state.input.slice(0, position) + char + state.input.slice(position)
-      if (next.length <= maxLength) {
-        setState({ input: next, cursor: position + 1 })
-      }
+      if (next.length <= maxLength) setState({ input: next, cursor: position + 1 })
     },
-    [state.input, state.cursor, maxLength, gameStatus, setState],
+    [gameStatus, state.cursor, state.input, maxLength, setState],
   )
 
   const backspace = useCallback(() => {
     if (gameStatus !== 'playing' || state.cursor === 0) return
     const next = state.input.slice(0, state.cursor - 1) + state.input.slice(state.cursor)
     setState({ input: next, cursor: state.cursor - 1 })
-  }, [state.input, state.cursor, gameStatus, setState])
+  }, [gameStatus, state.cursor, state.input, setState])
 
   const moveCursor = useCallback(
     (dir: 'left' | 'right') => {
@@ -44,7 +42,7 @@ export function useMathlerInput({ maxLength, gameStatus, onSubmit }: UseMathlerI
             : Math.min(state.input.length, state.cursor + 1),
       })
     },
-    [state.input.length, state.cursor, gameStatus, setState],
+    [gameStatus, state.cursor, state.input.length, setState],
   )
 
   const clear = useCallback(() => {
@@ -52,8 +50,8 @@ export function useMathlerInput({ maxLength, gameStatus, onSubmit }: UseMathlerI
     setState({ input: '', cursor: 0 })
   }, [gameStatus, setState])
 
-  const handleKey = useCallback(
-    (e: KeyboardEvent) => {
+  useEffect(() => {
+    const handleKey = (e: KeyboardEvent) => {
       if (gameStatus !== 'playing') return
 
       // Prevent default for game keys
@@ -65,9 +63,8 @@ export function useMathlerInput({ maxLength, gameStatus, onSubmit }: UseMathlerI
         e.key === 'Escape' ||
         e.key === 'ArrowLeft' ||
         e.key === 'ArrowRight'
-      ) {
+      )
         e.preventDefault()
-      }
 
       // Handle arrow keys for cursor navigation
       if (e.key === 'ArrowLeft') {
@@ -113,25 +110,19 @@ export function useMathlerInput({ maxLength, gameStatus, onSubmit }: UseMathlerI
         clear()
         return
       }
-    },
-    [gameStatus, insertAt, backspace, moveCursor, clear, state.input, onSubmit],
-  )
+    }
 
-  useEffect(() => {
     window.addEventListener('keydown', handleKey)
     return () => window.removeEventListener('keydown', handleKey)
-  }, [handleKey])
+  }, [gameStatus, state.input, moveCursor, clear, insertAt, backspace, onSubmit])
 
-  const reset = useCallback(() => {
+  const reset = () => {
     setState({ input: '', cursor: 0 })
-  }, [setState])
+  }
 
-  const setCursor = useCallback(
-    (pos: number) => {
-      setState({ cursor: pos })
-    },
-    [setState],
-  )
+  const setCursor = (pos: number) => {
+    setState({ cursor: pos })
+  }
 
   return {
     input: state.input,
