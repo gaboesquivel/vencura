@@ -8,7 +8,7 @@ export default defineConfig({
   workers: process.env.CI ? 1 : undefined,
   reporter: process.env.CI ? 'github' : 'html',
   use: {
-    baseURL: process.env.PLAYWRIGHT_TEST_BASE_URL || 'http://localhost:3000',
+    baseURL: process.env.PLAYWRIGHT_TEST_BASE_URL || 'http://localhost:3001',
     trace: 'on-first-retry',
     screenshot: 'only-on-failure',
   },
@@ -19,8 +19,8 @@ export default defineConfig({
     },
   ],
   webServer: {
-    command: `PORT=${process.env.PORT || '3000'} pnpm start`,
-    url: process.env.PLAYWRIGHT_TEST_BASE_URL || 'http://localhost:3000',
+    command: `PORT=${process.env.PORT || '3001'} pnpm start`,
+    url: process.env.PLAYWRIGHT_TEST_BASE_URL || 'http://localhost:3001',
     reuseExistingServer: !process.env.CI,
     timeout: 120000,
   },

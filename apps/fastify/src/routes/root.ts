@@ -8,7 +8,7 @@ const root: FastifyPluginAsync = async (fastify, _opts): Promise<void> => {
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Basilic API</title>
+  <title>Vencura API</title>
   <style>
     * { margin: 0; padding: 0; box-sizing: border-box; }
     body {
@@ -104,7 +104,7 @@ const root: FastifyPluginAsync = async (fastify, _opts): Promise<void> => {
 <body>
   <div class="container">
     <span class="badge">v1.0.0</span>
-    <h1>🌿 Basilic API</h1>
+    <h1>🌿 Vencura API</h1>
     <p class="subtitle">Type-safe REST API built with Fastify & OpenAPI</p>
     
     <h2>📚 Resources</h2>

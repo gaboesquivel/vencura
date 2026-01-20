@@ -8,7 +8,9 @@ import { getMDXComponents } from '@/mdx-components'
 
 export default async function Page(props: PageProps<'/docs/[[...slug]]'>) {
   const params = await props.params
-  const page = source.getPage(params.slug)
+  const slug =
+    params.slug === undefined ? undefined : Array.isArray(params.slug) ? params.slug : [params.slug]
+  const page = source.getPage(slug)
   if (!page) notFound()
 
   const MDX = page.data.body
@@ -35,7 +37,9 @@ export async function generateStaticParams() {
 
 export async function generateMetadata(props: PageProps<'/docs/[[...slug]]'>): Promise<Metadata> {
   const params = await props.params
-  const page = source.getPage(params.slug)
+  const slug =
+    params.slug === undefined ? undefined : Array.isArray(params.slug) ? params.slug : [params.slug]
+  const page = source.getPage(slug)
   if (!page) notFound()
 
   return {

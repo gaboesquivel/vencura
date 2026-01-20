@@ -3,7 +3,7 @@ import Link from 'next/link'
 export default function HomePage() {
   return (
     <div className="flex flex-col justify-center text-center flex-1 px-4">
-      <h1 className="text-4xl font-bold mb-4">Basilic</h1>
+      <h1 className="text-4xl font-bold mb-4">Vencura</h1>
       <p className="text-xl text-muted-foreground mb-8">
         A minimal boilerplate for AI and Web3 sites
       </p>

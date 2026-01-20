@@ -39,7 +39,7 @@ Documentation content in `content/docs/`:
 
 ## Documentation
 
-Live site: [https://basilic-docs.vercel.app/docs](https://basilic-docs.vercel.app/docs)
+Live site: [https://vencura-docs.vercel.app/docs](https://vencura-docs.vercel.app/docs)
 
 ### Key Guides
 

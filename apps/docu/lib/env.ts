@@ -3,7 +3,7 @@ import { z } from 'zod'
 
 export const env = createEnv({
   client: {
-    NEXT_PUBLIC_SITE_URL: z.string().url().default('https://docs.basilic.dev'),
+    NEXT_PUBLIC_SITE_URL: z.string().url().default('https://vencura-docs.vercel.app'),
   },
   runtimeEnv: {
     NEXT_PUBLIC_SITE_URL: process.env.NEXT_PUBLIC_SITE_URL,

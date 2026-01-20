@@ -61,7 +61,7 @@ The API can be deployed to multiple platforms with zero code changes:
 - **Google Cloud Run** (Production) - Containerized deployment
 - **AWS ECS/EC2** (Production) - Container or VM deployment
 
-See [Deployment Guide](https://basilic-docs.vercel.app/docs/guides/deployment) for detailed deployment instructions and [Portability Strategy](https://basilic-docs.vercel.app/docs/portability) for migration paths.
+See [Deployment Guide](https://vencura-docs.vercel.app/docs/guides/deployment) for detailed deployment instructions and [Portability Strategy](https://vencura-docs.vercel.app/docs/portability) for migration paths.
 
 ### Vercel Deployment
 

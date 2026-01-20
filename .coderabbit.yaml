@@ -73,7 +73,17 @@ reviews:
         - Ensure platform-specific exports are used (e.g., @repo/error/node vs @repo/error/nextjs)
         - Verify no root exports for packages with subpath exports
     
-    - path: "apps/next/**"
+    - path: "apps/wallet/**"
+      instructions: |
+        - Follow Next.js 15 App Router conventions
+        - Use React Server Components by default - only add 'use client' when absolutely necessary (interactivity, hooks, browser APIs)
+        - Validate error boundaries are in place using @repo/error/nextjs
+        - Check mobile-first responsive design patterns
+        - Ensure no console.* usage - use @repo/utils/logger instead
+        - Verify proper error handling with captureError from @repo/error/nextjs
+        - Check that pages/layouts use default exports (exception to named exports rule)
+    
+    - path: "apps/mathler/**"
       instructions: |
         - Follow Next.js 15 App Router conventions
         - Use React Server Components by default - only add 'use client' when absolutely necessary (interactivity, hooks, browser APIs)

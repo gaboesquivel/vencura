@@ -3,7 +3,7 @@ import { expect, test as setup } from '@playwright/test'
 const authFile = 'playwright/.auth/user.json'
 
 setup('authenticate', async ({ page }) => {
-  const baseURL = process.env.BASE_URL || 'http://localhost:3000'
+  const baseURL = process.env.BASE_URL || 'http://localhost:3002'
   const testEmail = process.env.E2E_TEST_EMAIL
   const staticOTP = process.env.E2E_STATIC_OTP
 

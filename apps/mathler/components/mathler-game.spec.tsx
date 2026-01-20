@@ -115,8 +115,11 @@ vi.mock('./guess-row', () => ({
     onTileClick?: (position: number) => void
   }) {
     const display = isCurrentRow ? currentInput : guess
+    // Only rows with actual guesses should be marked as 'past'
+    // Empty rows (no guess yet) should not have the 'past' test ID
+    const testId = isCurrentRow ? 'guess-row-current' : guess ? 'guess-row-past' : 'guess-row-empty'
     return (
-      <div data-testid={`guess-row-${isCurrentRow ? 'current' : 'past'}`}>
+      <div data-testid={testId}>
         {display}
         {onTileClick && isCurrentRow ? (
           <button onClick={() => onTileClick(0)} data-testid="tile-click-0">
@@ -137,23 +140,34 @@ vi.mock('./game-keypad', () => ({
     onBackspace,
     onSubmit,
     currentInput,
+    onInputAtPosition,
   }: {
     onInput: (value: string) => void
     onBackspace: () => void
     onSubmit: () => void
     currentInput: string
+    onInputAtPosition?: (char: string) => void
   }) {
     const numbers = ['0', '1', '2', '3', '4', '5', '6', '7', '8', '9']
     const operators = ['+', '-', '×', '÷']
+
+    const handleClick = (char: string) => {
+      if (onInputAtPosition) {
+        onInputAtPosition(char)
+      } else {
+        onInput(char)
+      }
+    }
+
     return (
       <div data-testid="game-keypad">
         {numbers.map(num => (
-          <button key={num} onClick={() => onInput(currentInput + num)}>
+          <button key={num} onClick={() => handleClick(num)}>
             {num}
           </button>
         ))}
         {operators.map(op => (
-          <button key={op} onClick={() => onInput(currentInput + op)}>
+          <button key={op} onClick={() => handleClick(op)}>
             {op}
           </button>
         ))}
@@ -209,6 +223,11 @@ describe('MathlerGame', () => {
 
   beforeEach(() => {
     vi.clearAllMocks()
+    // Clear mock call counts but keep implementations
+    mockEvaluateExpression.mockClear()
+    mockCalculateFeedback.mockClear()
+    mockGetRandomTarget.mockClear()
+    mockGenerateSolutionEquation.mockClear()
     // Set up default mocks
     mockGetRandomTarget.mockReturnValue(10)
     mockGenerateSolutionEquation.mockReturnValue('5+5')
@@ -369,9 +388,10 @@ describe('MathlerGame', () => {
     })
   })
 
-  it('should detect lose condition after 6 guesses', async () => {
+  it('should detect lose condition after 6 guesses', { timeout: 30000 }, async () => {
     const user = userEvent.setup()
-    mockEvaluateExpression.mockReturnValue(5) // Wrong answer
+    // Override mocks for this test (clear previous implementation)
+    mockEvaluateExpression.mockImplementation(() => 5) // Wrong answer
     mockCalculateFeedback.mockReturnValue(['absent', 'absent', 'absent'])
     render(<MathlerGame />)
 
@@ -387,15 +407,33 @@ describe('MathlerGame', () => {
       const submitButton = screen.getByRole('button', { name: 'Submit' })
       await user.click(submitButton)
 
-      await waitFor(() => {
-        expect(mockEvaluateExpression).toHaveBeenCalled()
-      })
+      // Wait for the guess to be processed and state updated
+      await waitFor(
+        () => {
+          expect(mockEvaluateExpression).toHaveBeenCalledTimes(i + 1)
+        },
+        { timeout: 2000 },
+      )
+
+      // Wait for state update to complete (startTransition)
+      await waitFor(
+        () => {
+          const pastRows = screen.getAllByTestId('guess-row-past')
+          expect(pastRows.length).toBe(i + 1)
+        },
+        { timeout: 2000 },
+      )
     }
 
-    await waitFor(() => {
-      expect(screen.getByTestId('game-status')).toBeInTheDocument()
-      expect(screen.getByText('lost')).toBeInTheDocument()
-    })
+    // Wait for game status to update to 'lost' after the 6th guess
+    // The game status should be set when guesses.length >= 6
+    await waitFor(
+      () => {
+        expect(screen.getByTestId('game-status')).toBeInTheDocument()
+        expect(screen.getByText('lost')).toBeInTheDocument()
+      },
+      { timeout: 5000 },
+    )
   })
 
   it('should reset game when reset button clicked', async () => {
@@ -414,23 +452,41 @@ describe('MathlerGame', () => {
     for (let i = 0; i < 6; i++) {
       await user.keyboard('1+2')
       await user.keyboard('{Enter}')
-      await waitFor(() => {
-        expect(mockEvaluateExpression).toHaveBeenCalled()
-      })
+      // Wait for the guess to be processed
+      await waitFor(
+        () => {
+          expect(mockEvaluateExpression).toHaveBeenCalled()
+        },
+        { timeout: 3000 },
+      )
+      // Wait for state update to complete
+      await waitFor(
+        () => {
+          const pastRows = screen.getAllByTestId('guess-row-past')
+          expect(pastRows.length).toBe(i + 1)
+        },
+        { timeout: 3000 },
+      )
     }
 
     // Wait for game to be lost and GameStatus to render
-    await waitFor(() => {
-      expect(screen.getByTestId('game-status')).toBeInTheDocument()
-    })
+    await waitFor(
+      () => {
+        expect(screen.getByTestId('game-status')).toBeInTheDocument()
+      },
+      { timeout: 5000 },
+    )
     // Click reset button (mocked component uses "Reset" text)
     const resetButton = screen.getByRole('button', { name: 'Reset' })
     await user.click(resetButton)
 
     // Should call getRandomTarget again
-    await waitFor(() => {
-      expect(mockGetRandomTarget).toHaveBeenCalledTimes(2)
-    })
+    await waitFor(
+      () => {
+        expect(mockGetRandomTarget).toHaveBeenCalledTimes(2)
+      },
+      { timeout: 5000 },
+    )
   })
 
   it('should handle keyboard input', async () => {
@@ -456,12 +512,24 @@ describe('MathlerGame', () => {
       expect(screen.getByTestId('game-keypad')).toBeInTheDocument()
     })
 
+    // Type the expression
     await user.keyboard('5+5')
+    // Wait for input to be set
+    await waitFor(() => {
+      const currentRow = screen.getByTestId('guess-row-current')
+      expect(currentRow.textContent).toContain('5+5')
+    })
+
+    // Submit with Enter
     await user.keyboard('{Enter}')
 
-    await waitFor(() => {
-      expect(mockEvaluateExpression).toHaveBeenCalledWith('5+5')
-    })
+    // Wait for evaluation to be called with correct input
+    await waitFor(
+      () => {
+        expect(mockEvaluateExpression).toHaveBeenCalledWith('5+5')
+      },
+      { timeout: 3000 },
+    )
   })
 
   it('should handle Backspace key', async () => {
@@ -495,14 +563,35 @@ describe('MathlerGame', () => {
     for (let i = 0; i < 6; i++) {
       await user.keyboard('1+2')
       await user.keyboard('{Enter}')
-      await waitFor(() => {
-        expect(mockEvaluateExpression).toHaveBeenCalled()
-      })
+      // Wait for the guess to be processed
+      await waitFor(
+        () => {
+          expect(mockEvaluateExpression).toHaveBeenCalled()
+        },
+        { timeout: 3000 },
+      )
+      // Wait for state update to complete
+      await waitFor(
+        () => {
+          const pastRows = screen.getAllByTestId('guess-row-past')
+          expect(pastRows.length).toBe(i + 1)
+        },
+        { timeout: 3000 },
+      )
     }
+
+    // Wait for game to be lost - keypad should be removed and game status shown
+    await waitFor(
+      () => {
+        expect(screen.queryByTestId('game-keypad')).not.toBeInTheDocument()
+        expect(screen.getByTestId('game-status')).toBeInTheDocument()
+      },
+      { timeout: 5000 },
+    )
 
     // Try to input after game is lost
     await user.keyboard('9')
-    // Should not accept input
+    // Should not accept input - current row should not be rendered when game is not playing
     const currentRow = screen.queryByTestId('guess-row-current')
     expect(currentRow).not.toBeInTheDocument()
   })

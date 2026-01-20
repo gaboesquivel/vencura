@@ -18,7 +18,7 @@ Create `.env.local` files in each app:
 DATABASE_URL=postgresql://user:pass@localhost:5432/dbname
 PORT=3001
 
-# apps/next/.env.local
+# apps/wallet/.env.local
 NEXT_PUBLIC_API_URL=http://localhost:3001
 ```
 
@@ -26,7 +26,7 @@ NEXT_PUBLIC_API_URL=http://localhost:3001
 
 All apps use **t3-env** for environment variable validation:
 
-- **Next.js apps** (`apps/next`, `apps/docu`): Use `@t3-oss/env-nextjs`
+- **Next.js apps** (`apps/wallet`, `apps/mathler`, `apps/docu`): Use `@t3-oss/env-nextjs`
 - **Node/Fastify apps** (`apps/fastify`): Use `@t3-oss/env-core`
 
 ### Next.js Apps
@@ -114,13 +114,13 @@ const apiUrl = process.env.NEXT_PUBLIC_API_URL
 - `PORT` - Server port (default: 3000)
 - `HOST` - Server host (default: 0.0.0.0)
 
-### Web (`apps/next`)
+### Web (`apps/wallet`)
 
 - `NEXT_PUBLIC_API_URL` - API base URL (required)
 
 ### Docs (`apps/docu`)
 
-- `NEXT_PUBLIC_SITE_URL` - Site URL for metadata (default: https://docs.basilic.dev)
+- `NEXT_PUBLIC_SITE_URL` - Site URL for metadata (default: https://vencura-docs.vercel.app)
 
 ## Important Notes
 

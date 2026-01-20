@@ -1,6 +1,6 @@
 # @repo/utils package
 
-Shared utility library for common operations across the Basilic monorepo. Follows Linux philosophy: small, focused utilities that compose well.
+Shared utility library for common operations across the Vencura monorepo. Follows Linux philosophy: small, focused utilities that compose well.
 
 ## Key Principles
 

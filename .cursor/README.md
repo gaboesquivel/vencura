@@ -17,14 +17,14 @@ AI-assisted development configuration for this codebase. Contains rules, command
 
 ### Workflow Documentation
 
-Human-facing workflow documentation for AI-assisted development is now in the [documentation site](https://basilic-docs.vercel.app/docs/cursor-workflow).
+Human-facing workflow documentation for AI-assisted development is now in the [documentation site](https://vencura-docs.vercel.app/docs/cursor-workflow).
 
-**Start here:** [Cursor Workflow Overview](https://basilic-docs.vercel.app/docs/cursor-workflow)
+**Start here:** [Cursor Workflow Overview](https://vencura-docs.vercel.app/docs/cursor-workflow)
 
 Key guides:
-- [Quick Start](https://basilic-docs.vercel.app/docs/cursor-workflow/quick-start) - 5-minute reference card with essential patterns
-- [Complete Workflow](https://basilic-docs.vercel.app/docs/cursor-workflow/complete-workflow) - Complete development lifecycle (discovery → architecture → planning → execution → review)
-- [Extensions](https://basilic-docs.vercel.app/docs/cursor-workflow/extensions) - VS Code/Cursor extensions and their roles
+- [Quick Start](https://vencura-docs.vercel.app/docs/cursor-workflow/quick-start) - 5-minute reference card with essential patterns
+- [Complete Workflow](https://vencura-docs.vercel.app/docs/cursor-workflow/complete-workflow) - Complete development lifecycle (discovery → architecture → planning → execution → review)
+- [Extensions](https://vencura-docs.vercel.app/docs/cursor-workflow/extensions) - VS Code/Cursor extensions and their roles
 
 ### Rules (`rules/`)
 
@@ -42,9 +42,14 @@ Please apply @.cursor/rules/base/typescript.mdc when refactoring this code.
 ```
 
 **Guidelines:**
-- Focused and actionable (~1.5K words max)
-- Include frontmatter with description and file patterns
-- Provide code examples
+- **Brutally concise**: Focused and actionable, remove duplication and verbose examples
+- **No duplication**: Each concept lives in one place (e.g., Biome/ESLint only in `linting.mdc`, error handling only in `error-handling.mdc`)
+- **No code examples from skills**: Remove examples that exist in skills (TanStack Query, Fastify routes, CVA patterns, etc.)
+- **Focused scope**: Each rule covers only what its filename/description targets
+- **Industry conventions**: Keep basic patterns and framework conventions, remove verbose explanations
+- **Reference, don't repeat**: Use `@` references to other rules/docs instead of re-explaining
+- **Iterate**: Add rules when AI produces undesirable output or forgets standards
+- **Centralize**: Single source of truth—consolidate standards here, not elsewhere
 
 ### Commands (`commands/`)
 
@@ -87,8 +92,8 @@ Model Context Protocol (MCP) servers extend Cursor with specialized capabilities
 - `shadcnui-jpisnice-react` - shadcn/ui v4 blocks, demos, and page templates for React (requires `GITHUB_TOKEN`)
 - `github` - Repository operations, issue management, and GitHub Actions logs (requires `GITHUB_TOKEN`)
 - `coderabbit` - CodeRabbit AI code review comments and PR insights (requires `GITHUB_TOKEN`)
-- `basilic-docs` - Basilic project documentation context (no auth required)
-- `basilic-api` - Basilic API package context (no auth required)
+- `vencura-docu` - Vencura project documentation context (no auth required)
+- `vencura-fastify` - Vencura API package context (no auth required)
 
 **Note:** `shadcnui-jpisnice-react-native` exists for future React Native support but is not included in the current React workflow.
 

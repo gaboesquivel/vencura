@@ -1,4 +1,4 @@
-# Basilic
+# Vencura
 
 TypeScript monorepo with REST API architecture.
 
@@ -59,7 +59,7 @@ See [Security Guide](@apps/docu/content/docs/security/index.mdx) for complete de
 
 ## Documentation
 
-Full documentation: [https://basilic-docs.vercel.app/docs](https://basilic-docs.vercel.app/docs)
+Full documentation: [https://vencura-docs.vercel.app/docs](https://vencura-docs.vercel.app/docs)
 
 ### Get Started
 - [Getting Started](@apps/docu/content/docs/getting-started/index.mdx) - 15-minute setup guide

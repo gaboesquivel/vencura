@@ -3,7 +3,7 @@ import {
   useRefreshUser,
   useUserUpdateRequest,
 } from '@dynamic-labs/sdk-react-core'
-import { renderHook, waitFor } from '@testing-library/react'
+import { act, renderHook, waitFor } from '@testing-library/react'
 import { describe, expect, it, vi } from 'vitest'
 import { useUserSettings } from './use-user-settings'
 
@@ -96,7 +96,9 @@ describe('useUserSettings', () => {
       expect(result.current.difficulty).toBe('medium')
     })
 
-    await result.current.setDifficulty('hard')
+    await act(async () => {
+      await result.current.setDifficulty('hard')
+    })
 
     await waitFor(() => {
       expect(mockUpdateUser).toHaveBeenCalledWith({
@@ -133,7 +135,9 @@ describe('useUserSettings', () => {
       expect(result.current.theme).toBe('system')
     })
 
-    await result.current.setTheme('dark')
+    await act(async () => {
+      await result.current.setTheme('dark')
+    })
 
     await waitFor(() => {
       expect(mockUpdateUser).toHaveBeenCalledWith({
@@ -170,7 +174,9 @@ describe('useUserSettings', () => {
       expect(result.current.difficulty).toBe('medium')
     })
 
-    await result.current.setDifficulty('easy')
+    await act(async () => {
+      await result.current.setDifficulty('easy')
+    })
 
     await waitFor(() => {
       expect(result.current.saveSettingsError).toBeTruthy()

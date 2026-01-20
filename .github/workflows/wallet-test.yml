@@ -1,23 +1,23 @@
-name: Next Application Tests
+name: Wallet Application Tests
 
 on:
   pull_request:
     paths:
-      - 'apps/next/**'
+      - 'apps/wallet/**'
       - 'packages/**'
       - 'pnpm-lock.yaml'
   push:
     branches:
       - main
     paths:
-      - 'apps/next/**'
+      - 'apps/wallet/**'
       - 'packages/**'
       - 'pnpm-lock.yaml'
   workflow_dispatch:
 
 jobs:
-  web-tests:
-    name: Web Tests
+  wallet-tests:
+    name: Wallet Tests
     runs-on: ubuntu-latest
     env:
       OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
@@ -54,4 +54,4 @@ jobs:
         run: pnpm install --frozen-lockfile
 
       - name: Run web tests
-        run: pnpm turbo run test --filter @repo/next
+        run: pnpm turbo run test --filter @repo/wallet

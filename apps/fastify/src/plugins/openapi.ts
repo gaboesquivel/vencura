@@ -8,9 +8,9 @@ const openapi: FastifyPluginAsync = async fastify => {
   await fastify.register(swagger, {
     openapi: {
       info: {
-        title: 'Basilic API',
+        title: 'Vencura API',
         version: '1.0.0',
-        description: 'Basilic API documentation',
+        description: 'Vencura API documentation',
       },
     },
   })

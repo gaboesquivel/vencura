@@ -41,12 +41,12 @@
       },
       "description": "Expose CodeRabbit PR review comments via MCP"
     },
-    "basilic-docu": {
-      "url": "https://mcp.vercel.com/gaboesquivel/basilic-docu",
+    "vencura-docu": {
+      "url": "https://mcp.vercel.com/gaboesquivel/vencura-docu",
       "description": "Vercel project documentation context"
     },
-    "basilic-fastify": {
-      "url": "https://mcp.vercel.com/gaboesquivel/basilic-fastify",
+    "vencura-fastify": {
+      "url": "https://mcp.vercel.com/gaboesquivel/vencura-fastify",
       "description": "Vercel Fastify API package context"
     }
   }

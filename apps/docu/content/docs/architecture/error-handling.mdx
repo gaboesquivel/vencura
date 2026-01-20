@@ -275,7 +275,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
 If you need more control, you can build a custom error boundary:
 
 ```typescript
-// apps/next/components/error-boundary.tsx
+// apps/wallet/components/error-boundary.tsx
 'use client'
 
 import { captureError } from '@repo/error/nextjs'
@@ -753,7 +753,7 @@ describe('captureError', () => {
 ### Testing Error Boundaries
 
 ```typescript
-// apps/next/__tests__/error-boundary.test.tsx
+// apps/wallet/__tests__/error-boundary.test.tsx
 import { render, screen } from '@testing-library/react'
 import { ErrorBoundary } from '../components/error-boundary'
 import { captureError } from '@repo/error/nextjs'

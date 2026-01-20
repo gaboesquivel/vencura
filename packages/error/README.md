@@ -242,7 +242,7 @@ import { captureError } from '@repo/error/nextjs' // or /node, /browser
 ### Next.js
 
 ```typescript
-// apps/next/instrumentation.ts
+// apps/wallet/instrumentation.ts
 import { initSentry } from '@repo/error/nextjs'
 
 export async function register() {

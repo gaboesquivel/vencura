@@ -7,7 +7,9 @@ export const revalidate = false
 
 export async function GET(_req: Request, { params }: RouteContext<'/og/docs/[...slug]'>) {
   const { slug } = await params
-  const page = source.getPage(slug.slice(0, -1))
+  if (!slug) notFound()
+  const slugArray = Array.isArray(slug) ? slug : [slug]
+  const page = source.getPage(slugArray.slice(0, -1))
   if (!page) notFound()
 
   return new ImageResponse(

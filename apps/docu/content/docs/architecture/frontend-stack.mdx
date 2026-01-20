@@ -47,7 +47,7 @@ This integration accelerates development by allowing AI to generate production-r
 ```mermaid
 flowchart TB
   subgraph Apps["Applications"]
-    Web["apps/next<br/>(Next.js)"]
+    Wallet["apps/wallet<br/>(Next.js)"]
     Docs["apps/docu<br/>(Fumadocs)"]
   end
 
@@ -60,7 +60,7 @@ flowchart TB
     Tailwind["Tailwind CSS<br/>(Styling)"]
   end
 
-  Web --> UI
+  Wallet --> UI
   Docs --> UI
   UI --> Radix
   UI --> Tailwind
@@ -72,7 +72,7 @@ Components are organized in the `@repo/ui` package:
 
 - **Base components** - Button, Input, Card, etc. (from Shadcn/ui)
 - **Custom components** - Domain-specific components built on base
-- **Shared across apps** - Used by `apps/next`, `apps/docu`, and other frontend apps
+- **Shared across apps** - Used by `apps/wallet`, `apps/mathler`, `apps/docu`, and other frontend apps
 
 ## Development Workflow
 
@@ -198,7 +198,7 @@ const [filters, setFilters] = useQueryStates({
 
 ```tsx
 'use server'
-import { type ActionResult, success, failure } from '@repo/next'
+import { type ActionResult, success, failure } from '@repo/wallet'
 import { createSafeActionClient } from 'next-safe-action'
 
 export const saveAction = createSafeActionClient()

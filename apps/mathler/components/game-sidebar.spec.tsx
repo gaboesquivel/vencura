@@ -69,6 +69,30 @@ vi.mock('@repo/ui/components/select', () => ({
   ),
 }))
 
+// Mock Tabs component
+vi.mock('@repo/ui/components/tabs', () => ({
+  Tabs: ({ children, defaultValue }: { children: React.ReactNode; defaultValue?: string }) => (
+    <div data-testid="tabs" data-default-value={defaultValue}>
+      {children}
+    </div>
+  ),
+  TabsList: ({ children }: { children: React.ReactNode }) => (
+    <div role="tablist" data-testid="tabs-list">
+      {children}
+    </div>
+  ),
+  TabsTrigger: ({ children, value }: { children: React.ReactNode; value: string }) => (
+    <button role="tab" data-testid={`tabs-trigger-${value}`} data-value={value}>
+      {children}
+    </button>
+  ),
+  TabsContent: ({ children, value }: { children: React.ReactNode; value: string }) => (
+    <div role="tabpanel" data-testid={`tabs-content-${value}`} data-value={value}>
+      {children}
+    </div>
+  ),
+}))
+
 // Mock next-themes
 vi.mock('next-themes', () => ({
   useTheme: vi.fn(() => ({

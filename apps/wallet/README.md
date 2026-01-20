@@ -43,7 +43,7 @@ pnpm install
 pnpm dev
 
 # Or from this directory
-cd apps/next
+cd apps/wallet
 pnpm dev
 ```
 
@@ -56,7 +56,7 @@ The application will be available at `http://localhost:3000` (or the next availa
 pnpm build
 
 # Or build just this app
-cd apps/next
+cd apps/wallet
 pnpm build
 ```
 
@@ -107,8 +107,8 @@ See `components/providers.tsx` for the provider setup.
 
 This app includes a `vercel.json` configuration file. If deploying to Vercel:
 
-1. **Root Directory**: Set the root directory to `apps/next` in Vercel project settings
-2. **Build Command**: Should be `cd ../.. && pnpm build --filter=@repo/next` (configured in `vercel.json`)
+1. **Root Directory**: Set the root directory to `apps/wallet` in Vercel project settings
+2. **Build Command**: Should be `cd ../.. && pnpm build --filter=@repo/wallet` (configured in `vercel.json`)
 3. **Install Command**: Should be `cd ../.. && pnpm install` (configured in `vercel.json`)
 
 **Important**: If you see build errors about a package named "mathler" or any other incorrect filter, check your Vercel project settings and ensure they match the `vercel.json` configuration. Vercel project settings override `vercel.json`, so make sure they're aligned.
