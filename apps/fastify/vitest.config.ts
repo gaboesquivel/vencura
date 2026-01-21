@@ -19,9 +19,6 @@ if (!process.env.NODE_ENV) {
 if (!process.env.DATABASE_URL) {
   process.env.DATABASE_URL = 'postgresql://localhost/test'
 }
-if (!process.env.OPENAI_API_KEY) {
-  process.env.OPENAI_API_KEY = 'test-openai-key'
-}
 if (!process.env.ENCRYPTION_KEY) {
   process.env.ENCRYPTION_KEY = '0000000000000000000000000000000000000000000000000000000000000000'
 }

@@ -10,6 +10,7 @@ process.env.ENCRYPTION_KEY =
 // Dynamic env vars are passed from CI secrets if available
 // They're optional and will be undefined if not provided
 
+import { logger } from '@repo/utils/logger'
 import { afterAll, beforeAll } from 'vitest'
 import { runMigrations } from './src/db/migrate.js'
 import { closeTestDatabase, getTestDatabase } from './test/utils/db.js'
@@ -17,14 +18,16 @@ import { closeTestDatabase, getTestDatabase } from './test/utils/db.js'
 beforeAll(async () => {
   await getTestDatabase()
 
-  // Try to run migrations if they exist
+  // Run migrations if they exist
+  // Errors are logged and rethrown to fail tests on migration regressions
   try {
     await runMigrations({
-      info: () => {},
-      error: () => {},
+      info: (msg: string) => logger.info({ migration: true }, msg),
+      error: (msg: string, err?: unknown) => logger.error({ migration: true, error: err }, msg),
     })
-  } catch {
-    // Migrations failed or don't exist, continue to manual setup
+  } catch (err) {
+    logger.error({ migration: true, error: err }, 'Migration failed')
+    throw err
   }
 
   // Fallback: Create tables manually using SQL
