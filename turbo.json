@@ -41,7 +41,10 @@
         "RESEND_API_KEY",
         "EMAIL_FROM",
         "APP_URL",
-        "EMAIL_ASSETS_URL"
+        "EMAIL_ASSETS_URL",
+        "ENCRYPTION_KEY",
+        "DYNAMIC_API_TOKEN",
+        "DYNAMIC_ENVIRONMENT_ID"
       ]
     },
     "lint": {
