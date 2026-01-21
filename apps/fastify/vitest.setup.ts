@@ -3,34 +3,21 @@
 process.env.DATABASE_URL = 'postgresql://localhost/test'
 process.env.NODE_ENV = 'test'
 
-import { readdir } from 'node:fs/promises'
-import { dirname, join } from 'node:path'
-import { fileURLToPath } from 'node:url'
-import { migrate as migratePGLite } from 'drizzle-orm/pglite/migrator'
 import { afterAll, beforeAll } from 'vitest'
-import { getDb } from './src/db/index.js'
+import { runMigrations } from './src/db/migrate.js'
 import { closeTestDatabase, getTestDatabase } from './test/utils/db.js'
-
-const __filename = fileURLToPath(import.meta.url)
-const __dirname = dirname(__filename)
 
 beforeAll(async () => {
   await getTestDatabase()
-  const db = await getDb()
 
   // Try to run migrations if they exist
-  const migrationsDir = join(__dirname, '..', 'src', 'db', 'migrations')
   try {
-    const files = await readdir(migrationsDir)
-    const sqlFiles = files.filter(file => file.endsWith('.sql'))
-    if (sqlFiles.length > 0) {
-      await migratePGLite(db as Parameters<typeof migratePGLite>[0], {
-        migrationsFolder: migrationsDir,
-      })
-      return
-    }
+    await runMigrations({
+      info: () => {},
+      error: () => {},
+    })
   } catch {
-    // Migrations directory doesn't exist, continue to manual setup
+    // Migrations failed or don't exist, continue to manual setup
   }
 
   // Fallback: Create tables manually using SQL
