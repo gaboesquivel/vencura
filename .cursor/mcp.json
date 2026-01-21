@@ -43,11 +43,19 @@
     },
     "vencura-docu": {
       "url": "https://mcp.vercel.com/gaboesquivel/vencura-docu",
-      "description": "Vercel project documentation context"
+      "description": "Vercel Vencura project documentation context"
     },
     "vencura-fastify": {
       "url": "https://mcp.vercel.com/gaboesquivel/vencura-fastify",
-      "description": "Vercel Fastify API package context"
+      "description": "Vercel Vencura Fastify API context"
+    },
+    "vencura-wallet": {
+      "url": "https://mcp.vercel.com/gaboesquivel/vencura-wallet",
+      "description": "Vercel Vencura Wallet context"
+    },
+    "vencura-mathler": {
+      "url": "https://mcp.vercel.com/gaboesquivel/vencura-mathler",
+      "description": "Vercel Vencura Mathler context"
     }
   }
 }

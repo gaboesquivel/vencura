@@ -1,6 +1,19 @@
 // Learn more: https://github.com/testing-library/jest-dom
 import '@testing-library/jest-dom/vitest'
+import { configure } from '@testing-library/react'
 import { afterAll, beforeAll } from 'vitest'
+
+// Configure Testing Library to reduce verbose HTML output on test failures
+configure({
+  getElementError: message => {
+    const error = new Error(message)
+    error.name = 'TestingLibraryElementError'
+    // Don't include full HTML in error message to reduce verbosity
+    return error
+  },
+  // Reduce default debug print limit
+  defaultHidden: true,
+})
 
 // Suppress React act warnings for keyboard events
 // These warnings occur because keyboard event handlers trigger state updates

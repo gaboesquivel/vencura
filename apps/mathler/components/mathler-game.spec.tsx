@@ -379,13 +379,31 @@ describe('MathlerGame', () => {
 
     // Input cumulative solution '15*5+1' instead of '1+5*15'
     await user.keyboard('15*5+1')
+
+    // Verify input was entered correctly before submitting
+    await waitFor(() => {
+      const currentRow = screen.getByTestId('guess-row-current')
+      expect(currentRow.textContent).toContain('15*5+1')
+    })
+
     await user.keyboard('{Enter}')
 
-    // Should detect win even though it's not the exact solution
-    await waitFor(() => {
-      expect(mockEvaluateExpression).toHaveBeenCalledWith('15*5+1')
-      expect(screen.getByTestId('success-modal')).toBeInTheDocument()
-    })
+    // Wait for evaluation to be called
+    await waitFor(
+      () => {
+        expect(mockEvaluateExpression).toHaveBeenCalledWith('15*5+1')
+      },
+      { timeout: 2000 },
+    )
+
+    // Wait for transition to complete and success modal to appear
+    // The component uses startTransition which defers state updates
+    await waitFor(
+      () => {
+        expect(screen.getByTestId('success-modal')).toBeInTheDocument()
+      },
+      { timeout: 5000 },
+    )
   })
 
   it('should detect lose condition after 6 guesses', { timeout: 30000 }, async () => {
