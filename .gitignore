@@ -57,3 +57,5 @@ __dev__dev
 
 # Package publish temp files
 .package-originals.json
+
+.react-email

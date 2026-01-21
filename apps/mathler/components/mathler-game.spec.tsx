@@ -313,7 +313,13 @@ describe('MathlerGame', () => {
     const user = userEvent.setup()
     mockEvaluateExpression.mockReturnValue(10)
     mockCalculateFeedback.mockReturnValue(['correct', 'correct', 'correct'])
-    render(<MathlerGame />)
+    await act(async () => {
+      render(<MathlerGame />)
+    })
+
+    await waitFor(() => {
+      expect(screen.getByTestId('game-keypad')).toBeInTheDocument()
+    })
 
     // Input the solution
     const button5 = screen.getByRole('button', { name: '5' })
@@ -325,9 +331,13 @@ describe('MathlerGame', () => {
     const submitButton = screen.getByRole('button', { name: 'Submit' })
     await user.click(submitButton)
 
-    await waitFor(() => {
-      expect(mockCalculateFeedback).toHaveBeenCalledWith('5+5', '5+5')
-    })
+    // Wait for the transition to complete and feedback to be calculated
+    await waitFor(
+      () => {
+        expect(mockCalculateFeedback).toHaveBeenCalledWith('5+5', '5+5')
+      },
+      { timeout: 5000 },
+    )
   })
 
   it('should detect win condition', async () => {
@@ -352,9 +362,13 @@ describe('MathlerGame', () => {
     const submitButton = screen.getByRole('button', { name: 'Submit' })
     await user.click(submitButton)
 
-    await waitFor(() => {
-      expect(screen.getByTestId('success-modal')).toBeInTheDocument()
-    })
+    // Wait for transition to complete and success modal to appear
+    await waitFor(
+      () => {
+        expect(screen.getByTestId('success-modal')).toBeInTheDocument()
+      },
+      { timeout: 5000 },
+    )
   })
 
   it('should accept cumulative solutions (e.g., 1+5*15 === 15*5+1)', async () => {

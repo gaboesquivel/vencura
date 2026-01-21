@@ -6,6 +6,7 @@ export const env = createEnv({
     PORT: z.coerce.number().int().positive().default(3000),
     HOST: z.string().default('0.0.0.0'),
     NODE_ENV: z.enum(['development', 'test', 'production']).default('development'),
+    PGLITE: z.coerce.boolean().default(false),
     DATABASE_URL: z.string().min(1),
     REDIS_URL: z.string().min(1).optional(),
     SENTRY_DSN: z.string().min(1).optional(),

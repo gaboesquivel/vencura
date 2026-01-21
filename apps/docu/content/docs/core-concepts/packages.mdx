@@ -301,8 +301,64 @@ import debounce from "lodash-es/debounce"
 import { isEmpty, debounce } from "lodash-es"
 ```
 
+## Additional Packages
+
+### `@repo/email` - Email Templates
+
+Email template library built with React Email.
+
+**Exports:**
+- `@repo/email/emails/*` - Individual email template components
+- `@repo/email/render` - Email rendering utilities
+- `@repo/email/locales` - Internationalization support
+
+**Usage:**
+```typescript
+import { WelcomeEmail } from "@repo/email/emails/welcome"
+import { render } from "@repo/email/render"
+
+const html = await render(<WelcomeEmail name="John" />)
+```
+
+**Dependency Strategy**: Template library - bundles template dependencies (`date-fns`, `@react-email/components`) for simplicity. Only `react` is a peer dependency.
+
+### `@repo/notif` - Notification Service
+
+Notification service library for sending notifications across different channels.
+
+**Exports:**
+- `createNotifications()` - Factory function to create notification service
+- `Notifications` - Class wrapper for backward compatibility
+- `@repo/notif/types/*` - Type-safe notification type definitions
+
+**Usage:**
+```typescript
+import { createNotifications } from "@repo/notif"
+// or
+import { Notifications } from "@repo/notif"
+
+// Using factory function (recommended)
+const notifications = createNotifications()
+await notifications.create({
+  type: "transactions_created",
+  payload: {
+    users: [{ id: "user_123", full_name: "John Doe", email: "john@example.com", team_id: "team_123" }],
+    transactions: [{ id: "tx_123", name: "Purchase", amount: 1000, currency: "USD", date: "2024-01-01" }],
+  },
+})
+
+// Using class wrapper
+const service = new Notifications()
+await service.create("transactions_created", {
+  users: [{ id: "user_123", full_name: "John Doe", email: "john@example.com", team_id: "team_123" }],
+  transactions: [{ id: "tx_123", name: "Purchase", amount: 1000, currency: "USD", date: "2024-01-01" }],
+})
+```
+
+**Dependency Strategy**: Service library - bundles tightly-coupled dependencies (`zod` for schemas, `nanoid`, `resend`) for simplicity. Uses peer dependency for `@t3-oss/env-core` (environment setup is consumer's responsibility).
+
 ## Related Documentation
 
 - [Monorepo Structure](/docs/core-concepts/monorepo-structure) - Overall monorepo architecture
 - [ESM Strategy](/docs/architecture/esm-strategy) - Module system architecture
-- [Package Conventions](/docs/architecture/package-conventions) - Package organization
+- [Package Conventions](/docs/core-concepts/package-conventions) - Package organization and dependency strategies
