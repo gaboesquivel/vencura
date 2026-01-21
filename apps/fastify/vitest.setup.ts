@@ -1,7 +1,13 @@
-// Set DATABASE_URL before env validation
+// Set all required environment variables before env validation
 // This must happen before any imports that use env.ts
-process.env.DATABASE_URL = 'postgresql://localhost/test'
 process.env.NODE_ENV = 'test'
+process.env.DATABASE_URL = process.env.DATABASE_URL || 'postgresql://localhost/test'
+process.env.OPENAI_API_KEY = process.env.OPENAI_API_KEY || 'test-openai-key'
+process.env.ENCRYPTION_KEY =
+  process.env.ENCRYPTION_KEY || '0000000000000000000000000000000000000000000000000000000000000000'
+
+// Dynamic env vars are passed from CI secrets if available
+// They're optional and will be undefined if not provided
 
 import { afterAll, beforeAll } from 'vitest'
 import { runMigrations } from './src/db/migrate.js'
