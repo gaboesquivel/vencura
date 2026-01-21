@@ -79,8 +79,8 @@ const start = async () => {
 
     await fastify.listen({ port: env.PORT, host: env.HOST })
     fastify.log.info({ port: env.PORT, host: env.HOST }, 'Server started')
-  } catch (err) {
-    fastify.log.error(err)
+  } catch {
+    // Error already logged by initialize(), just exit
     process.exit(1)
   }
 }
