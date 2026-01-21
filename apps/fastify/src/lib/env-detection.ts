@@ -12,7 +12,9 @@ export function isVercelProduction(): boolean {
 }
 
 export function isVercelPreview(): boolean {
-  return isVercel() && process.env.VERCEL_GIT_COMMIT_REF !== 'main'
+  const commitRef = process.env.VERCEL_GIT_COMMIT_REF
+  // Only return true if running on Vercel AND commit ref is defined and not 'main'
+  return isVercel() && typeof commitRef === 'string' && commitRef.trim() !== 'main'
 }
 
 export function isLocalDevelopment(): boolean {

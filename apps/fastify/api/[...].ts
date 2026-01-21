@@ -5,6 +5,12 @@ import app from '../src/app.js'
 import { waitForDatabase } from '../src/db/health.js'
 import { runMigrations } from '../src/db/migrate.js'
 import { env } from '../src/lib/env.js'
+import {
+  getInitializationPromise,
+  getInitializationStatus,
+  setInitializationPromise,
+  setInitializationStatus,
+} from '../src/lib/init-state.js'
 
 const fastify = Fastify({
   logger: {
@@ -20,14 +26,32 @@ const fastify = Fastify({
 fastify.register(app)
 
 let isReady = false
-let isInitialized = false
+
+/**
+ * Emit initialization failure metric
+ */
+const emitInitFailureMetric = () => {
+  // Log as metric event for monitoring systems to pick up
+  fastify.log.warn(
+    { metric: 'init_failure', timestamp: Date.now() },
+    'Initialization failure metric',
+  )
+}
 
 /**
  * Initialize database and run migrations (runs once per serverless function instance)
+ * Uses promise lock to prevent race conditions from multiple concurrent callers
  */
-const initialize = async () => {
-  if (isInitialized) {
-    return
+const initialize = async (): Promise<void> => {
+  // Return existing promise if initialization is already in progress
+  const existingPromise = getInitializationPromise()
+  if (existingPromise) {
+    return existingPromise
+  }
+
+  // If already initialized, return immediately
+  if (getInitializationStatus()) {
+    return Promise.resolve()
   }
 
   const logger = {
@@ -35,19 +59,30 @@ const initialize = async () => {
     error: (msg: string, err?: unknown) => fastify.log.error({ err }, msg),
   }
 
-  try {
-    // Wait for database connection
-    await waitForDatabase(logger)
+  // Create and store initialization promise
+  const initPromise = (async () => {
+    try {
+      // Wait for database connection
+      await waitForDatabase(logger)
 
-    // Run migrations
-    await runMigrations(logger)
+      // Run migrations
+      await runMigrations(logger)
 
-    isInitialized = true
-  } catch (err) {
-    fastify.log.error({ err }, 'Initialization failed')
-    // Don't throw - allow function to start even if migrations fail
-    // This prevents complete failure if there's a transient issue
-  }
+      setInitializationStatus(true)
+    } catch (err) {
+      fastify.log.error({ err }, 'Initialization failed')
+      setInitializationStatus(false)
+      emitInitFailureMetric()
+      // Don't throw - allow function to start even if migrations fail
+      // This prevents complete failure if there's a transient issue
+    } finally {
+      // Clear promise lock after completion so subsequent calls see isInitialized
+      setInitializationPromise(null)
+    }
+  })()
+
+  setInitializationPromise(initPromise)
+  return initPromise
 }
 
 const ensureReady = async () => {

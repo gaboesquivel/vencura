@@ -22,7 +22,15 @@ export async function waitForDatabase(logger?: {
   let attempt = 0
 
   while (attempt < MAX_RETRIES) {
-    const pool = new Pool({ connectionString: env.DATABASE_URL })
+    // Calculate timeout per attempt: distribute MAX_WAIT_TIME across retries
+    const connectionTimeoutMillis = Math.max(
+      Math.floor(MAX_WAIT_TIME / MAX_RETRIES),
+      1000, // Minimum 1 second timeout
+    )
+    const pool = new Pool({
+      connectionString: env.DATABASE_URL,
+      connectionTimeoutMillis,
+    })
 
     try {
       // Try to connect
