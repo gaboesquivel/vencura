@@ -1,7 +1,8 @@
 // Set all required environment variables before env validation
 // This must happen before any imports that use env.ts
 process.env.NODE_ENV = 'test'
-process.env.DATABASE_URL = process.env.DATABASE_URL || 'postgresql://localhost/test'
+// Always use test database URL in test environment, overriding .env file
+process.env.DATABASE_URL = 'postgresql://localhost/test'
 process.env.OPENAI_API_KEY = process.env.OPENAI_API_KEY || 'test-openai-key'
 process.env.ENCRYPTION_KEY =
   process.env.ENCRYPTION_KEY || '0000000000000000000000000000000000000000000000000000000000000000'
