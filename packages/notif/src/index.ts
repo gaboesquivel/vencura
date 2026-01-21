@@ -7,7 +7,7 @@ import type {
   TeamContext,
   UserData,
 } from './base'
-import type { NotificationTypes } from './schemas'
+import type { CreateActivityInput, NotificationTypes } from './schemas'
 import { createEmailService } from './services/email-service'
 import { loginNotification } from './types/login-notification'
 import { transactionsCreated } from './types/transactions-created'
@@ -93,7 +93,13 @@ const create = async <T extends keyof NotificationTypes>({
       try {
         // Create activity input for each user (actual activity creation would happen in a service)
         for (const user of validatedData.users) {
-          handler.createActivity(validatedData, user)
+          // Type assertion is safe here because handler and validatedData are already matched by generic T
+          ;(
+            handler.createActivity as (
+              data: NotificationTypes[T],
+              user: UserData,
+            ) => CreateActivityInput
+          )(validatedData, user)
           activities++
         }
       } catch (error) {

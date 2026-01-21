@@ -149,11 +149,17 @@ const sendBulk = async ({
     }
 
     // Check for per-email errors in response.data.errors (permissive validation mode)
-    if (response.data && 'errors' in response.data && Array.isArray(response.data.errors)) {
-      const failed = response.data.errors.length
+    if (
+      response.data &&
+      typeof response.data === 'object' &&
+      'errors' in response.data &&
+      Array.isArray(response.data.errors)
+    ) {
+      const errors = response.data.errors as unknown[]
+      const failed = errors.length
       const sent = emailPayloads.length - failed
       logger.error(
-        { errors: response.data.errors },
+        { errors },
         `Batch send completed with ${failed} failures out of ${emailPayloads.length} emails`,
       )
       return { sent, skipped: 0, failed }

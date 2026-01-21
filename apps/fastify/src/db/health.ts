@@ -13,7 +13,7 @@ export async function waitForDatabase(logger?: {
   info: (msg: string) => void
   error: (msg: string, err?: unknown) => void
 }): Promise<void> {
-  // Skip health check for PGLite or test environment (PGLite doesn't need connection check)
+  // Skip health check for PGLite (doesn't need connection check)
   if (env.PGLITE === true || env.NODE_ENV === 'test') {
     return
   }

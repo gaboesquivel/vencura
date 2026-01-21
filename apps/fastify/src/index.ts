@@ -1,12 +1,11 @@
+import 'dotenv/config'
 import type { TypeBoxTypeProvider } from '@fastify/type-provider-typebox'
 import { initSentry } from '@repo/error/node'
 import Fastify from 'fastify'
 import app from './app.js'
 import { waitForDatabase } from './db/health.js'
 import { runMigrations } from './db/migrate.js'
-import { ensureSupabaseRunning } from './lib/ensure-supabase.js'
 import { env } from './lib/env.js'
-import { isLocalDevelopment } from './lib/env-detection.js'
 
 // Initialize Sentry BEFORE Fastify instance creation
 initSentry({
@@ -48,23 +47,10 @@ async function initialize(): Promise<void> {
   }
 
   try {
-    // 1. Local dev: Ensure Supabase is running
-    if (isLocalDevelopment()) {
-      try {
-        await ensureSupabaseRunning({
-          ...logger,
-          warn: (msg: string, err?: unknown) => fastify.log.warn({ err }, msg),
-        })
-      } catch (err) {
-        fastify.log.error({ err }, 'Supabase startup failed. Start manually with: pnpm db:start')
-        throw err
-      }
-    }
-
-    // 2. Wait for database connection
+    // 1. Wait for database connection
     await waitForDatabase(logger)
 
-    // 3. Run migrations
+    // 2. Run migrations
     await runMigrations(logger)
   } catch (err) {
     fastify.log.error({ err }, 'Initialization failed')
@@ -74,11 +60,20 @@ async function initialize(): Promise<void> {
 
 const start = async () => {
   try {
+    await fastify.listen({ port: env.PORT, host: env.HOST })
+    fastify.log.info({ port: env.PORT, host: env.HOST }, 'Server started')
+  } catch (err) {
+    fastify.log.error(err)
+    process.exit(1)
+  }
+}
+
+const startServer = async () => {
+  try {
     // Initialize database and migrations before starting server
     await initialize()
 
-    await fastify.listen({ port: env.PORT, host: env.HOST })
-    fastify.log.info({ port: env.PORT, host: env.HOST }, 'Server started')
+    await start()
   } catch {
     // Error already logged by initialize(), just exit
     process.exit(1)
@@ -115,4 +110,4 @@ process.on('unhandledRejection', (reason, promise) => {
   shutdown('unhandledRejection')
 })
 
-start()
+startServer()

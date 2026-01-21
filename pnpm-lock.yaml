@@ -671,6 +671,9 @@ importers:
       '@repo/email':
         specifier: workspace:*
         version: link:../email
+      '@repo/utils':
+        specifier: workspace:*
+        version: link:../utils
       nanoid:
         specifier: ^5.1.6
         version: 5.1.6
@@ -15408,7 +15411,7 @@ snapshots:
 
   '@types/minimatch@6.0.0':
     dependencies:
-      minimatch: 9.0.5
+      minimatch: 10.1.1
 
   '@types/ms@2.1.0': {}
 

@@ -31,6 +31,7 @@
   },
   "dependencies": {
     "@repo/email": "workspace:*",
+    "@repo/utils": "workspace:*",
     "nanoid": "^5.1.6",
     "resend": "^6.5.2",
     "zod": "^4.1.13"
