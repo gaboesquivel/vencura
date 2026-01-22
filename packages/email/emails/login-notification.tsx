@@ -3,7 +3,6 @@ import { Button } from '../components/button'
 import { Footer } from '../components/footer'
 import { Logo } from '../components/logo'
 import { EmailThemeProvider, getEmailInlineStyles, getEmailThemeClasses } from '../components/theme'
-import { getI18n } from '../locales'
 
 interface Props {
   timestamp: string
@@ -12,7 +11,6 @@ interface Props {
   device?: string
   userAgent?: string
   fullName?: string
-  locale?: string
   secureAccountUrl?: string
   thisWasMeUrl?: string
 }
@@ -24,19 +22,17 @@ export const LoginNotificationEmail = ({
   device,
   userAgent: _userAgent,
   fullName = '',
-  locale = 'en',
   secureAccountUrl,
   thisWasMeUrl,
 }: Props) => {
-  const { t } = getI18n({ locale })
   const firstName = fullName ? fullName.split(' ').at(0) : ''
-  const previewText = t('login-notification.preview', { firstName })
+  const previewText = `${firstName ? `Hi ${firstName}, ` : ''}New sign-in detected`
   const themeClasses = getEmailThemeClasses()
   const lightStyles = getEmailInlineStyles('light')
 
   const formatDate = (dateString: string) => {
     try {
-      return new Date(dateString).toLocaleString(locale, {
+      return new Date(dateString).toLocaleString(undefined, {
         dateStyle: 'long',
         timeStyle: 'short',
       })
@@ -61,19 +57,17 @@ export const LoginNotificationEmail = ({
             className={`text-[21px] font-normal text-center p-0 my-[30px] mx-0 ${themeClasses.heading}`}
             style={{ color: lightStyles.text.color }}
           >
-            {t('login-notification.heading')}
+            New sign-in detected
           </Heading>
 
           <Text
             className={`text-[14px] leading-[24px] ${themeClasses.text}`}
             style={{ color: lightStyles.text.color }}
           >
-            {firstName
-              ? `${t('login-notification.greeting', { firstName })},`
-              : t('login-notification.greetingFallback')}
+            {firstName ? `Hi ${firstName}` : 'Hello'},
             <br />
             <br />
-            {t('login-notification.description')}
+            We noticed a new sign-in to your account
           </Text>
 
           <br />
@@ -90,20 +84,20 @@ export const LoginNotificationEmail = ({
               className={`text-[14px] mb-2 ${themeClasses.text}`}
               style={{ color: lightStyles.text.color }}
             >
-              <strong>{t('login-notification.time')}:</strong> {formatDate(timestamp)}
+              <strong>Time:</strong> {formatDate(timestamp)}
             </Text>
             <Text
               className={`text-[14px] mb-2 ${themeClasses.text}`}
               style={{ color: lightStyles.text.color }}
             >
-              <strong>{t('login-notification.ipAddress')}:</strong> {ipAddress}
+              <strong>IP Address:</strong> {ipAddress}
             </Text>
             {location && (
               <Text
                 className={`text-[14px] mb-2 ${themeClasses.text}`}
                 style={{ color: lightStyles.text.color }}
               >
-                <strong>{t('login-notification.location')}:</strong> {location}
+                <strong>Location:</strong> {location}
               </Text>
             )}
             {device && (
@@ -111,7 +105,7 @@ export const LoginNotificationEmail = ({
                 className={`text-[14px] mb-2 ${themeClasses.text}`}
                 style={{ color: lightStyles.text.color }}
               >
-                <strong>{t('login-notification.device')}:</strong> {device}
+                <strong>Device:</strong> {device}
               </Text>
             )}
           </Section>
@@ -123,7 +117,7 @@ export const LoginNotificationEmail = ({
               className={`text-[14px] leading-[24px] ${themeClasses.text}`}
               style={{ color: lightStyles.text.color }}
             >
-              {t('login-notification.securityMessage')}
+              If this wasn&apos;t you, secure your account immediately
             </Text>
           )}
 
@@ -132,12 +126,10 @@ export const LoginNotificationEmail = ({
           <Section className="text-center mt-[32px] mb-[32px]">
             {thisWasMeUrl && (
               <Button href={thisWasMeUrl} variant="secondary" className="mr-2">
-                {t('login-notification.thisWasMe')}
+                This was me
               </Button>
             )}
-            {secureAccountUrl && (
-              <Button href={secureAccountUrl}>{t('login-notification.secureAccount')}</Button>
-            )}
+            {secureAccountUrl && <Button href={secureAccountUrl}>Secure account</Button>}
           </Section>
 
           <br />

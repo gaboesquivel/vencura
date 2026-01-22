@@ -112,7 +112,7 @@ const create = async <T extends keyof NotificationTypes>({
               err: error,
               type,
               userId: user.id,
-              userEmail: user.email,
+              userEmail: '[redacted]',
               notificationType: type,
             },
             `Failed to create activity for notification ${type} for user ${user.id}`,

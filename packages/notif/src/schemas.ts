@@ -16,7 +16,6 @@ export const userSchema = z.object({
   id: z.string().uuid(),
   full_name: z.string(),
   email: z.string().email(),
-  locale: z.string().optional(),
   avatar_url: z.string().optional(),
   team_id: z.string().uuid(),
   role: z.enum(['owner', 'member']).optional(),

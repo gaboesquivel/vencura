@@ -4,7 +4,7 @@ Email template library built with React Email.
 
 ## Overview
 
-Pre-configured email templates using React Email components. Templates are fully typed and support internationalization.
+Pre-configured email templates using React Email components. Templates are fully typed.
 
 ## Usage
 

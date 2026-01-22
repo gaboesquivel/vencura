@@ -13,11 +13,4 @@ export default [
       'max-lines': 'off', // Email templates are often long
     },
   },
-  // Locales files have @ts-nocheck temporarily
-  {
-    files: ['locales/**/*.ts'],
-    rules: {
-      '@typescript-eslint/ban-ts-comment': 'off',
-    },
-  },
 ]

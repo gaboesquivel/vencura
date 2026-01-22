@@ -10,11 +10,6 @@
       "import": "./emails/*.tsx",
       "require": "./emails/*.tsx"
     },
-    "./locales": {
-      "types": "./locales/index.ts",
-      "import": "./locales/index.ts",
-      "require": "./locales/index.ts"
-    },
     "./render": {
       "types": "./render.ts",
       "node": {

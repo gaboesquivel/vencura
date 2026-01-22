@@ -32,7 +32,6 @@ export interface UserData {
   id: string
   full_name: string
   email: string
-  locale?: string
   avatar_url?: string
   team_id: string
   role?: 'owner' | 'member'

@@ -7,24 +7,20 @@ import {
   getEmailInlineStyles,
   getEmailThemeClasses,
 } from '../components/theme'
-import { getI18n } from '../locales'
 
 interface Props {
   magicLink: string
   expirationMinutes?: number
   fullName?: string
-  locale?: string
 }
 
 export const MagicLinkLoginEmail = ({
   magicLink,
   expirationMinutes = 15,
   fullName = '',
-  locale = 'en',
 }: Props) => {
-  const { t } = getI18n({ locale })
   const firstName = fullName ? fullName.split(' ').at(0) : ''
-  const previewText = t('magic-link-login.preview', { firstName })
+  const previewText = `${firstName ? `Hi ${firstName}, ` : ''}Sign in to your account`
   const themeClasses = getEmailThemeClasses()
   const lightStyles = getEmailInlineStyles('light')
 
@@ -44,32 +40,30 @@ export const MagicLinkLoginEmail = ({
             className={`text-[21px] font-normal text-center p-0 my-[30px] mx-0 ${themeClasses.heading}`}
             style={{ color: lightStyles.text.color }}
           >
-            {t('magic-link-login.heading')}
+            Sign in to your account
           </Heading>
 
           <Text
             className={`text-[14px] leading-[24px] ${themeClasses.text}`}
             style={{ color: lightStyles.text.color }}
           >
-            {firstName
-              ? `${t('magic-link-login.greeting', { firstName })},`
-              : t('magic-link-login.greetingFallback')}
+            {firstName ? `Hi ${firstName}` : 'Hello'},
             <br />
             <br />
-            {t('magic-link-login.description', { expirationMinutes })}
+            Click the button below to sign in. This link will expire in {expirationMinutes} minutes.
           </Text>
 
           <br />
 
           <Section className="text-center mt-[32px] mb-[32px]">
-            <Button href={magicLink}>{t('magic-link-login.button')}</Button>
+            <Button href={magicLink}>Sign in</Button>
           </Section>
 
           <Text
             className={`text-xs ${themeClasses.mutedText}`}
             style={{ color: lightStyles.mutedText.color }}
           >
-            {t('magic-link-login.securityNotice')}
+            If you didn&apos;t request this link, you can safely ignore this email.
           </Text>
 
           <br />

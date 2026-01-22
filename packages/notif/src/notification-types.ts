@@ -80,6 +80,6 @@ export function getNotificationTypesByCategory(): NotificationCategory[] {
     if (a.order !== b.order) {
       return a.order - b.order
     }
-    return a.category.localeCompare(b.category)
+    return a.category < b.category ? -1 : a.category > b.category ? 1 : 0
   })
 }

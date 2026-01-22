@@ -1,4 +1,3 @@
-import { getI18n } from '@repo/email/locales'
 import type { NotificationHandler } from '../base'
 import type { TransactionsCreatedInput } from '../schemas'
 import { transactionsCreatedSchema } from '../schemas'
@@ -38,12 +37,10 @@ export const transactionsCreated: NotificationHandler<TransactionsCreatedInput> 
   },
 
   createEmail: (data, user, team) => {
-    const { t } = getI18n({ locale: user?.locale ?? 'en' })
-
     return {
       template: 'transactions',
       emailType: 'owners',
-      subject: t('transactions.subject'),
+      subject: 'New transactions',
       data: {
         transactions: data.transactions,
         teamName: team.name,

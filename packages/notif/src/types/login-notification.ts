@@ -1,4 +1,3 @@
-import { getI18n } from '@repo/email/locales'
 import type { NotificationHandler } from '../base'
 import type { LoginNotificationInput } from '../schemas'
 import { loginNotificationSchema } from '../schemas'
@@ -22,12 +21,10 @@ export const loginNotification: NotificationHandler<LoginNotificationInput> = {
   }),
 
   createEmail: (data, user) => {
-    const { t } = getI18n({ locale: user?.locale ?? 'en' })
-
     return {
       template: 'login-notification',
       emailType: 'team',
-      subject: t('login-notification.subject'),
+      subject: 'New sign-in detected',
       data: {
         timestamp: data.timestamp,
         ipAddress: data.ipAddress,

@@ -1,7 +1,6 @@
 import { Body, Container, Heading, Link, Preview, Section, Text } from '@react-email/components'
 import { cn } from '@repo/ui/lib/utils'
 import { format, isValid, parseISO } from 'date-fns'
-import { sv } from 'date-fns/locale'
 import { Footer } from '../components/footer'
 import { Logo } from '../components/logo'
 import {
@@ -10,13 +9,12 @@ import {
   getEmailInlineStyles,
   getEmailThemeClasses,
 } from '../components/theme'
-import { getI18n } from '../locales'
 
-const formatTransactionDate = (date: string, locale: string): string => {
+const formatTransactionDate = (date: string): string => {
   try {
     const parsed = parseISO(date)
     if (isValid(parsed)) {
-      return format(parsed, 'MMM d', { locale: locale === 'sv' ? sv : undefined })
+      return format(parsed, 'MMM d')
     }
     return '—'
   } catch {
@@ -36,7 +34,6 @@ interface Transaction {
 interface Props {
   fullName: string
   transactions: Transaction[]
-  locale: string
   teamName: string
 }
 
@@ -152,20 +149,17 @@ const defaultTransactions = [
 export const TransactionsEmail = ({
   fullName = '',
   transactions = defaultTransactions,
-  locale = 'en',
   teamName = '',
 }: Props): React.ReactElement => {
-  const { t, safeLocale } = getI18n({ locale })
   const hasAppUrl = Boolean(process.env.APP_URL)
   const baseAppUrl = process.env.APP_URL || ''
   const firstName = fullName ? fullName.split(' ').at(0) : ''
   const themeClasses = getEmailThemeClasses()
   const lightStyles = getEmailInlineStyles('light')
+  const count = transactions.length
+  const plural = count > 1
 
-  const previewText = t('transactions.preview', {
-    firstName,
-    numberOfTransactions: transactions.length,
-  })
+  const previewText = `${firstName ? `Hi ${firstName}, ` : ''}You have ${count} ${plural ? 'new transactions' : 'new transaction'}`
 
   const displayedTransactions = transactions.slice(0, 10)
 
@@ -185,27 +179,25 @@ export const TransactionsEmail = ({
             className={`text-[21px] font-normal text-center p-0 my-[30px] mx-0 ${themeClasses.heading}`}
             style={{ color: lightStyles.text.color }}
           >
-            {t('transactions.title1')}
+            You have{' '}
             <span className="font-semibold">
-              {t('transactions.title2', {
-                numberOfTransactions: transactions.length,
-              })}{' '}
+              {count} {plural ? 'new transactions' : 'new transaction'}{' '}
             </span>
           </Heading>
           <Text
             className={`text-[14px] leading-[24px] ${themeClasses.text}`}
             style={{ color: lightStyles.text.color }}
           >
-            {t('transactions.description1', { firstName })},
+            {firstName ? `Hi ${firstName}` : 'Hello'},
             <br />
             <br />
-            {t('transactions.description2')}{' '}
+            We found{' '}
             <span className="font-semibold">
-              {t('transactions.description3', {
-                numberOfTransactions: transactions.length,
-              })}{' '}
+              {count} {plural ? 'new transactions' : 'new transaction'}{' '}
             </span>
-            {t('transactions.description4', { teamName })}
+            {teamName ? `for your team ${teamName}` : 'for your account'}. We&apos;ll automatically
+            match them against receipts in your inbox, or you can simply reply to this email with
+            the receipts.
           </Text>
 
           <br />
@@ -224,7 +216,7 @@ export const TransactionsEmail = ({
                     className={`text-[14px] font-semibold m-0 p-0 ${themeClasses.text}`}
                     style={{ color: lightStyles.text.color }}
                   >
-                    {t('transactions.date')}
+                    Date
                   </Text>
                 </th>
                 <th align="left" style={{ width: '50%' }}>
@@ -232,7 +224,7 @@ export const TransactionsEmail = ({
                     className={`text-[14px] font-semibold m-0 p-0 ${themeClasses.text}`}
                     style={{ color: lightStyles.text.color }}
                   >
-                    {t('transactions.description')}
+                    Description
                   </Text>
                 </th>
                 <th align="left">
@@ -240,7 +232,7 @@ export const TransactionsEmail = ({
                     className={`text-[14px] font-semibold m-0 p-0 ${themeClasses.text}`}
                     style={{ color: lightStyles.text.color }}
                   >
-                    {t('transactions.amount')}
+                    Amount
                   </Text>
                 </th>
               </tr>
@@ -258,7 +250,7 @@ export const TransactionsEmail = ({
                       className={`text-[14px] m-0 p-0 mt-1 pb-1 ${themeClasses.text}`}
                       style={{ color: lightStyles.text.color }}
                     >
-                      {formatTransactionDate(transaction.date, safeLocale)}
+                      {formatTransactionDate(transaction.date)}
                     </Text>
                   </td>
                   <td align="left" style={{ width: '50%' }}>
@@ -309,7 +301,7 @@ export const TransactionsEmail = ({
                           transaction.amount > 0 ? '#00C969 !important' : lightStyles.text.color,
                       }}
                     >
-                      {Intl.NumberFormat(safeLocale, {
+                      {Intl.NumberFormat(undefined, {
                         style: 'currency',
                         currency: transaction.currency,
                       }).format(transaction.amount)}
@@ -330,14 +322,14 @@ export const TransactionsEmail = ({
                 <Button
                   href={`${baseAppUrl}/transactions?start=${transactions[transactions.length - 1]?.date}&end=${transactions.at(0)?.date}`}
                 >
-                  {t('transactions.button')}
+                  View transactions
                 </Button>
               ) : (
                 <Text
                   className={`text-[14px] ${themeClasses.text}`}
                   style={{ color: lightStyles.text.color }}
                 >
-                  {t('transactions.button')}
+                  View transactions
                 </Text>
               )}
             </Section>
