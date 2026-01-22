@@ -36,14 +36,13 @@ export const transactionsCreated: NotificationHandler<TransactionsCreatedInput> 
     }
   },
 
-  createEmail: (data, user, team) => {
+  createEmail: (data, user) => {
     return {
       template: 'transactions',
       emailType: 'owners',
       subject: 'New transactions',
       data: {
         transactions: data.transactions,
-        teamName: team.name,
         fullName: user.full_name,
       },
     }

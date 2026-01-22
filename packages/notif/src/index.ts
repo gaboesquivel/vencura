@@ -4,7 +4,6 @@ import type {
   NotificationHandler,
   NotificationOptions,
   NotificationResult,
-  TeamContext,
   UserData,
 } from './base'
 import type { CreateActivityInput, NotificationTypes } from './schemas'
@@ -22,7 +21,6 @@ type CreateEmailInputInput<T extends keyof NotificationTypes> = {
   handler: (typeof handlers)[T]
   validatedData: NotificationTypes[T]
   user: UserData
-  teamContext: { id: string; name: string }
   options?: NotificationOptions
 }
 
@@ -31,7 +29,6 @@ const createEmailInput = <T extends keyof NotificationTypes>({
   handler,
   validatedData,
   user,
-  teamContext,
   options,
 }: CreateEmailInputInput<T>): EmailInput => {
   if (!handler.createEmail) {
@@ -42,9 +39,8 @@ const createEmailInput = <T extends keyof NotificationTypes>({
     handler.createEmail as (
       data: NotificationTypes[T],
       user: UserData,
-      team: TeamContext,
     ) => ReturnType<NonNullable<NotificationHandler<NotificationTypes[T]>['createEmail']>>
-  )(validatedData, user, teamContext)
+  )(validatedData, user)
 
   const baseEmailInput: EmailInput = {
     user,
@@ -146,28 +142,28 @@ const create = async <T extends keyof NotificationTypes>({
       }
     }
 
-    const firstUser = validatedData.users[0]
-    if (!firstUser) throw new Error('No users available for email context')
-
-    // TODO: Fetch team name from team service/DAO using firstUser.team_id
-    // For now using fallback - team name should be fetched and set here
-    const teamContext = {
-      id: firstUser.team_id,
-      name: 'Your Team', // Fallback - should be fetched from team service
+    if (validatedData.users.length === 0) {
+      logger.warn({ type }, 'No users available for email notification')
+      return {
+        type: type as string,
+        activities,
+        emails: { sent: 0, skipped: 0, failed: 0 },
+      }
     }
+
+    const firstUser = validatedData.users[0]
 
     // Type assertion is safe here because handler and validatedData are already matched by generic T
     const sampleEmail = (
       handler.createEmail as (
         data: NotificationTypes[T],
         user: UserData,
-        team: TeamContext,
       ) => ReturnType<NonNullable<NotificationHandler<NotificationTypes[T]>['createEmail']>>
-    )(validatedData, firstUser, teamContext)
+    )(validatedData, firstUser)
 
     if (sampleEmail.emailType === 'customer') {
       const emailInputs = [
-        createEmailInput({ type, handler, validatedData, user: firstUser, teamContext, options }),
+        createEmailInput({ type, handler, validatedData, user: firstUser, options }),
       ]
 
       emails = await emailService.sendBulk({
@@ -178,7 +174,7 @@ const create = async <T extends keyof NotificationTypes>({
       const ownerUsers = validatedData.users.filter((user: UserData) => user.role === 'owner')
 
       const emailInputs = ownerUsers.map((user: UserData) =>
-        createEmailInput({ type, handler, validatedData, user, teamContext, options }),
+        createEmailInput({ type, handler, validatedData, user, options }),
       )
 
       emails = await emailService.sendBulk({
@@ -187,7 +183,7 @@ const create = async <T extends keyof NotificationTypes>({
       })
     } else {
       const emailInputs = validatedData.users.map((user: UserData) =>
-        createEmailInput({ type, handler, validatedData, user, teamContext, options }),
+        createEmailInput({ type, handler, validatedData, user, options }),
       )
 
       emails = await emailService.sendBulk({

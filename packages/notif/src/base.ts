@@ -3,11 +3,6 @@ import type { z } from 'zod'
 import type { CreateActivityInput } from './schemas'
 import { invoiceSchema, transactionSchema, userSchema } from './schemas'
 
-export interface TeamContext {
-  id: string
-  name: string
-}
-
 export interface NotificationHandler<T = unknown> {
   schema: z.ZodSchema<T>
   email?: {
@@ -20,7 +15,6 @@ export interface NotificationHandler<T = unknown> {
   createEmail?: (
     data: T,
     user: UserData,
-    team: TeamContext,
   ) => Partial<Omit<CreateEmailOptions, 'template'>> & {
     data: Record<string, unknown>
     template?: string

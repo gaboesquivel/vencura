@@ -4,7 +4,6 @@ import { readdir } from 'node:fs/promises'
 import { dirname, join } from 'node:path'
 import { fileURLToPath } from 'node:url'
 import { logger } from '@repo/utils/logger'
-import type { NodePgDatabase } from 'drizzle-orm/node-postgres'
 import { drizzle } from 'drizzle-orm/node-postgres'
 import { migrate } from 'drizzle-orm/node-postgres/migrator'
 import { Pool } from 'pg'
@@ -58,7 +57,7 @@ try {
   migrateLogger.info(`Found ${migrationFiles.length} migration file(s), running migrations...`)
 
   const pool = new Pool({ connectionString: env.DATABASE_URL })
-  const db = drizzle<NodePgDatabase>(pool)
+  const db = drizzle(pool)
 
   try {
     await migrate(db, { migrationsFolder: migrationsDir })

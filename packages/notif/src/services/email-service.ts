@@ -55,14 +55,21 @@ const getTemplate = <T extends TemplateName>(
 }
 
 const buildEmailPayload = async ({ email }: { email: EmailInput }): Promise<CreateEmailOptions> => {
-  if (!email.template) throw new Error(`No template found for email: ${email.template}`)
-  if (!email.subject) throw new Error(`No subject found for email: ${email.template}`)
+  if (!email.template) {
+    throw new Error('Email template is required')
+  }
+  if (!email.subject) {
+    throw new Error('Email subject is required')
+  }
 
   const templateName = email.template as TemplateName
   const template = getTemplate(templateName)
   const html = await render(template(email.data as TemplatePropsMap[typeof templateName]))
 
-  const recipients = email.to || [email.user.email]
+  const recipients = email.to ?? (email.user?.email ? [email.user.email] : undefined)
+  if (!recipients || recipients.length === 0) {
+    throw new Error('No recipients specified for email')
+  }
 
   const fromAddress = email.from || env.EMAIL_FROM
   if (!fromAddress) {
