@@ -90,21 +90,27 @@ const create = async <T extends keyof NotificationTypes>({
 
     // Create activities if handler supports it
     if (handler.createActivity) {
-      try {
-        // Create activity input for each user (actual activity creation would happen in a service)
-        for (const user of validatedData.users) {
+      const activityInputs: CreateActivityInput[] = []
+      for (const user of validatedData.users) {
+        try {
           // Type assertion is safe here because handler and validatedData are already matched by generic T
-          ;(
+          const activityInput = (
             handler.createActivity as (
               data: NotificationTypes[T],
               user: UserData,
             ) => CreateActivityInput
           )(validatedData, user)
+          activityInputs.push(activityInput)
           activities++
+        } catch (error) {
+          logger.error(
+            { err: error, type, userId: user.id },
+            `Failed to create activity for notification ${type} for user ${user.id}`,
+          )
         }
-      } catch (error) {
-        logger.error({ err: error }, `Failed to create activity for notification ${type}`)
       }
+      // TODO: Persist activities via activity service (e.g., activityService.bulkCreate(activityInputs))
+      // Activity inputs are collected but not yet persisted - caller should handle persistence
     }
 
     const sendEmail = options?.sendEmail ?? false
@@ -120,9 +126,11 @@ const create = async <T extends keyof NotificationTypes>({
     const firstUser = validatedData.users[0]
     if (!firstUser) throw new Error('No users available for email context')
 
+    // TODO: Fetch team name from team service/DAO using firstUser.team_id
+    // For now using fallback - team name should be fetched and set here
     const teamContext = {
       id: firstUser.team_id,
-      name: 'Team',
+      name: 'Your Team', // Fallback - should be fetched from team service
     }
 
     // Type assertion is safe here because handler and validatedData are already matched by generic T

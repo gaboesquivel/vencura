@@ -58,8 +58,8 @@ export function getNotificationTypesByCategory(): NotificationCategory[] {
   const categoryMap = new Map<string, NotificationCategory>()
 
   for (const notificationType of settingsTypes) {
-    const category = notificationType.category || 'other'
-    const order = notificationType.order || 999
+    const category = notificationType.category ?? 'other'
+    const order = notificationType.order ?? 999
 
     if (!categoryMap.has(category)) {
       categoryMap.set(category, {

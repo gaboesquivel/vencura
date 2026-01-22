@@ -1,12 +1,8 @@
 import { Body, Container, Heading, Preview, Section, Text } from '@react-email/components'
+import { Button } from '../components/button'
 import { Footer } from '../components/footer'
 import { Logo } from '../components/logo'
-import {
-  Button,
-  EmailThemeProvider,
-  getEmailInlineStyles,
-  getEmailThemeClasses,
-} from '../components/theme'
+import { EmailThemeProvider, getEmailInlineStyles, getEmailThemeClasses } from '../components/theme'
 import { getI18n } from '../locales'
 
 interface Props {

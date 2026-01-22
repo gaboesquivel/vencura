@@ -1,6 +1,6 @@
 import { Body, Container, Heading, Link, Preview, Section, Text } from '@react-email/components'
 import { cn } from '@repo/ui/lib/utils'
-import { format, parseISO } from 'date-fns'
+import { format, isValid, parseISO } from 'date-fns'
 import { Footer } from '../components/footer'
 import { Logo } from '../components/logo'
 import {
@@ -10,6 +10,18 @@ import {
   getEmailThemeClasses,
 } from '../components/theme'
 import { getI18n } from '../locales'
+
+const formatTransactionDate = (date: string): string => {
+  try {
+    const parsed = parseISO(date)
+    if (isValid(parsed)) {
+      return format(parsed, 'MMM d')
+    }
+    return '—'
+  } catch {
+    return '—'
+  }
+}
 
 interface Transaction {
   id: string
@@ -245,7 +257,7 @@ export const TransactionsEmail = ({
                       className={`text-[14px] m-0 p-0 mt-1 pb-1 ${themeClasses.text}`}
                       style={{ color: lightStyles.text.color }}
                     >
-                      {format(parseISO(transaction.date), 'MMM d')}
+                      {formatTransactionDate(transaction.date)}
                     </Text>
                   </td>
                   <td align="left" style={{ width: '50%' }}>

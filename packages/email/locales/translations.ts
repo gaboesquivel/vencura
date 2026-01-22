@@ -82,7 +82,7 @@ export function translations(locale: string, params?: TranslationParams): Transl
         'login-notification.subject': 'New sign-in detected',
         'login-notification.preview': `${params?.firstName ? `Hi ${params?.firstName}, ` : ''}New sign-in detected`,
         'login-notification.heading': 'New sign-in detected',
-        'login-notification.greeting': `Hi ${params?.firstName}`,
+        'login-notification.greeting': params?.firstName ? `Hi ${params.firstName}` : 'Hello',
         'login-notification.greetingFallback': 'Hello',
         'login-notification.description': 'We noticed a new sign-in to your account',
         'login-notification.time': 'Time',

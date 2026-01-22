@@ -1,6 +1,7 @@
 import type { CreateEmailOptions } from 'resend'
-import { z } from 'zod'
+import type { z } from 'zod'
 import type { CreateActivityInput } from './schemas'
+import { invoiceSchema, transactionSchema, userSchema } from './schemas'
 
 export interface TeamContext {
   id: string
@@ -60,32 +61,5 @@ export interface NotificationResult {
   }
 }
 
-// Common schemas
-export const userSchema = z.object({
-  id: z.string().uuid(),
-  full_name: z.string(),
-  email: z.string().email(),
-  locale: z.string().optional(),
-  avatar_url: z.string().optional(),
-  team_id: z.string().uuid(),
-  role: z.enum(['owner', 'member']).optional(),
-})
-
-export const transactionSchema = z.object({
-  id: z.string(),
-  name: z.string(),
-  amount: z.number(),
-  currency: z.string(),
-  date: z.string(),
-  category: z.string().optional(),
-  status: z.string().optional(),
-})
-
-export const invoiceSchema = z.object({
-  id: z.string(),
-  number: z.string(),
-  amount: z.number(),
-  currency: z.string(),
-  due_date: z.string(),
-  status: z.string(),
-})
+// Re-export schemas from schemas.ts
+export { invoiceSchema, transactionSchema, userSchema }
