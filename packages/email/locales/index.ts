@@ -27,5 +27,6 @@ export function getI18n({ locale = 'en' }: Options) {
 
   return {
     t: getTranslation,
+    safeLocale,
   }
 }

@@ -65,7 +65,7 @@ export function translations(locale: string, params?: TranslationParams): Transl
         'transactions.description4': `${params?.teamName ? `for your team ${params?.teamName}` : 'for your account'}. We'll automatically match them against receipts in your inbox, or you can simply reply to this email with the receipts.`,
         'transactions.button': 'View transactions',
         'transactions.footer':
-          ' Nam imperdiet congue volutpat. Nulla quis facilisis lacus. Vivamus convallis sit amet lectus eget tincidunt. Vestibulum vehicula rutrum nisl, sed faucibus neque. Donec lacus mi, rhoncus at dictum eget, pulvinar at metus. Donec cursus tellus erat, a hendrerit elit rutrum ut. Fusce quis tristique ligula. Etiam sit amet enim vitae mauris auctor blandit id et nibh.',
+          'You can manage your notification preferences in your account settings.',
         'transactions.settings': 'Notification preferences',
         'transactions.amount': 'Amount',
         'transactions.date': 'Date',
@@ -75,7 +75,7 @@ export function translations(locale: string, params?: TranslationParams): Transl
         'magic-link-login.heading': 'Sign in to your account',
         'magic-link-login.greeting': params?.firstName ? `Hi ${params.firstName}` : 'Hello',
         'magic-link-login.greetingFallback': 'Hello',
-        'magic-link-login.description': `Click the button below to sign in. This link will expire in ${params?.expirationMinutes || 15} minutes.`,
+        'magic-link-login.description': `Click the button below to sign in. This link will expire in ${params?.expirationMinutes ?? 15} minutes.`,
         'magic-link-login.button': 'Sign in',
         'magic-link-login.securityNotice':
           "If you didn't request this link, you can safely ignore this email.",
@@ -110,7 +110,7 @@ export function translations(locale: string, params?: TranslationParams): Transl
         'transactions.description4': `${params?.teamName ? `för ditt team ${params?.teamName}` : 'på ditt konto'}. Vi matchar dem automatiskt mot kvitton i din inkorg, eller så kan du svara på detta email med dina kvitton.`,
         'transactions.button': 'Visa transaktioner',
         'transactions.footer':
-          ' Nam imperdiet congue volutpat. Nulla quis facilisis lacus. Vivamus convallis sit amet lectus eget tincidunt. Vestibulum vehicula rutrum nisl, sed faucibus neque. Donec lacus mi, rhoncus at dictum eget, pulvinar at metus. Donec cursus tellus erat, a hendrerit elit rutrum ut. Fusce quis tristique ligula. Etiam sit amet enim vitae mauris auctor blandit id et nibh.',
+          'Du kan hantera dina notifikationsinställningar i dina kontoinställningar.',
         'transactions.settings': 'Inställningar',
         'transactions.amount': 'Belopp',
         'transactions.date': 'Datum',
@@ -120,7 +120,7 @@ export function translations(locale: string, params?: TranslationParams): Transl
         'magic-link-login.heading': 'Logga in på ditt konto',
         'magic-link-login.greeting': params?.firstName ? `Hej ${params.firstName}` : 'Hej',
         'magic-link-login.greetingFallback': 'Hej',
-        'magic-link-login.description': `Klicka på knappen nedan för att logga in. Denna länk kommer att upphöra om ${params?.expirationMinutes || 15} minuter.`,
+        'magic-link-login.description': `Klicka på knappen nedan för att logga in. Denna länk kommer att upphöra om ${params?.expirationMinutes ?? 15} minuter.`,
         'magic-link-login.button': 'Logga in',
         'magic-link-login.securityNotice':
           'Om du inte begärde denna länk kan du säkert ignorera detta e-postmeddelande.',

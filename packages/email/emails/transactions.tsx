@@ -1,6 +1,7 @@
 import { Body, Container, Heading, Link, Preview, Section, Text } from '@react-email/components'
 import { cn } from '@repo/ui/lib/utils'
 import { format, isValid, parseISO } from 'date-fns'
+import { sv } from 'date-fns/locale'
 import { Footer } from '../components/footer'
 import { Logo } from '../components/logo'
 import {
@@ -11,11 +12,11 @@ import {
 } from '../components/theme'
 import { getI18n } from '../locales'
 
-const formatTransactionDate = (date: string): string => {
+const formatTransactionDate = (date: string, locale: string): string => {
   try {
     const parsed = parseISO(date)
     if (isValid(parsed)) {
-      return format(parsed, 'MMM d')
+      return format(parsed, 'MMM d', { locale: locale === 'sv' ? sv : undefined })
     }
     return '—'
   } catch {
@@ -148,15 +149,15 @@ const defaultTransactions = [
   },
 ]
 
-const baseAppUrl = process.env.APP_URL || ''
-
 export const TransactionsEmail = ({
   fullName = '',
   transactions = defaultTransactions,
   locale = 'en',
   teamName = '',
 }: Props): React.ReactElement => {
-  const { t } = getI18n({ locale })
+  const { t, safeLocale } = getI18n({ locale })
+  const hasAppUrl = Boolean(process.env.APP_URL)
+  const baseAppUrl = process.env.APP_URL || ''
   const firstName = fullName ? fullName.split(' ').at(0) : ''
   const themeClasses = getEmailThemeClasses()
   const lightStyles = getEmailInlineStyles('light')
@@ -257,28 +258,45 @@ export const TransactionsEmail = ({
                       className={`text-[14px] m-0 p-0 mt-1 pb-1 ${themeClasses.text}`}
                       style={{ color: lightStyles.text.color }}
                     >
-                      {formatTransactionDate(transaction.date)}
+                      {formatTransactionDate(transaction.date, safeLocale)}
                     </Text>
                   </td>
                   <td align="left" style={{ width: '50%' }}>
-                    <Link
-                      href={`${baseAppUrl}/transactions?id=${transaction.id}`}
-                      className={cn(transaction.amount > 0 ? 'text-[#00C969]' : themeClasses.link)}
-                      style={{
-                        color:
-                          transaction.amount > 0 ? '#00C969 !important' : lightStyles.text.color,
-                        textDecoration: 'none',
-                      }}
-                    >
-                      <Text
-                        className="text-[14px] m-0 p-0 mt-1 pb-1 line-clamp-1"
+                    {hasAppUrl ? (
+                      <Link
+                        href={`${baseAppUrl}/transactions?id=${transaction.id}`}
+                        className={cn(
+                          transaction.amount > 0 ? 'text-[#00C969]' : themeClasses.link,
+                        )}
                         style={{
-                          color: transaction.amount > 0 ? '#00C969 !important' : 'inherit',
+                          color:
+                            transaction.amount > 0 ? '#00C969 !important' : lightStyles.text.color,
+                          textDecoration: 'none',
+                        }}
+                      >
+                        <Text
+                          className="text-[14px] m-0 p-0 mt-1 pb-1 line-clamp-1"
+                          style={{
+                            color: transaction.amount > 0 ? '#00C969 !important' : 'inherit',
+                          }}
+                        >
+                          {transaction.name}
+                        </Text>
+                      </Link>
+                    ) : (
+                      <Text
+                        className={cn(
+                          'text-[14px] m-0 p-0 mt-1 pb-1 line-clamp-1',
+                          transaction.amount > 0 ? 'text-[#00C969]' : themeClasses.text,
+                        )}
+                        style={{
+                          color:
+                            transaction.amount > 0 ? '#00C969 !important' : lightStyles.text.color,
                         }}
                       >
                         {transaction.name}
                       </Text>
-                    </Link>
+                    )}
                   </td>
                   <td align="left">
                     <Text
@@ -291,7 +309,7 @@ export const TransactionsEmail = ({
                           transaction.amount > 0 ? '#00C969 !important' : lightStyles.text.color,
                       }}
                     >
-                      {Intl.NumberFormat(locale, {
+                      {Intl.NumberFormat(safeLocale, {
                         style: 'currency',
                         currency: transaction.currency,
                       }).format(transaction.amount)}
@@ -308,11 +326,20 @@ export const TransactionsEmail = ({
           transactions[transactions.length - 1]?.date &&
           transactions.at(0)?.date ? (
             <Section className="text-center mt-[32px] mb-[32px]">
-              <Button
-                href={`${baseAppUrl}/transactions?start=${transactions[transactions.length - 1]?.date}&end=${transactions.at(0)?.date}`}
-              >
-                {t('transactions.button')}
-              </Button>
+              {hasAppUrl ? (
+                <Button
+                  href={`${baseAppUrl}/transactions?start=${transactions[transactions.length - 1]?.date}&end=${transactions.at(0)?.date}`}
+                >
+                  {t('transactions.button')}
+                </Button>
+              ) : (
+                <Text
+                  className={`text-[14px] ${themeClasses.text}`}
+                  style={{ color: lightStyles.text.color }}
+                >
+                  {t('transactions.button')}
+                </Text>
+              )}
             </Section>
           ) : null}
 

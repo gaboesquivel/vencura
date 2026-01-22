@@ -98,19 +98,42 @@ const create = async <T extends keyof NotificationTypes>({
             handler.createActivity as (
               data: NotificationTypes[T],
               user: UserData,
-            ) => CreateActivityInput
+            ) => CreateActivityInput | Promise<CreateActivityInput>
           )(validatedData, user)
-          activityInputs.push(activityInput)
-          activities++
+
+          // Await if Promise, otherwise use directly
+          const resolvedActivityInput = await Promise.resolve(activityInput)
+
+          // Collect activity input for persistence
+          activityInputs.push(resolvedActivityInput)
         } catch (error) {
           logger.error(
-            { err: error, type, userId: user.id },
+            {
+              err: error,
+              type,
+              userId: user.id,
+              userEmail: user.email,
+              notificationType: type,
+            },
             `Failed to create activity for notification ${type} for user ${user.id}`,
           )
         }
       }
-      // TODO: Persist activities via activity service (e.g., activityService.bulkCreate(activityInputs))
-      // Activity inputs are collected but not yet persisted - caller should handle persistence
+
+      // Persist activities via activity service or collect for return
+      // TODO: When activity service is available, use: activityService.bulkCreate(activityInputs)
+      // For now, activities are collected but not persisted
+      // Counter increments only after successful collection (will be moved after persistence when service is added)
+      if (activityInputs.length > 0) {
+        // TODO: When persistence is implemented, replace this with:
+        // try {
+        //   await activityService.bulkCreate(activityInputs)
+        //   activities = activityInputs.length
+        // } catch (error) {
+        //   logger.error({ err: error, type, activityCount: activityInputs.length }, 'Failed to persist activities')
+        // }
+        activities = activityInputs.length
+      }
     }
 
     const sendEmail = options?.sendEmail ?? false
