@@ -21,11 +21,11 @@ describe('getClientConfig', () => {
   it('returns config with getAuthToken from apiKey when client was created with apiKey mode', () => {
     const client = createClient({
       baseUrl: 'https://api.example.com',
-      apiKey: 'bask_xxx_secret',
+      apiKey: 'venc_xxx_secret',
     })
     const config = getClientConfig(client)
     expect(config?.baseUrl).toBe('https://api.example.com')
-    expect(config?.getAuthToken?.()).toBe('bask_xxx_secret')
+    expect(config?.getAuthToken?.()).toBe('venc_xxx_secret')
   })
 
   it('returns config without getAuthToken when client was created with no-auth mode', () => {

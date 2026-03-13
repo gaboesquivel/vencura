@@ -12,14 +12,7 @@ import {
   SidebarMenuButton,
   SidebarMenuItem,
 } from '@repo/ui/components/sidebar'
-import {
-  BarChart3Icon,
-  GalleryVerticalEnd,
-  LogOut,
-  NewspaperIcon,
-  ShieldIcon,
-  UserIcon,
-} from 'lucide-react'
+import { BarChart3Icon, GalleryVerticalEnd, LogOut, NewspaperIcon, UserIcon } from 'lucide-react'
 import Link from 'next/link'
 import { usePathname } from 'next/navigation'
 
@@ -33,10 +26,7 @@ const settingsItems: Array<{
   label: string
   icon: typeof UserIcon
   matchPrefix?: boolean
-}> = [
-  { href: '/settings', label: 'Profile', icon: UserIcon },
-  { href: '/settings/security', label: 'Security', icon: ShieldIcon, matchPrefix: true },
-]
+}> = [{ href: '/settings', label: 'Profile', icon: UserIcon }]
 
 function isActive(href: string, pathname: string, matchPrefix?: boolean): boolean {
   return matchPrefix ? pathname === href || pathname.startsWith(`${href}/`) : pathname === href
@@ -53,7 +43,7 @@ export function DashboardSidebar() {
             <div className="bg-primary text-primary-foreground flex size-6 items-center justify-center rounded-md">
               <GalleryVerticalEnd className="size-4" />
             </div>
-            Acme Inc.
+            Vencura
           </Link>
         </div>
       </SidebarHeader>

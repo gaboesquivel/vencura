@@ -6,6 +6,8 @@ Type-safe REST API built with Fastify & OpenAPI. Routes in `src/routes/` are the
 
 Start database first (`pnpm db:start`), then `pnpm dev`. Uses Supabase CLI for PostgreSQL, or `PGLITE=true` for in-memory. Dev server at [http://localhost:3000](http://localhost:3000).
 
+**Switching project_id:** If you change `project_id` in `supabase/config.toml` (e.g. after a rebrand), run `pnpm db:stop` before `pnpm db:start`—only one Supabase instance runs per host.
+
 ## Vercel
 
 Uses `framework: "fastify"` in vercel.json. Vercel auto-detects `server.ts` as the entrypoint. PostgreSQL migrations run at build time; PGLite migrations run at runtime.
@@ -30,7 +32,7 @@ Copy `.env.test.example` to `.env.test` (gitignored) for unit tests. Vitest load
 - `pnpm test:e2e:debug` — Debug E2E tests
 - `pnpm checktypes` — Type-check
 - `pnpm db:start` — Start Supabase (local)
-- `pnpm db:stop` — Stop Supabase
+- `pnpm db:stop` — Stop Supabase (required before starting another instance with a different `project_id` in supabase/config.toml)
 - `pnpm db:reset` — Reset Supabase database (recreates from scratch)
 - `pnpm db:reset-and-migrate` — Reset DB then run Drizzle migrations
 - `pnpm db:migrate` — Run migrations (skips when PGLITE=true; use `RUN_PG_MIGRATE=true` to force PostgreSQL)
@@ -40,8 +42,8 @@ Copy `.env.test.example` to `.env.test` (gitignored) for unit tests. Vitest load
 
 ## Links
 
-- [Environment setup](https://basilic-docs.vercel.app/docs/development) — Env vars, `DATABASE_URL`, `PGLITE`
-- [Deployment](https://basilic-docs.vercel.app/docs/deployment) — Vercel, Cloud Run, ECS
-- [Authentication](https://basilic-docs.vercel.app/docs/architecture/authentication) — JWT, magic link, API keys
-- [API architecture](https://basilic-docs.vercel.app/docs/architecture/api) — Routes, OpenAPI, clients
-- [Database migrations](https://basilic-docs.vercel.app/docs/adrs/008-database) — PostgreSQL vs PGLite
+- [Environment setup](https://vencura-docs.vercel.app/docs/development) — Env vars, `DATABASE_URL`, `PGLITE`
+- [Deployment](https://vencura-docs.vercel.app/docs/deployment) — Vercel, Cloud Run, ECS
+- [Authentication](https://vencura-docs.vercel.app/docs/architecture/authentication) — JWT, magic link, API keys
+- [API architecture](https://vencura-docs.vercel.app/docs/architecture/api) — Routes, OpenAPI, clients
+- [Database migrations](https://vencura-docs.vercel.app/docs/adrs/008-database) — PostgreSQL vs PGLite

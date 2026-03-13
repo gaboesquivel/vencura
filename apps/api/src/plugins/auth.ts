@@ -1,10 +1,13 @@
+import { randomUUID } from 'node:crypto'
 import { captureError } from '@repo/error/node'
+import { verifyDynamicJwt } from '@repo/utils/dynamic-jwt'
 import { eq } from 'drizzle-orm'
 import type { FastifyPluginAsync } from 'fastify'
 import fp from 'fastify-plugin'
 import { getDb } from '../db/index.js'
-import { sessions, users } from '../db/schema/index.js'
+import { users } from '../db/schema/index.js'
 import { authenticateWithApiKey } from '../lib/api-key-auth.js'
+import { env } from '../lib/env.js'
 
 declare module 'fastify' {
   interface FastifyRequest {
@@ -21,23 +24,22 @@ declare module 'fastify' {
         userId: string
         expiresAt: Date
       }
+      decodedCredentials?: Array<{ id?: string; chain: string; address: string }>
     } | null
   }
 }
 
 const authPlugin: FastifyPluginAsync = async fastify => {
-  // Session validation hook - JWT Bearer or API key (Bearer bask_... or X-API-Key)
   fastify.addHook('onRequest', async request => {
     try {
       const apiKeyHeader = request.headers['x-api-key']
       const authHeader = request.headers.authorization
 
-      // X-API-Key header takes precedence for explicit API key usage
       const apiKeyToken =
         typeof apiKeyHeader === 'string'
           ? apiKeyHeader.trim()
           : authHeader?.startsWith('Bearer ')
-            ? authHeader.substring(7).trim().startsWith('bask_')
+            ? authHeader.substring(7).trim().startsWith('venc_')
               ? authHeader.substring(7).trim()
               : null
             : null
@@ -55,82 +57,70 @@ const authPlugin: FastifyPluginAsync = async fastify => {
       }
 
       const token = authHeader.substring(7).trim()
-
-      // Verify JWT
-      const decoded = fastify.jwt.verify<{
-        typ?: string
-        sub?: string
-        sid?: string
-        exp?: number
-      }>(token)
-
-      // Only accept access tokens
-      if (decoded.typ !== 'access' || !decoded.sub || !decoded.sid) {
+      const envId = env.DYNAMIC_ENVIRONMENT_ID
+      if (!envId) {
         request.session = null
         return
       }
 
-      // Load session from DB to verify it exists and is not expired
+      const decoded = await verifyDynamicJwt(token, envId)
+      if (!decoded?.sub) {
+        request.session = null
+        return
+      }
+
       const db = await getDb()
-      const [session] = await db.select().from(sessions).where(eq(sessions.id, decoded.sid))
+      let [user] = await db.select().from(users).where(eq(users.dynamicUserId, decoded.sub))
 
-      if (!session || session.expiresAt < new Date()) {
-        request.session = null
-        return
-      }
-
-      // Load user
-      const [user] = await db.select().from(users).where(eq(users.id, decoded.sub))
       if (!user) {
-        request.session = null
-        return
+        const name = [decoded.given_name, decoded.family_name].filter(Boolean).join(' ') || null
+        const newUser = {
+          id: randomUUID(),
+          dynamicUserId: decoded.sub,
+          email: decoded.email ?? null,
+          name: name || null,
+          username: null,
+          emailVerified: !!decoded.email,
+        }
+        await db.insert(users).values(newUser)
+        user = { ...newUser, image: null, createdAt: new Date(), updatedAt: new Date() }
       }
 
-      const wallet =
-        session.walletChain && session.walletAddress
-          ? { chain: session.walletChain, address: session.walletAddress }
-          : undefined
+      const wallet = decoded.verified_account ?? decoded.verified_credentials?.[0]
 
+      const credentials = decoded.verified_credentials ?? []
       request.session = {
         user: {
           id: user.id,
           email: user.email ?? null,
           name: user.name ?? null,
           username: user.username ?? null,
-          ...(wallet && { wallet }),
+          ...(wallet && { wallet: { chain: wallet.chain, address: wallet.address } }),
         },
         session: {
-          id: session.id,
-          userId: session.userId,
-          expiresAt: session.expiresAt,
+          id: decoded.sid ?? decoded.sub,
+          userId: user.id,
+          expiresAt: new Date((decoded.exp ?? 0) * 1000),
         },
+        decodedCredentials: credentials.map(c => ({
+          id: c.id,
+          chain: c.chain,
+          address: c.address,
+        })),
       }
     } catch (error) {
-      // JWT verification errors are expected for invalid tokens
-      // Only log unexpected errors
       if (error instanceof Error && !error.message.includes('jwt'))
         captureError({
           code: 'INTERNAL_ERROR',
           error,
           logger: request.log,
           label: 'auth.api.getSession failed',
-          data: {
-            method: request.method,
-            url: request.url,
-          },
-          tags: {
-            app: 'api',
-            module: 'auth-service',
-            route: request.url,
-          },
+          data: { method: request.method, url: request.url },
+          tags: { app: 'api', module: 'auth-service', route: request.url },
         })
-
       request.session = null
     }
   })
 }
 
-export default fp(authPlugin, {
-  name: 'auth',
-  dependencies: ['jwt'],
-})
+export default fp(authPlugin, { name: 'auth' })

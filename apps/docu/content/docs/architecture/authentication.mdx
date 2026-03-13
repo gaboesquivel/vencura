@@ -28,7 +28,7 @@ It supports:
 ## Principles
 
 - **Backend-controlled**: authentication is verified server-side
-- **JWT Bearer**: the API accepts `Authorization: Bearer <accessToken>` (JWT) or `Authorization: Bearer bask_<prefix>_<secret>` (API key)
+- **JWT Bearer**: the API accepts `Authorization: Bearer <accessToken>` (JWT) or `Authorization: Bearer venc_<prefix>_<secret>` (API key)
 - **Access + refresh tokens**: short-lived access JWTs, rotated refresh JWTs
 - **DB-backed sessions**: tokens reference a session id that can be revoked
 - **Callback pages**: Next.js auth pages (`/auth/callback/*`, `/auth/logout`) set cookies; clients call Fastify directly for user data
@@ -39,8 +39,8 @@ It supports:
 
 API keys enable programmatic auth for servers, CLIs, and scripts. Users create keys from the dashboard (or via JWT-authenticated endpoints); the full key is shown once at creation and cannot be retrieved later.
 
-- **Format**: `bask_<prefix>_<secret>` (stored as prefix + SHA256 hash of secret)
-- **Usage**: `X-API-Key: bask_<prefix>_<secret>` or `Authorization: Bearer bask_<prefix>_<secret>` — same header as JWT; Fastify distinguishes by prefix
+- **Format**: `venc_<prefix>_<secret>` (stored as prefix + SHA256 hash of secret)
+- **Usage**: `X-API-Key: venc_<prefix>_<secret>` or `Authorization: Bearer venc_<prefix>_<secret>` — same header as JWT; Fastify distinguishes by prefix
 - **Endpoints** (Bearer required — JWT or API key): `POST /account/apikeys` (create), `GET /account/apikeys` (list), `DELETE /account/apikeys/:id` (revoke)
 - **Security**: timing-safe hash comparison; secrets hashed at rest; `lastUsedAt` nullable (null = never used)
 

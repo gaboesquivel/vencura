@@ -37,7 +37,7 @@ Examples:
 | Package | What it is | Entrypoints |
 | --- | --- | --- |
 | `@repo/core` | Generated OpenAPI client + types | `@repo/core` |
-| `@repo/cli` | CLI for Basilic API (API key only) | `basilic` bin |
+| `@repo/cli` | CLI for Vencura API (API key only) | `vencura` bin |
 | `@repo/react` | React Query hooks + React utilities | `@repo/react` |
 | `@repo/utils` | Cross-runtime utilities | `@repo/utils/*` (prefer subpaths) |
 | `@repo/ui` | Shared shadcn/ui components | `@repo/ui/components/*`, `@repo/ui/lib/*`, `@repo/ui/radix` |
@@ -60,7 +60,7 @@ Generated client and types from `apps/api/openapi/openapi.json`.
 
 | Mode | Config | Refresh on 401 |
 | --- | --- | --- |
-| **apiKey** | `apiKey: 'bask_xxx'` | Never |
+| **apiKey** | `apiKey: 'venc_xxx'` | Never |
 | **JWT** | `getAuthToken`, `getRefreshToken`, `onTokensRefreshed` | Yes (calls Fastify directly) |
 | **no-auth** | `baseUrl` only | Never |
 
@@ -83,7 +83,7 @@ const client = createClient({
 // API key mode (servers, CLIs)
 const client = createClient({
   baseUrl: 'http://localhost:3001',
-  apiKey: 'bask_xxx_secret',
+  apiKey: 'venc_xxx_secret',
 })
 
 await client.auth.magiclink.request({

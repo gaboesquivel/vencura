@@ -1,6 +1,6 @@
 # @repo/cli
 
-TypeScript CLI to interact with the Basilic Fastify API via `@repo/core`. API key auth only; auth endpoints excluded. Ideal for agentic integrations (e.g. OpenClaw) as a simpler alternative to MCP.
+TypeScript CLI to interact with the Vencura Fastify API via `@repo/core`. API key auth only; auth endpoints excluded. Ideal for agentic integrations (e.g. OpenClaw) as a simpler alternative to MCP.
 
 ## Usage
 
@@ -13,16 +13,16 @@ node packages/cli/dist/cli.js --help
 
 Requires an API key. Resolved in order:
 
-1. `API_KEY` or `BASILIC_API_KEY` env var
-2. Config file (`~/.config/basilic/config.json` or `$XDG_CONFIG_HOME/basilic/config.json`)
+1. `VENCURA_API_KEY` env var
+2. Config file (`~/.config/vencura/config.json` or `$XDG_CONFIG_HOME/vencura/config.json`)
 3. Interactive prompt (saves to config)
 
 ```bash
 # Set via env
-export API_KEY=bask_xxx_yyy
+export VENCURA_API_KEY=venc_xxx_yyy
 
 # Or save to config
-basilic config set-api-key bask_xxx_yyy
+vencura config set-api-key venc_xxx_yyy
 ```
 
 ## Commands
@@ -36,15 +36,15 @@ Commands mirror the core API nesting (excluding auth endpoints): `health-check`,
 3. Run:
 
    ```bash
-   API_KEY=bask_xxx node packages/cli/dist/cli.js health-check
-   API_KEY=bask_xxx node packages/cli/dist/cli.js account apikeys list
+   VENCURA_API_KEY=venc_xxx node packages/cli/dist/cli.js health-check
+   VENCURA_API_KEY=venc_xxx node packages/cli/dist/cli.js account apikeys list
    ```
 
 4. Or build and run:
 
    ```bash
    pnpm --filter @repo/cli build
-   pnpm --filter @repo/cli exec basilic health-check
+   pnpm --filter @repo/cli exec vencura health-check
    ```
 
 ## Agentic integrations

@@ -27,21 +27,7 @@ afterAll(async () => {
 
 export { fastify }
 
-import './link/wallet/verify.test'
-import './link/wallet/unlink.test'
-import './link/email/request.test'
-import './link/email/verify.test'
 import './apikeys/create.test'
 import './apikeys/list.test'
 import './apikeys/revoke.test'
-import './link/passkey/delete.test'
-import './link/passkey/start.test'
-import './link/passkey/finish.test'
-import './link/totp/setup.test'
-import './link/totp/verify.test'
-import './link/totp/unlink.test'
-import './link/oauth/unlink.test'
-import './email/change/request.test'
-import './email/change/verify.test'
 import './profile/update.test'
-import './passkeys/list.test'

@@ -1,23 +1,40 @@
 import { randomUUID } from 'node:crypto'
+import { eq } from 'drizzle-orm'
 import { getDb } from '../../src/db/index.js'
-import { apiKeys, passkeyCredentials } from '../../src/db/schema/index.js'
+import { apiKeys, users } from '../../src/db/schema/index.js'
 import { generateApiKey } from '../../src/lib/api-keys.js'
 import type { TestApp } from './fastify.js'
 
 const sessionPool = new Map<string, string>()
 
-/** Cached JWT by email - reduces magic-link requests when tests share users */
+async function getOrCreateUserByEmail(email: string): Promise<{ id: string }> {
+  const db = await getDb()
+  const [existing] = await db.select().from(users).where(eq(users.email, email))
+  if (existing) return { id: existing.id }
+  const id = randomUUID()
+  await db.insert(users).values({
+    id,
+    dynamicUserId: randomUUID(),
+    email,
+    emailVerified: true,
+    name: 'Test User',
+  })
+  return { id }
+}
+
+/** Returns API key for authenticated requests. Cached by email. */
 export async function getOrCreateSession(
-  app: TestApp,
+  _app: TestApp,
   email: string,
   options?: { clearBefore?: boolean },
 ): Promise<string> {
   if (options?.clearBefore) sessionPool.delete(email)
   const cached = sessionPool.get(email)
   if (cached) return cached
-  const jwt = await getSessionToken(app, email, options)
-  sessionPool.set(email, jwt)
-  return jwt
+  const { id: userId } = await getOrCreateUserByEmail(email)
+  const apiKey = await createApiKey(_app, userId, 'Test Session Key')
+  sessionPool.set(email, apiKey)
+  return apiKey
 }
 
 export function clearSessionPool(): void {
@@ -41,61 +58,12 @@ export async function createApiKey(
   return key
 }
 
-export async function getMagicLinkTokenRaw(app: TestApp, email = 'test@test.ai'): Promise<string> {
-  await app.inject({
-    method: 'POST',
-    url: '/auth/magiclink/request',
-    payload: { email, callbackUrl: 'https://example.com/callback' },
-  })
-  const token = app.fakeEmail?.extractToken()
-  if (!token) throw new Error('No token in fake email')
-  return token
-}
-
-export async function getSessionToken(
-  app: TestApp,
-  email: string,
-  options?: { clearBefore?: boolean },
-): Promise<string> {
-  if (options?.clearBefore) app.fakeEmail?.clear()
-  const requestRes = await app.inject({
-    method: 'POST',
-    url: '/auth/magiclink/request',
-    payload: { email, callbackUrl: 'https://example.com/callback' },
-  })
-  if (requestRes.statusCode < 200 || requestRes.statusCode >= 300)
-    throw new Error(
-      `auth/magiclink/request failed: url=/auth/magiclink/request status=${requestRes.statusCode} body=${requestRes.body}`,
-    )
-
-  const lastForEmail = app.fakeEmail
-    ?.all()
-    .filter(e => e.to === email)
-    .at(-1)
-  const token = lastForEmail
-    ? app.fakeEmail?.extractToken(lastForEmail)
-    : app.fakeEmail?.extractToken()
-  if (!token) throw new Error('No token in fake email')
-  const verifyRes = await app.inject({
-    method: 'POST',
-    url: '/auth/magiclink/verify',
-    payload: { email, token },
-  })
-  if (verifyRes.statusCode < 200 || verifyRes.statusCode >= 300)
-    throw new Error(
-      `auth/magiclink/verify failed: url=/auth/magiclink/verify status=${verifyRes.statusCode} body=${verifyRes.body}`,
-    )
-
-  const { token: jwt } = JSON.parse(verifyRes.body) as { token: string }
-  return jwt
-}
-
 export async function getApiKeyToken(app: TestApp, email: string): Promise<string> {
-  const jwt = await getOrCreateSession(app, email)
+  const apiKey = await getOrCreateSession(app, email)
   const res = await app.inject({
     method: 'POST',
     url: '/account/apikeys',
-    headers: { Authorization: `Bearer ${jwt}` },
+    headers: { Authorization: `Bearer ${apiKey}` },
     payload: { name: 'Test Key' },
   })
   if (res.statusCode < 200 || res.statusCode >= 300)
@@ -112,32 +80,4 @@ export async function createAuthenticatedUser(
   const email = overrides?.email ?? 'test@test.ai'
   const token = await getOrCreateSession(app, email)
   return { token, email }
-}
-
-export async function insertTestPasskey(
-  app: TestApp,
-  jwt: string,
-  name = 'To Delete',
-): Promise<string> {
-  const userRes = await app.inject({
-    method: 'GET',
-    url: '/auth/session/user',
-    headers: { Authorization: `Bearer ${jwt}` },
-  })
-  if (userRes.statusCode !== 200)
-    throw new Error(`auth/session/user failed: ${userRes.statusCode} ${userRes.body}`)
-  const body = JSON.parse(userRes.body) as { user?: { id: string } }
-  const userId = body.user?.id
-  if (!userId) throw new Error('No user id in profile response')
-  const db = await getDb()
-  const passkeyId = randomUUID()
-  await db.insert(passkeyCredentials).values({
-    id: passkeyId,
-    userId,
-    credentialId: `cred-${randomUUID()}`,
-    publicKey: 'dGVzdC1wdWJsaWMta2V5',
-    counter: 0,
-    name,
-  })
-  return passkeyId
 }

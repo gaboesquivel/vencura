@@ -11,8 +11,6 @@ import { useSetState } from 'ahooks'
 import { Copy, Shuffle, User } from 'lucide-react'
 import { useCallback, useEffect, useMemo } from 'react'
 import { toast } from 'sonner'
-import { ChangeEmailBlock } from './change-email-block'
-import { LinkedAccountsSection } from './linked-accounts-section'
 
 const adjectives = [
   'clever',
@@ -131,10 +129,10 @@ function ProfileFormContent({
           <h2 className="text-lg font-heading font-semibold">Email</h2>
           <p className="text-muted-foreground mt-1 text-sm">Your primary email address.</p>
         </div>
-        <ChangeEmailBlock email={email} />
+        <p className="text-muted-foreground rounded-lg border bg-muted/30 px-3 py-2 font-mono text-sm">
+          {email ?? '—'}
+        </p>
       </section>
-
-      <LinkedAccountsSection />
 
       <section className="space-y-4 border-b pb-6">
         <div className="flex items-center gap-4">

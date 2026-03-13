@@ -2,13 +2,13 @@
  * Configuration options for creating an API client.
  *
  * Three auth modes:
- * - **apiKey**: Static Bearer token (e.g. bask_xxx_secret). No callbacks. Never refresh.
+ * - **apiKey**: Static Bearer token (e.g. venc_xxx_secret). No callbacks. Never refresh.
  * - **JWT**: getAuthToken, getRefreshToken, onTokensRefreshed required. Refresh on 401.
  * - **No auth**: baseUrl only. No Authorization header.
  *
  * @example API key mode
  * ```ts
- * createClient({ baseUrl: 'https://api.example.com', apiKey: 'bask_xxx_secret' })
+ * createClient({ baseUrl: 'https://api.example.com', apiKey: 'venc_xxx_secret' })
  * ```
  *
  * @example JWT mode
@@ -48,4 +48,10 @@ export type NoAuthOptions = {
   getHeaders?: () => Record<string, string> | Promise<Record<string, string>>
 }
 
-export type CoreClientOptions = ApiKeyOptions | JwtOptions | NoAuthOptions
+export type DynamicAuthOptions = {
+  baseUrl: string
+  dynamicAuth: { getAuthToken: () => string | null | Promise<string | null> }
+  getHeaders?: () => Record<string, string> | Promise<Record<string, string>>
+}
+
+export type CoreClientOptions = ApiKeyOptions | JwtOptions | NoAuthOptions | DynamicAuthOptions

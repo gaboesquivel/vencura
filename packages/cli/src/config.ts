@@ -9,11 +9,11 @@ export type Config = {
 
 function getConfigDir(): string {
   const envHome = process.env.XDG_CONFIG_HOME
-  if (envHome) return join(envHome, 'basilic')
+  if (envHome) return join(envHome, 'vencura')
   const home = homedir()
   return platform() === 'win32'
-    ? join(home, 'AppData', 'Local', 'basilic')
-    : join(home, '.config', 'basilic')
+    ? join(home, 'AppData', 'Local', 'vencura')
+    : join(home, '.config', 'vencura')
 }
 
 export function getConfigPath(): string {
@@ -49,7 +49,7 @@ export function saveConfig({ apiKey, baseUrl }: Partial<Config>): void {
 }
 
 export function resolveApiKey(): string | undefined {
-  return process.env.API_KEY ?? process.env.BASILIC_API_KEY ?? loadConfig().apiKey
+  return process.env.VENCURA_API_KEY ?? loadConfig().apiKey
 }
 
 export function resolveBaseUrl(): string {

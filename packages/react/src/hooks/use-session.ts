@@ -4,7 +4,7 @@ import { decodeJwt } from 'jose'
 import { useReactApiConfig } from '../context'
 
 export type DecodedSession = {
-  typ: string
+  typ?: string
   sub: string
   sid: string
   wal?: { chain: string; address: string }
@@ -18,11 +18,13 @@ function decodeSession(token: string | null): DecodedSession | null {
   if (!token) return null
   try {
     const d = decodeJwt(token) as Record<string, unknown>
-    if (d.typ !== 'access' || typeof d.sub !== 'string' || typeof d.sid !== 'string') return null
+    if (typeof d.sub !== 'string') return null
+    const typ = d.typ as string | undefined
+    if (typ !== undefined && typ !== 'access') return null
     const session: DecodedSession = {
-      typ: d.typ as string,
+      ...(typ && { typ }),
       sub: d.sub,
-      sid: d.sid,
+      sid: (typeof d.sid === 'string' ? d.sid : d.sub) as string,
     }
     const wal = d.wal
     if (wal && typeof wal === 'object' && 'chain' in wal && 'address' in wal)

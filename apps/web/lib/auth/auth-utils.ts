@@ -1,7 +1,7 @@
+import { verifyDynamicJwt } from '@repo/utils/dynamic-jwt'
 import { z } from 'zod'
 import { env } from '@/lib/env'
 import { getServerAuthToken } from './auth-server'
-import { isTokenExpired, verifyJwtToken } from './jwt-utils'
 
 const userResponseSchema = z
   .object({
@@ -24,20 +24,18 @@ export async function getAuthStatus(): Promise<{
   userId: string | null
   sessionId: string | null
 }> {
+  const envId = env.NEXT_PUBLIC_DYNAMIC_ENVIRONMENT_ID
   const { token } = await getServerAuthToken()
 
-  if (!token) return { authenticated: false, userId: null, sessionId: null }
+  if (!envId || !token) return { authenticated: false, userId: null, sessionId: null }
 
-  const decoded = await verifyJwtToken({ token, secret: env.JWT_SECRET })
-  if (!decoded || decoded.typ !== 'access' || !decoded.sub || !decoded.sid)
-    return { authenticated: false, userId: null, sessionId: null }
-
-  if (isTokenExpired({ token })) return { authenticated: false, userId: null, sessionId: null }
+  const decoded = await verifyDynamicJwt(token, envId)
+  if (!decoded?.sub) return { authenticated: false, userId: null, sessionId: null }
 
   return {
     authenticated: true,
     userId: decoded.sub,
-    sessionId: decoded.sid,
+    sessionId: decoded.sid ?? null,
   }
 }
 

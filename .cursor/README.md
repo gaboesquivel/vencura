@@ -17,14 +17,14 @@ AI-assisted development configuration for this codebase. Contains rules, command
 
 ### Workflow Documentation
 
-Human-facing workflow documentation for AI-assisted development is now in the [documentation site](https://basilic-docs.vercel.app/docs/cursor-workflow).
+Human-facing workflow documentation for AI-assisted development is now in the [documentation site](https://vencura-docs.vercel.app/docs/cursor-workflow).
 
-**Start here:** [Cursor Workflow Overview](https://basilic-docs.vercel.app/docs/cursor-workflow)
+**Start here:** [Cursor Workflow Overview](https://vencura-docs.vercel.app/docs/cursor-workflow)
 
 Key guides:
-- [Quick Start](https://basilic-docs.vercel.app/docs/cursor-workflow/quick-start) - 5-minute reference card with essential patterns
-- [Complete Workflow](https://basilic-docs.vercel.app/docs/cursor-workflow/complete-workflow) - Complete development lifecycle (discovery → architecture → planning → execution → review)
-- [Extensions](https://basilic-docs.vercel.app/docs/cursor-workflow/extensions) - VS Code/Cursor extensions and their roles
+- [Quick Start](https://vencura-docs.vercel.app/docs/cursor-workflow/quick-start) - 5-minute reference card with essential patterns
+- [Complete Workflow](https://vencura-docs.vercel.app/docs/cursor-workflow/complete-workflow) - Complete development lifecycle (discovery → architecture → planning → execution → review)
+- [Extensions](https://vencura-docs.vercel.app/docs/cursor-workflow/extensions) - VS Code/Cursor extensions and their roles
 
 ### Rules (`rules/`)
 
@@ -93,8 +93,8 @@ Model Context Protocol (MCP) servers extend Cursor with specialized capabilities
 - `github` - Repository operations, issue management, and GitHub Actions logs (requires `GITHUB_TOKEN`)
 - `coderabbit` - CodeRabbit AI code review comments and PR insights (requires `GITHUB_TOKEN`)
 - `next-devtools` - Next.js runtime diagnostics (errors, routes, logs) and migration tools (no auth required)
-- `basilic-docs` - Basilic project documentation context (no auth required)
-- `basilic-api` - Basilic API package context (no auth required)
+- `vencura-docs` - Vencura project documentation context (no auth required)
+- `vencura-api` - Vencura API package context (no auth required)
 
 **Note:** `shadcnui-jpisnice-react-native` exists for future React Native support but is not included in the current React workflow.
 

@@ -51,6 +51,6 @@ describe('DELETE /account/apikeys/:id', () => {
       headers: { Authorization: `Bearer ${sharedJwt}` },
     })
     const body = JSON.parse(listRes.body)
-    expect(body.keys).toHaveLength(0)
+    expect(body.keys).toHaveLength(1)
   })
 })

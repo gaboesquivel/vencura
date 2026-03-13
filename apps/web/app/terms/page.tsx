@@ -11,7 +11,7 @@ export default function TermsPage() {
       <section>
         <h2 className="font-heading mb-2 text-base font-semibold">1. Acceptance</h2>
         <p>
-          By accessing or using Basilic (&quot;the Service&quot;), you agree to these Terms of
+          By accessing or using Vencura (&quot;the Service&quot;), you agree to these Terms of
           Service. If you do not agree, do not use the Service.
         </p>
       </section>

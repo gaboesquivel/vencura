@@ -10,6 +10,7 @@ export default defineConfig({
     'src/logger/types.ts',
     'src/debug/index.ts',
     'src/data/index.ts',
+    'src/dynamic-jwt.ts',
   ],
   format: ['esm'],
   dts: true,

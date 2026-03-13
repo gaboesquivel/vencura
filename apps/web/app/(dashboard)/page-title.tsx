@@ -6,10 +6,6 @@ export const pageTitles: Record<string, string> = {
   '/': 'Latest News',
   '/markets': 'Markets',
   '/settings': 'Profile',
-  '/settings/security': 'Passkeys',
-  '/settings/security/passkeys': 'Passkeys',
-  '/settings/security/totp': 'Authenticator',
-  '/settings/security/apikeys': 'API keys',
 }
 
 export function PageTitle(): React.JSX.Element | null {

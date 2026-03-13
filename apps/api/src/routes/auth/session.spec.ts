@@ -18,5 +18,4 @@ afterAll(async () => {
 export { fastify }
 
 import './session/logout.test'
-import './session/refresh.test'
 import './session/user.test'

@@ -25,7 +25,7 @@ import { createClient } from '@repo/core'
 // API key mode — static Bearer, no refresh
 const client = createClient({
   baseUrl: 'https://api.example.com',
-  apiKey: 'bask_xxx_secret',
+  apiKey: 'venc_xxx_secret',
 })
 
 // JWT mode — automatic refresh on 401
@@ -123,7 +123,7 @@ If you're seeing type errors:
 2. Ensure you're importing types from `@repo/core`, not from generated files
 3. Check that your TypeScript version matches the package requirements
 
-See [API Development](https://basilic-docs.vercel.app/docs/architecture/api#client-consumption) for integration patterns.
+See [API Development](https://vencura-docs.vercel.app/docs/architecture/api#client-consumption) for integration patterns.
 
 ## Scripts
 

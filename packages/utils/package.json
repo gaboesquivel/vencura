@@ -61,6 +61,13 @@
       "import": "./dist/data/index.js",
       "node": "./dist/data/index.js",
       "default": "./dist/data/index.js"
+    },
+    "./dynamic-jwt": {
+      "types": "./src/dynamic-jwt.ts",
+      "source": "./src/dynamic-jwt.ts",
+      "import": "./dist/dynamic-jwt.js",
+      "node": "./dist/dynamic-jwt.js",
+      "default": "./dist/dynamic-jwt.js"
     }
   },
   "scripts": {
@@ -124,5 +131,9 @@
     "viem": "2.45.3",
     "zod": "^4.3.6",
     "zod-validation-error": "^5.0.0"
+  },
+  "dependencies": {
+    "jsonwebtoken": "^9.0.3",
+    "jwks-rsa": "^4.0.1"
   }
 }

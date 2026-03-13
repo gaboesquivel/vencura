@@ -17,6 +17,4 @@ afterAll(async () => {
 
 export { fastify }
 
-import './magic-link.test.js'
 import './authed.test.js'
-import './totp.test.js'

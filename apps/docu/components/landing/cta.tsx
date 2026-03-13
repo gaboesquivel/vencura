@@ -21,7 +21,7 @@ export function CTA() {
           </Button>
           <Button size="lg" variant="outline" className="bg-transparent" asChild>
             <a
-              href="https://github.com/blockmatic/basilic"
+              href="https://github.com/blockmatic/vencura"
               target="_blank"
               rel="noopener noreferrer"
             >

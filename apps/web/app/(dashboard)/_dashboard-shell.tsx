@@ -1,5 +1,6 @@
 'use client'
 
+import { useDynamicContext } from '@dynamic-labs/sdk-react-core'
 import { Button } from '@repo/ui/components/button'
 import { ScrollArea } from '@repo/ui/components/scroll-area'
 import { SidebarInset, SidebarProvider, SidebarTrigger } from '@repo/ui/components/sidebar'
@@ -9,26 +10,26 @@ import { AssistantSidebar } from 'components/assistant'
 import { ApiHealthBadge } from 'components/shared/api-health-badge'
 import { AuthBadge } from 'components/shared/auth-badge'
 import { LogOut } from 'lucide-react'
-import { toast } from 'sonner'
+import { env } from '@/lib/env'
 import { authSessionJwtQueryKey, authSessionUserQueryKey } from '@/lib/query-keys'
 import { PageTitle } from './page-title'
 import { DashboardSidebar } from './sidebar'
+
+const cookieName = env.NEXT_PUBLIC_AUTH_COOKIE_NAME
 
 export function DashboardShell({
   children,
 }: Readonly<{ children: React.ReactNode }>): React.JSX.Element {
   const queryClient = useQueryClient()
+  const { handleLogOut } = useDynamicContext()
 
-  async function handleSignOut() {
-    const response = await fetch('/auth/logout', { redirect: 'manual' })
-    const isSuccess = response.status >= 200 && response.status < 400
-    if (!isSuccess) {
-      toast.error('Sign out failed. Please try again.')
-      return
-    }
+  function handleSignOut() {
+    handleLogOut?.()
+    // biome-ignore lint/suspicious/noDocumentCookie: necessary to clear auth cookie on sign out
+    document.cookie = `${cookieName}=; path=/; max-age=0`
     queryClient.invalidateQueries({ queryKey: authSessionUserQueryKey })
     queryClient.invalidateQueries({ queryKey: authSessionJwtQueryKey })
-    window.location.href = '/'
+    window.location.href = '/auth/login'
   }
 
   return (

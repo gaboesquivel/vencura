@@ -3,9 +3,9 @@
   "version": "0.0.0",
   "type": "module",
   "private": true,
-  "description": "TypeScript CLI to interact with Basilic Fastify API via API key",
+  "description": "TypeScript CLI to interact with Vencura Fastify API via API key",
   "bin": {
-    "basilic": "./dist/cli.js"
+    "vencura": "./dist/cli.js"
   },
   "exports": {
     ".": {

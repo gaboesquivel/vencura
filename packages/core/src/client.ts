@@ -1,6 +1,6 @@
 import type { CoreApiClient } from './api-client.gen'
 import { api } from './api-wrapper.gen'
-import type { CoreClientOptions, JwtOptions } from './config'
+import type { CoreClientOptions, DynamicAuthOptions, JwtOptions } from './config'
 import { ApiError } from './errors'
 import { createConfig, createClient as createHeyApiClient } from './gen/client/index'
 import * as gen from './gen/index'
@@ -56,18 +56,30 @@ function isJwtMode(options: CoreClientOptions): options is Extract<CoreClientOpt
   )
 }
 
+function isDynamicAuthMode(
+  options: CoreClientOptions,
+): options is Extract<CoreClientOptions, DynamicAuthOptions> {
+  return (
+    'dynamicAuth' in options &&
+    typeof options.dynamicAuth === 'object' &&
+    typeof options.dynamicAuth.getAuthToken === 'function'
+  )
+}
+
 async function doRefresh(
   options: CoreClientOptions,
-  client: ReturnType<typeof createHeyApiClient>,
+  _client: ReturnType<typeof createHeyApiClient>,
 ): Promise<{ token: string; refreshToken: string } | null> {
   if (isApiKeyMode(options)) return null
   if (!isJwtMode(options)) return null
+  const refreshFn = (gen as Record<string, unknown>).refresh
+  if (typeof refreshFn !== 'function') return null
   const refreshToken = await options.getRefreshToken()
   if (!refreshToken) return null
-  const refreshResponse = await gen.refresh({ client, body: { refreshToken } })
-  if (refreshResponse.error || !refreshResponse.data) return null
-  await options.onTokensRefreshed(refreshResponse.data)
-  return refreshResponse.data
+  const refreshResponse = await refreshFn({ client: _client, body: { refreshToken } })
+  if (refreshResponse?.error || !refreshResponse?.data) return null
+  await options.onTokensRefreshed(refreshResponse.data as { token: string; refreshToken: string })
+  return refreshResponse.data as { token: string; refreshToken: string }
 }
 
 function canAttemptRefresh(
@@ -77,6 +89,7 @@ function canAttemptRefresh(
 ): boolean {
   if (errorStatus !== 401 || isRefreshEndpoint) return false
   if (isApiKeyMode(options)) return false
+  if (isDynamicAuthMode(options)) return false
   return isJwtMode(options)
 }
 
@@ -167,7 +180,7 @@ function wrapApiWithClient<T>(
  * ```ts
  * const client = createClient({
  *   baseUrl: 'https://api.example.com',
- *   apiKey: 'bask_xxx_secret',
+ *   apiKey: 'venc_xxx_secret',
  * })
  * ```
  *
@@ -199,9 +212,11 @@ export function createClient(options: CoreClientOptions): CoreApiClient {
   client.interceptors.request.use(async request => {
     const token = isApiKeyMode(options)
       ? options.apiKey
-      : isJwtMode(options)
-        ? await options.getAuthToken()
-        : undefined
+      : isDynamicAuthMode(options)
+        ? await options.dynamicAuth.getAuthToken()
+        : isJwtMode(options)
+          ? await options.getAuthToken()
+          : undefined
 
     const extraHeaders = await options.getHeaders?.()
 
@@ -219,9 +234,11 @@ export function createClient(options: CoreClientOptions): CoreApiClient {
   const wrapped = wrapApiWithClient(api, client, options) as unknown as CoreApiClient
   const getAuthToken = isApiKeyMode(options)
     ? () => options.apiKey
-    : isJwtMode(options)
-      ? options.getAuthToken
-      : undefined
+    : isDynamicAuthMode(options)
+      ? options.dynamicAuth.getAuthToken
+      : isJwtMode(options)
+        ? options.getAuthToken
+        : undefined
   clientConfigMap.set(wrapped, {
     baseUrl: options.baseUrl,
     getAuthToken,

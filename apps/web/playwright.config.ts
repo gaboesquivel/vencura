@@ -27,29 +27,10 @@ export default defineConfig({
   },
   projects: [
     {
-      name: 'auth',
-      testMatch: ['**/magic-link-auth.spec.ts'],
-      timeout: 60_000,
-      use: { ...devices['Desktop Chrome'] },
-    },
-    {
       name: 'chromium',
       testMatch: ['**/chat-assistant.spec.ts'],
       timeout: 60_000,
       use: { ...devices['Desktop Chrome'] },
-      dependencies: ['auth'],
-    },
-    {
-      name: 'security',
-      testMatch: [
-        '**/security/authenticator.spec.ts',
-        '**/security/passkeys.spec.ts',
-        '**/passkey-auth.spec.ts',
-        '**/security/api-keys.spec.ts',
-      ],
-      timeout: 60_000,
-      use: { ...devices['Desktop Chrome'] },
-      dependencies: ['auth'],
     },
   ],
 })

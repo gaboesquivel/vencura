@@ -1,13 +1,13 @@
+import { verifyDynamicJwt } from '@repo/utils/dynamic-jwt'
 import type { NextRequest } from 'next/server'
 import { NextResponse } from 'next/server'
-import { refreshTokensWithRefreshToken, setAuthCookiesOnResponse } from '@/lib/auth/auth-server'
-import { decodeJwtToken, isTokenExpired, verifyJwtToken } from '@/lib/auth/jwt-utils'
 import { parseAuthCookie } from '@/lib/auth/parse-auth-cookie'
 import { env } from '@/lib/env'
 
 const cookieName = env.NEXT_PUBLIC_AUTH_COOKIE_NAME
+const envId = env.NEXT_PUBLIC_DYNAMIC_ENVIRONMENT_ID
 
-type AuthStatus = 'authenticated' | 'unauthenticated' | 'refreshed'
+type AuthStatus = 'authenticated' | 'unauthenticated'
 
 type AuthCheckResult = {
   status: AuthStatus
@@ -16,35 +16,17 @@ type AuthCheckResult = {
 }
 
 async function checkAuthStatus(request: NextRequest): Promise<AuthCheckResult> {
+  if (!envId) return { status: 'unauthenticated', shouldClearCookies: false }
+
   const raw = request.cookies.get(cookieName)?.value
-  const { token, refreshToken } = parseAuthCookie(raw)
+  const { token } = parseAuthCookie(raw)
 
   if (!token) return { status: 'unauthenticated', shouldClearCookies: false }
 
   try {
-    const payload = decodeJwtToken({ token })
-    if (payload?.typ !== 'access' || !payload?.sub || !payload?.sid)
-      return { status: 'unauthenticated', shouldClearCookies: true }
-
-    if (!isTokenExpired({ token })) {
-      const verified = await verifyJwtToken({ token, secret: env.JWT_SECRET })
-      if (verified) return { status: 'authenticated', shouldClearCookies: false }
-      return { status: 'unauthenticated', shouldClearCookies: true }
-    }
-
-    if (!refreshToken) return { status: 'unauthenticated', shouldClearCookies: true }
-
-    try {
-      const tokens = await refreshTokensWithRefreshToken({ refreshToken })
-
-      if (!tokens) return { status: 'unauthenticated', shouldClearCookies: true }
-
-      const response = NextResponse.next()
-      setAuthCookiesOnResponse(response, tokens)
-      return { status: 'refreshed', response, shouldClearCookies: false }
-    } catch {
-      return { status: 'unauthenticated', shouldClearCookies: true }
-    }
+    const decoded = await verifyDynamicJwt(token, envId)
+    if (!decoded?.sub) return { status: 'unauthenticated', shouldClearCookies: true }
+    return { status: 'authenticated', shouldClearCookies: false }
   } catch {
     return { status: 'unauthenticated', shouldClearCookies: true }
   }
@@ -66,32 +48,20 @@ export async function proxy(request: NextRequest) {
     return NextResponse.next()
 
   const authCheck = await checkAuthStatus(request)
-  const { status: authStatus, response: refreshResponse, shouldClearCookies } = authCheck
+  const { status: authStatus, shouldClearCookies } = authCheck
 
-  // Allow /auth/login to be accessed without auth
   if (pathname === '/auth/login') {
     if (authStatus === 'authenticated') {
       const url = request.nextUrl.clone()
       url.pathname = '/'
       return NextResponse.redirect(url)
     }
-    if (authStatus === 'refreshed' && refreshResponse) {
-      const url = request.nextUrl.clone()
-      url.pathname = '/'
-      const res = NextResponse.redirect(url)
-      const setCookies = refreshResponse.headers.getSetCookie()
-      for (const header of setCookies) res.headers.append('Set-Cookie', header)
-
-      return res
-    }
-    // Allow unauthenticated users to access login
     const response = NextResponse.next()
     if (shouldClearCookies) response.cookies.set(cookieName, '', { maxAge: 0, path: '/' })
     return response
   }
 
   if (authStatus === 'unauthenticated') {
-    // Redirect unauthenticated users to login
     const url = request.nextUrl.clone()
     url.pathname = '/auth/login'
     const redirectResponse = NextResponse.redirect(url)
@@ -99,8 +69,7 @@ export async function proxy(request: NextRequest) {
     return redirectResponse
   }
 
-  const response = refreshResponse ?? NextResponse.next()
-  return response
+  return NextResponse.next()
 }
 
 export const config = {

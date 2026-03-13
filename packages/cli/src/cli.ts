@@ -38,7 +38,7 @@ async function ensureApiKey(): Promise<string> {
 
   if (!process.stdin.isTTY) {
     console.error(
-      'API key required. Set API_KEY or BASILIC_API_KEY env var, or run: basilic config set-api-key',
+      'API key required. Set VENCURA_API_KEY env var, or run: vencura config set-api-key',
     )
     process.exit(1)
   }
@@ -80,8 +80,8 @@ function toKebab(str: string): string {
 const program = new Command()
 
 program
-  .name('basilic')
-  .description('CLI for Basilic API (API key auth only; excludes auth endpoints)')
+  .name('vencura')
+  .description('CLI for Vencura API (API key auth only; excludes auth endpoints)')
   .version('0.0.0')
   .option('-b, --base-url <url>', 'API base URL', resolveBaseUrl())
 
@@ -93,7 +93,7 @@ configCmd
     let value = key
     if (!value) {
       if (!process.stdin.isTTY) {
-        console.error('Provide key as argument or set API_KEY env var')
+        console.error('Provide key as argument or set VENCURA_API_KEY env var')
         process.exit(1)
       }
       value = await promptApiKey()

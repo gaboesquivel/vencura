@@ -1,4 +1,4 @@
-# Basilic: API-First TypeScript FullStack Starter
+# Vencura: API-First TypeScript FullStack Starter
 
 Build production-ready APIs and apps with typed SDKs, out-of-the-box authentication, a portable architecture, AI tooling, and crypto integrations.
 Fastify • OpenAPI • Next.js • Expo — one stack, multiple platforms.
@@ -69,7 +69,7 @@ Run with `pnpm <script>`.
   - `test` — Run unit tests (packages + apps)
   - `test:e2e` — E2E (Fastify + Next)
 **CI**
-  - Lint and security run on every PR. App E2E (`web-e2e`, `api-e2e`) and package tests (`packages-test`) run only when relevant code changes. Mobile: EAS build, preview on main, PR OTA—see [GitHub Actions](https://basilic-docs.vercel.app/docs/deployment/github-actions) and [Mobile CI/CD](https://basilic-docs.vercel.app/docs/deployment/mobile-cicd).
+  - Lint and security run on every PR. App E2E (`web-e2e`, `api-e2e`) and package tests (`packages-test`) run only when relevant code changes. Mobile: EAS build, preview on main, PR OTA—see [GitHub Actions](https://vencura-docs.vercel.app/docs/deployment/github-actions) and [Mobile CI/CD](https://vencura-docs.vercel.app/docs/deployment/mobile-cicd).
 **Security**
   - `security:block-files` — Block sensitive file patterns
   - `security:secrets` — Scan staged files for secrets
@@ -85,7 +85,7 @@ Run with `pnpm <script>`.
 
 ## Documentation
 
-Full docs: [basilic-docs.vercel.app](https://basilic-docs.vercel.app/docs)
+Full docs: [vencura-docs.vercel.app](https://vencura-docs.vercel.app/docs)
 
-- [Dev Environments](https://basilic-docs.vercel.app/docs/development/dev-environments) — Local vs remote (ports 3000, 3001, 8081; `start:localhost`, `start:tunnel`)
+- [Dev Environments](https://vencura-docs.vercel.app/docs/development/dev-environments) — Local vs remote (ports 3000, 3001, 8081; `start:localhost`, `start:tunnel`)
 

@@ -3,7 +3,7 @@ import { eq } from 'drizzle-orm'
 import type { getDb } from '../db/index.js'
 import { apiKeys, users } from '../db/schema/index.js'
 import { parseApiKey } from './api-keys.js'
-import { hashToken } from './jwt.js'
+import { hashToken } from './token-utils.js'
 
 type Db = Awaited<ReturnType<typeof getDb>>
 

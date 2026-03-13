@@ -1,6 +1,6 @@
 # @repo/utils
 
-Shared utility library for the Basilic monorepo. Prefer subpath imports; details and peer deps live in each module's README.
+Shared utility library for the Vencura monorepo. Prefer subpath imports; details and peer deps live in each module's README.
 
 - [async](src/async/README.md) — `@repo/utils/async`
 - [data](src/data/README.md) — `@repo/utils/data`

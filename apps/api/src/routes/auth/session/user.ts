@@ -1,27 +1,14 @@
-import { logger } from '@repo/utils/logger/server'
 import { Type } from '@sinclair/typebox'
 import { eq } from 'drizzle-orm'
 import type { FastifyPluginAsync } from 'fastify'
 import { getDb } from '../../../db/index.js'
-import {
-  account,
-  passkeyCredentials,
-  totp,
-  users,
-  walletIdentities,
-} from '../../../db/schema/index.js'
+import { users, walletIdentities } from '../../../db/schema/index.js'
 import { ErrorResponseSchema } from '../../schemas.js'
 
 const LinkedWalletSchema = Type.Object({
   id: Type.String(),
   chain: Type.String(),
   address: Type.String(),
-})
-
-const PasskeySchema = Type.Object({
-  id: Type.String(),
-  name: Type.String(),
-  createdAt: Type.String({ format: 'date-time' }),
 })
 
 const LinkedAccountSchema = Type.Object({
@@ -38,8 +25,6 @@ const UserResponseSchema = Type.Object({
     wallet: Type.Optional(Type.Object({ chain: Type.String(), address: Type.String() })),
     linkedWallets: Type.Array(LinkedWalletSchema),
     linkedAccounts: Type.Array(LinkedAccountSchema),
-    totpEnabled: Type.Boolean(),
-    passkeys: Type.Array(PasskeySchema),
   }),
 })
 
@@ -68,15 +53,29 @@ const sessionUserRoute: FastifyPluginAsync = async fastify => {
         })
 
       const userId = request.session.user.id
-      let linkedWallets: { id: string; chain: string; address: string }[] = []
-      let linkedAccounts: { providerId: string }[] = []
-      let totpEnabled = false
-      let passkeys: { id: string; name: string; createdAt: string }[] = []
       let userRow: { name?: string | null; username?: string | null } | undefined
+      const db = await getDb()
 
       try {
-        const db = await getDb()
-        linkedWallets = await db
+        ;[userRow] = await db
+          .select({ name: users.name, username: users.username })
+          .from(users)
+          .where(eq(users.id, userId))
+      } catch {
+        return reply.code(500).send({
+          code: 'INTERNAL_SERVER_ERROR',
+          message: 'Failed to fetch user data',
+        })
+      }
+
+      const credentials = request.session.decodedCredentials ?? []
+      let linkedWallets = credentials.map(c => ({
+        id: c.id ?? c.address,
+        chain: c.chain,
+        address: c.address,
+      }))
+      if (linkedWallets.length === 0) {
+        const fromDb = await db
           .select({
             id: walletIdentities.id,
             chain: walletIdentities.chain,
@@ -84,42 +83,11 @@ const sessionUserRoute: FastifyPluginAsync = async fastify => {
           })
           .from(walletIdentities)
           .where(eq(walletIdentities.userId, userId))
-
-        const accountRows = await db
-          .select({ providerId: account.providerId })
-          .from(account)
-          .where(eq(account.userId, userId))
-        const uniqueProviderIds = [...new Set(accountRows.map(a => a.providerId))]
-        linkedAccounts = uniqueProviderIds.map(providerId => ({ providerId }))
-
-        const [totpRow] = await db.select().from(totp).where(eq(totp.userId, userId))
-        totpEnabled = !!totpRow
-
-        const passkeyRows = await db
-          .select({
-            id: passkeyCredentials.id,
-            name: passkeyCredentials.name,
-            createdAt: passkeyCredentials.createdAt,
-          })
-          .from(passkeyCredentials)
-          .where(eq(passkeyCredentials.userId, userId))
-        passkeys = passkeyRows.map(p => ({
-          id: p.id,
-          name: p.name,
-          createdAt: p.createdAt.toISOString(),
-        }))
-
-        ;[userRow] = await db
-          .select({ name: users.name, username: users.username })
-          .from(users)
-          .where(eq(users.id, userId))
-      } catch (err) {
-        logger.error({ err }, 'Failed to fetch user data')
-        return reply.code(500).send({
-          code: 'INTERNAL_SERVER_ERROR',
-          message: 'Failed to fetch user data',
-        })
+        linkedWallets = fromDb
       }
+      const linkedAccounts = credentials
+        .filter(c => c.chain !== 'eip155' && c.chain !== 'solana')
+        .map(c => ({ providerId: c.chain }))
 
       return reply.code(200).send({
         user: {
@@ -131,8 +99,6 @@ const sessionUserRoute: FastifyPluginAsync = async fastify => {
           ...(request.session.user.wallet && { wallet: request.session.user.wallet }),
           linkedWallets,
           linkedAccounts,
-          totpEnabled,
-          passkeys,
         },
       })
     },

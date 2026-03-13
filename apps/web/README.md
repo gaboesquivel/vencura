@@ -102,13 +102,13 @@ Optional environment variables (see `.env-example`):
 ```
 apps/web/
 ├── app/                    # Next.js app directory
-│   ├── api/auth/          # Cookie update routes (update-tokens)
-│   ├── auth/              # Callbacks (magiclink, oauth, web3), logout
+│   ├── api/auth/          # sync-token (Dynamic JWT → cookie)
+│   ├── auth/              # Login (Dynamic), callback fallback, logout
 │   └── ...
-├── app/providers.tsx      # QueryClient, ApiProvider, createClient (JWT mode)
-├── lib/auth/              # auth-client, auth-server, jwt-utils
+├── app/providers.tsx      # QueryClient, ApiProvider, createClient (Dynamic auth)
+├── lib/auth/              # auth-server, auth-utils, parse-auth-cookie
 ├── lib/env.ts             # Environment validation (AUTH_COOKIE_NAME)
-└── proxy.ts               # Middleware: auth check, token refresh on navigation
+└── proxy.ts               # Middleware: auth check via verifyDynamicJwt
 ```
 
 ## Providers
@@ -124,7 +124,7 @@ See `components/providers.tsx` for the provider setup.
 
 ## Authentication
 
-Auth callback pages (`/auth/callback/*`) exchange credentials with Fastify and set cookies. A single cookie `api.session` (configurable via `AUTH_COOKIE_NAME`) stores JSON `{ token, refreshToken }`—readable on the frontend (`httpOnly: false`) so `getAuthToken` can read from `document.cookie`. Clients call Fastify directly (`NEXT_PUBLIC_API_URL`); Next.js API routes exist only for cookie updates (`update-tokens`). On 401, core calls Fastify `POST /auth/session/refresh` directly, then `onTokensRefreshed` persists new tokens via `POST /api/auth/update-tokens`.
+Authentication uses Dynamic SDK. On login success, the client calls `POST /api/auth/sync-token` with the Dynamic JWT to set the `api.session` cookie (configurable via `AUTH_COOKIE_NAME`). The cookie is **web-only**—for Next.js middleware (proxy) and server components (`getUserInfo`, `getAuthStatus`); the API client uses `getAuthToken` from Dynamic SDK directly. The proxy verifies the token via `verifyDynamicJwt` before allowing protected routes.
 
 See [Authentication Architecture](@apps/docu/content/docs/architecture/authentication.mdx) for complete details.
 

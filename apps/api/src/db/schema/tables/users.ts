@@ -4,6 +4,7 @@ export const users = pgTable(
   'users',
   {
     id: text('id').primaryKey(),
+    dynamicUserId: text('dynamic_user_id').unique(),
     email: varchar('email', { length: 255 }).unique(),
     emailVerified: boolean('email_verified').default(false).notNull(),
     name: text('name'),

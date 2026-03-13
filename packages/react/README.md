@@ -14,17 +14,9 @@ This package provides React Query hooks that wrap `@repo/core` API client method
 - `useApiKeysList`, `useCreateApiKey`, `useRevokeApiKey` - API keys CRUD hooks
 - `useChatFromConfig` - Chat hook with AI SDK integration
 - `useHealthCheck` - React Query hook for health check endpoint
-- `useLinkEmail` - Mutation hook for link-email request
-- `useMagicLink` - Mutation hook for magic link request endpoint
-- `useMagicLinkVerify` - Mutation hook for magic link verification
-- `useOAuthLogin`, `useOAuthProviders` - OAuth login and provider detection hooks
-- `usePasskeyAuth`, `usePasskeyDiscovery`, `usePasskeyRegister`, `usePasskeyRemove`, `usePasskeysList` - Passkey hooks
 - `useProfileUpdate` - Mutation hook for profile update
 - `useSession` - Session hook (decoded JWT claims)
-- `useTotpSetup`, `useTotpUnlink`, `useTotpVerify` - TOTP hooks
 - `useUser` - Query hook for current user (GET /auth/session/user)
-- `useVerifyLinkWallet` - Mutation hook for link wallet verify
-- `useVerifyWeb3Auth` - Mutation hook for Web3 auth verify (SIWE/SIWS)
 - `useWebAuthnAvailable` - Hook to check WebAuthn availability
 
 ## Usage
@@ -57,7 +49,7 @@ export default nextConfig
 
 #### Setup Provider
 
-Create a client component provider (e.g., `app/providers.tsx`). For JWT mode with automatic refresh on 401, provide `getAuthToken`, `getRefreshToken`, and `onTokensRefreshed` (all three required). In `apps/web`, use `getAuthToken`, `getRefreshToken`, and `updateAuthTokens` from `lib/auth/auth-client` (reads single cookie `api.session`):
+Create a client component provider (e.g., `app/providers.tsx`). For Dynamic SDK auth, use `dynamicAuth`:
 
 ```tsx
 'use client'
@@ -66,16 +58,15 @@ import { createClient } from '@repo/core'
 import { ApiProvider } from '@repo/react'
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
 import type { ReactNode } from 'react'
-import { getAuthToken, getRefreshToken, updateAuthTokens } from '@/lib/auth/auth-client'
 
 const queryClient = new QueryClient()
 
-// JWT mode: pass getAuthToken, getRefreshToken, onTokensRefreshed for 401 refresh
 const coreClient = createClient({
   baseUrl: process.env.NEXT_PUBLIC_API_URL,
-  getAuthToken,
-  getRefreshToken,
-  onTokensRefreshed: updateAuthTokens,
+  dynamicAuth: {
+    getAuthToken: async () =>
+      (await import('@dynamic-labs/sdk-react-core')).getAuthToken?.() ?? null,
+  },
 })
 
 export function Providers({ children }: { children: ReactNode }) {
@@ -87,7 +78,7 @@ export function Providers({ children }: { children: ReactNode }) {
 }
 ```
 
-See [Authentication](https://basilic-docs.vercel.app/docs/architecture/authentication) for apiKey and no-auth modes. `ApiProvider` derives `baseUrl` and `getAuthToken` from the client.
+See [Authentication](https://vencura-docs.vercel.app/docs/architecture/authentication) for apiKey and no-auth modes. `ApiProvider` derives `baseUrl` and `getAuthToken` from the client.
 
 Wrap your app in `app/layout.tsx`:
 
@@ -134,15 +125,12 @@ import { createClient } from '@repo/core'
 
 const queryClient = new QueryClient()
 
-// Create core client instance with authentication (JWT mode)
-// For Next.js apps, use getAuthToken, getRefreshToken, updateAuthTokens from @/lib/auth/auth-client
+// Create core client instance with authentication (Dynamic SDK)
 const coreClient = createClient({
   baseUrl: 'https://api.example.com',
-  getAuthToken: async () => localStorage.getItem('accessToken'),
-  getRefreshToken: async () => localStorage.getItem('refreshToken'),
-  onTokensRefreshed: async ({ token, refreshToken }) => {
-    localStorage.setItem('accessToken', token)
-    localStorage.setItem('refreshToken', refreshToken)
+  dynamicAuth: {
+    getAuthToken: async () =>
+      (await import('@dynamic-labs/sdk-react-core')).getAuthToken?.() ?? null,
   },
   getHeaders: async () => ({ 'X-Custom': 'value' }),
 })
@@ -236,7 +224,7 @@ function CustomHook() {
   
   // Use client directly for custom logic
   const customOperation = async () => {
-    const result = await client.auth.magiclink.request({ body: { email } })
+    const result = await client.auth.session.user()
     return result
   }
   
@@ -322,7 +310,7 @@ Hooks provide sensible default query keys (e.g., `['healthCheck', params]`) but 
 - Override capability enables advanced use cases (shared queries, custom invalidation, etc.)
 - Query keys are fully typed and can include params for automatic cache differentiation
 
-See [API Development](https://basilic-docs.vercel.app/docs/architecture/api#client-consumption) for full integration guide.
+See [API Development](https://vencura-docs.vercel.app/docs/architecture/api#client-consumption) for full integration guide.
 
 ## Scripts
 

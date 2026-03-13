@@ -8,7 +8,7 @@ export function parseAuthCookie(value: string | undefined): {
   try {
     const parsed = authCookieSchema.safeParse(JSON.parse(value))
     return parsed.success
-      ? { token: parsed.data.token, refreshToken: parsed.data.refreshToken }
+      ? { token: parsed.data.token, refreshToken: parsed.data.refreshToken ?? null }
       : { token: null, refreshToken: null }
   } catch {
     return { token: null, refreshToken: null }

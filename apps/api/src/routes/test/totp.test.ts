@@ -1,5 +1,5 @@
 import { beforeEach, describe, expect, it } from 'vitest'
-import { getSessionToken } from '../../../test/utils/auth-helper.js'
+import { getOrCreateSession } from '../../../test/utils/auth-helper.js'
 import { fastify } from './test.spec.js'
 
 describe('GET /test/totp/current', () => {
@@ -19,7 +19,7 @@ describe('GET /test/totp/current', () => {
   })
 
   it('should return 404 when no TOTP setup in progress', async () => {
-    const token = await getSessionToken(fastify, 'test@test.ai')
+    const token = await getOrCreateSession(fastify, 'test@test.ai')
 
     const response = await fastify.inject({
       method: 'GET',
@@ -33,7 +33,7 @@ describe('GET /test/totp/current', () => {
   })
 
   it('should return current TOTP code when setup in progress', async () => {
-    const token = await getSessionToken(fastify, 'test@test.ai')
+    const token = await getOrCreateSession(fastify, 'test@test.ai')
 
     const setupRes = await fastify.inject({
       method: 'POST',

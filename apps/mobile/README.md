@@ -1,6 +1,6 @@
 # Mobile App (Expo)
 
-Expo app for Android, iOS, and Web. Part of the basilic monorepo.
+Expo app for Android, iOS, and Web. Part of the vencura monorepo.
 
 ## Prerequisites
 
@@ -37,7 +37,7 @@ Try **Expo Go** first—most apps work without a custom native build. Use a **de
 | Remote + Cursor (port forwarding) | `pnpm --filter @repo/mobile start:localhost` |
 | Remote + no forwarding / physical device | `pnpm --filter @repo/mobile start:tunnel` |
 
-See [Dev Environments](https://basilic-docs.vercel.app/docs/development/dev-environments) for ports (8081, 19000, 19001), tunneling, and troubleshooting.
+See [Dev Environments](https://vencura-docs.vercel.app/docs/development/dev-environments) for ports (8081, 19000, 19001), tunneling, and troubleshooting.
 
 ## Styling (Tailwind + NativeWind)
 
@@ -59,11 +59,15 @@ Global styles live in `src/global.css`. Use StyleSheet for complex cases. See `.
 
 ## API / Environment
 
-Configure `EXPO_PUBLIC_API_URL` in `apps/mobile/.env` for API reachability. When Fastify runs on a remote VPC and Cursor forwards port 3001, use `EXPO_PUBLIC_API_URL=http://localhost:3001` so the simulator hits the tunneled API.
+Configure `EXPO_PUBLIC_API_URL` and `EXPO_PUBLIC_DYNAMIC_ENVIRONMENT_ID` in `apps/mobile/.env` (see `.env.example`). When Fastify runs on a remote VPC and Cursor forwards port 3001, use `EXPO_PUBLIC_API_URL=http://localhost:3001` so the simulator hits the tunneled API.
+
+## Authentication
+
+Uses Dynamic SDK (`@dynamic-labs/client` + `react-native-extension`) and `@repo/core` with `dynamicAuth`. JWT-only—no cookies. Login screen calls `dynamicClient.ui.auth.show()`; auth gate redirects unauthenticated users to `/login`. See [Authentication](https://vencura-docs.vercel.app/docs/architecture/authentication) for architecture.
 
 ## EAS Builds & PR Preview
 
-CI builds Android preview via EAS. **EXPO_TOKEN** required in GitHub Secrets. Reviewers install the baseline APK once, then scan QR codes on PRs to load OTA updates. See [Mobile CI/CD](https://basilic-docs.vercel.app/docs/deployment/mobile-cicd) for setup and reviewer bootstrap.
+CI builds Android preview via EAS. **EXPO_TOKEN** required in GitHub Secrets. Reviewers install the baseline APK once, then scan QR codes on PRs to load OTA updates. See [Mobile CI/CD](https://vencura-docs.vercel.app/docs/deployment/mobile-cicd) for setup and reviewer bootstrap.
 
 ## Scripts
 
@@ -89,6 +93,6 @@ CI builds Android preview via EAS. **EXPO_TOKEN** required in GitHub Secrets. Re
 
 ## Related
 
-- [Dev Environments](https://basilic-docs.vercel.app/docs/development/dev-environments)
-- [Mobile CI/CD](https://basilic-docs.vercel.app/docs/deployment/mobile-cicd) — EAS builds, PR OTA previews
+- [Dev Environments](https://vencura-docs.vercel.app/docs/development/dev-environments)
+- [Mobile CI/CD](https://vencura-docs.vercel.app/docs/deployment/mobile-cicd) — EAS builds, PR OTA previews
 - [Expo documentation](https://docs.expo.dev/)

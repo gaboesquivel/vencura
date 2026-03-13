@@ -94,22 +94,15 @@ function getButtonInjectionScript(): string {
 export function getInitScript(opts: {
   apiUrl: string
   openApiUrl: string
-  callbackUrl: string
-  jwtToken: string | null
-  verificationId?: string
+  webAppUrl: string
 }): string {
-  const { apiUrl, openApiUrl, callbackUrl, jwtToken, verificationId } = opts
-  const jwtJson = jwtToken ? JSON.stringify(jwtToken) : 'null'
-  const verificationIdJson = verificationId ? JSON.stringify(verificationId) : 'null'
+  const { apiUrl, openApiUrl } = opts
   const buttonScript = getButtonInjectionScript()
 
   return `
 (function() {
   const apiUrl = ${JSON.stringify(apiUrl)};
-  const callbackUrl = ${JSON.stringify(callbackUrl)};
   const openApiUrl = ${JSON.stringify(openApiUrl)};
-  const jwtFromServer = ${jwtJson};
-  const verificationIdFromUrl = ${verificationIdJson};
   
   function updateScalarAuth(scalarApiReference, token) {
     const authConfig = {
@@ -124,7 +117,6 @@ export function getInitScript(opts: {
   }
   
   const storedToken = localStorage.getItem('scalar-token');
-  const token = jwtFromServer || storedToken;
   
   let scalarApiReference = null;
   try {
@@ -133,69 +125,19 @@ export function getInitScript(opts: {
       theme: 'moon',
       authentication: {
         preferredSecurityScheme: 'bearerAuth',
-        securitySchemes: { bearerAuth: { token: token || '' } },
+        securitySchemes: { bearerAuth: { token: storedToken || '' } },
       },
     });
   } catch (error) {
     console.error('Failed to initialize Scalar:', error);
   }
   
-  if (jwtFromServer) {
-    localStorage.setItem('scalar-token', jwtFromServer);
-    history.replaceState({}, '', '/reference');
-    updateScalarAuth(scalarApiReference, jwtFromServer);
-  } else if (verificationIdFromUrl) {
-    const banner = document.createElement('div');
-    banner.id = 'verify-banner';
-    banner.style.cssText = 'position:fixed;top:0;left:0;right:0;padding:12px 16px;background:#1e3a5f;color:#fff;display:flex;align-items:center;justify-content:center;gap:12px;flex-wrap:wrap;z-index:10000;font-size:14px;';
-    banner.innerHTML = '<span>Enter the 6-digit code from your email:</span><form style="display:inline-flex;gap:8px;align-items:center;flex-wrap:wrap;"><input type="text" inputmode="numeric" pattern="\\\\d*" maxlength="6" placeholder="000000" style="width:80px;padding:6px;font-size:14px;border-radius:4px;"/><button type="submit" style="padding:6px 12px;background:#667eea;color:#fff;border:none;border-radius:4px;cursor:pointer;">Verify</button><span data-verify-error="" aria-live="polite" style="color:#ef4444;font-size:12px;margin-left:8px;"></span></form>';
-    document.body.prepend(banner);
-    banner.querySelector('form')?.addEventListener('submit', async (e) => {
-      e.preventDefault();
-      const input = banner.querySelector('input');
-      const code = input?.value?.trim();
-      if (!code || code.length !== 6) return;
-      const errorEl = banner.querySelector('[data-verify-error]');
-      if (errorEl) errorEl.textContent = '';
-      try {
-        const res = await fetch(apiUrl + '/auth/magiclink/verify', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ verificationId: verificationIdFromUrl, token: code }),
-        });
-        if (res.ok) {
-          const data = await res.json();
-          localStorage.setItem('scalar-token', data.token);
-          history.replaceState({}, '', '/reference');
-          updateScalarAuth(scalarApiReference, data.token);
-          banner.remove();
-          if (window.updateLoginButton) window.updateLoginButton();
-        } else {
-          let msg = 'Verification failed. Please try again.';
-          try {
-            const body = await res.json();
-            msg = body.message || msg;
-          } catch {}
-          const errDiv = banner.querySelector('[data-verify-error]');
-          if (errDiv) errDiv.textContent = msg;
-        }
-      } catch (err) {
-        const msg = 'Verification failed. Please try again.';
-        const errDiv = banner.querySelector('[data-verify-error]');
-        if (errDiv) errDiv.textContent = msg;
-      }
-    });
-  }
-  
   window.scalarApiReference = scalarApiReference;
   
   const modalOverlay = document.getElementById('modal-overlay');
   const closeModal = document.getElementById('close-modal');
-  const loginForm = document.getElementById('login-form');
-  const emailInput = document.getElementById('email');
-  const emailError = document.getElementById('email-error');
-  const emailSuccess = document.getElementById('email-success');
-  const submitButton = document.getElementById('submit-button');
+  const tokenInput = document.getElementById('token');
+  const applyBtn = document.getElementById('apply-token');
   
   function showModal() {
     modalOverlay.classList.add('show');
@@ -203,41 +145,26 @@ export function getInitScript(opts: {
   
   function hideModal() {
     modalOverlay.classList.remove('show');
-    emailInput.value = '';
-    emailError.textContent = '';
-    emailSuccess.textContent = '';
+    if (tokenInput) tokenInput.value = '';
   }
   
   window.showLogin = showModal;
-  closeModal.addEventListener('click', hideModal);
-  modalOverlay.addEventListener('click', (e) => {
+  if (closeModal) closeModal.addEventListener('click', hideModal);
+  modalOverlay?.addEventListener('click', (e) => {
     if (e.target === modalOverlay) hideModal();
   });
   
-  loginForm.addEventListener('submit', async (e) => {
-    e.preventDefault();
-    const email = emailInput.value.trim();
-    emailError.textContent = '';
-    emailSuccess.textContent = '';
-    submitButton.disabled = true;
-    submitButton.textContent = 'Sending...';
-    try {
-      const response = await fetch(apiUrl + '/auth/magiclink/request', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ email, callbackUrl }),
-      });
-      const data = await response.json();
-      if (!response.ok) throw new Error(data.message || 'Failed to send magic link');
-      emailSuccess.textContent = 'Check your email for the magic link';
-      submitButton.textContent = 'Magic link sent';
-    } catch (error) {
-      emailError.textContent = error.message || 'Failed to send magic link. Please try again.';
-      submitButton.textContent = 'Send magic link';
-    } finally {
-      submitButton.disabled = false;
-    }
-  });
+  if (applyBtn && tokenInput) {
+    applyBtn.addEventListener('click', () => {
+      const token = tokenInput.value.trim();
+      if (token) {
+        localStorage.setItem('scalar-token', token);
+        updateScalarAuth(scalarApiReference, token);
+        hideModal();
+        if (window.updateLoginButton) window.updateLoginButton();
+      }
+    });
+  }
   
   ${buttonScript}
   

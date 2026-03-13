@@ -1,9 +1,18 @@
 import { ApiHealthBadge } from 'components/shared/api-health-badge'
 import { AuthBadge } from 'components/shared/auth-badge'
-import { getAuthErrorMessage } from 'lib/auth/auth-error-messages'
 import { GalleryVerticalEnd } from 'lucide-react'
 import Image from 'next/image'
 import { LoginActions } from './login-actions'
+
+const authErrorMessages: Record<string, string> = {
+  unexpected_error: 'Something went wrong. Please try again.',
+}
+
+function getAuthErrorMessage(errorCode: string | undefined): string | undefined {
+  if (!errorCode) return undefined
+  const key = errorCode.toLowerCase().trim()
+  return authErrorMessages[key] ?? 'An error occurred'
+}
 
 type LoginPageProps = {
   searchParams: Promise<{
@@ -26,7 +35,7 @@ export default async function LoginPage({ searchParams }: LoginPageProps) {
               <div className="bg-primary text-primary-foreground flex size-6 items-center justify-center rounded-md">
                 <GalleryVerticalEnd className="size-4" />
               </div>
-              Acme Inc.
+              Vencura
             </a>
           </div>
           <div className="flex gap-2">
