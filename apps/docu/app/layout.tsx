@@ -10,6 +10,12 @@ const inter = Inter({
 })
 
 export const metadata: Metadata = {
+  title: {
+    default: 'Vencura Wallet — The Venmo of Wallets',
+    template: '%s | Vencura Wallet',
+  },
+  description:
+    'Custodial wallet platform for Web3. Backend API for getBalance, signMessage, sendTransaction. Dynamic auth, encrypted keys.',
   metadataBase: new URL(env.NEXT_PUBLIC_SITE_URL),
 }
 

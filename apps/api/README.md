@@ -1,6 +1,6 @@
 # API
 
-Type-safe REST API built with Fastify & OpenAPI. Routes in `src/routes/` are the source of truth; OpenAPI spec is generated from them. Clients generated via Hey API in `@repo/core`.
+Backend API for Vencura Wallet — custodial wallet operations (create, balance, sign, send). Type-safe REST API built with Fastify & OpenAPI. Routes in `src/routes/` are the source of truth; OpenAPI spec is generated from them. Clients generated via Hey API in `@repo/core`.
 
 ## Development
 
@@ -39,6 +39,19 @@ Copy `.env.test.example` to `.env.test` (gitignored) for unit tests. Vitest load
 - `pnpm db:generate` — Generate migrations from schema
 - `pnpm db:push` — Push schema (dev only)
 - `pnpm generate:openapi` — Regenerate OpenAPI spec
+
+## Deferred / Optional
+
+- **Successful send with real chain** — Use [Anvil](https://book.getfoundry.sh/anvil) or manual verification to test wallet send against a funded Sepolia address. Document flow in README if needed.
+
+## Custodial Wallets (Security)
+
+The `/wallets` API manages custodial wallets for authenticated users. Security measures:
+
+- **Private keys encrypted at rest** — AES-256-GCM via `ENCRYPTION_KEY`; never logged or exposed
+- **Address validation** — viem `getAddress(to)` rejects invalid addresses with 400
+- **Rate limiting** — Wallet creation and send endpoints use `@fastify/rate-limit`
+- **Auth** — All wallet routes require Bearer (Dynamic JWT or API key) and enforce ownership
 
 ## Links
 

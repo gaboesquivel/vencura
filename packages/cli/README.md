@@ -1,6 +1,6 @@
 # @repo/cli
 
-TypeScript CLI to interact with the Vencura Fastify API via `@repo/core`. API key auth only; auth endpoints excluded. Ideal for agentic integrations (e.g. OpenClaw) as a simpler alternative to MCP.
+TypeScript CLI to interact with the Vencura Wallet API via `@repo/core`. API key auth only; auth endpoints excluded. Ideal for agentic integrations (e.g. OpenClaw) and scripting wallet operations.
 
 ## Usage
 

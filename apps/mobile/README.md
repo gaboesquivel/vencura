@@ -1,6 +1,6 @@
 # Mobile App (Expo)
 
-Expo app for Android, iOS, and Web. Part of the vencura monorepo.
+Expo app for Vencura Wallet — Android, iOS, and Web. Dashboard and wallet interaction via the custodial wallet API.
 
 ## Prerequisites
 

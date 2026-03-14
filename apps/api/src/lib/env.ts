@@ -154,6 +154,8 @@ export const env = createEnv({
     DYNAMIC_ENVIRONMENT_ID: z.string().min(1).optional(),
     DYNAMIC_API_TOKEN: z.string().min(1).optional(),
     WEB_APP_URL: z.string().url().optional(),
+    // Custodial wallets - Sepolia RPC (Infura/public fallback)
+    SEPOLIA_RPC_URL: z.string().url().optional(),
   },
   runtimeEnv: process.env,
   emptyStringAsUndefined: true,

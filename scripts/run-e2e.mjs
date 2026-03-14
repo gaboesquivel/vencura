@@ -2,7 +2,7 @@
 /**
  * Run E2E tests locally: API E2E, then Web app E2E.
  * Spawns servers locally (no external URLs). Used by pnpm qa.
- * Kills processes on ports 3000/3001 before starting (unless SKIP_KILL_PORTS=1).
+ * Kills processes on ports 3000/3001/3002 before starting (unless SKIP_KILL_PORTS=1).
  */
 import { spawn, spawnSync } from 'node:child_process'
 import { existsSync } from 'node:fs'
@@ -38,6 +38,9 @@ async function main() {
   // shorten if CI is stable.
   await new Promise(r => setTimeout(r, 2000))
   await run('pnpm', ['-F', '@repo/web', 'test:e2e:local'])
+  killPorts()
+  await new Promise(r => setTimeout(r, 2000))
+  await run('pnpm', ['-F', '@repo/mathler', 'test:e2e'])
 }
 
 main().catch(err => {

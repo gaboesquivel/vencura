@@ -22,4 +22,14 @@ auth: {
     user: gen.getUser,
   },
 },
+wallets: {
+  id: {
+    balance: gen.walletsBalance,
+    detail: gen.walletsDetail,
+    send: gen.walletsSend,
+    sign: gen.walletsSign,
+  },
+},
+walletsCreate: gen.walletsCreate,
+walletsList: gen.walletsList,
 }

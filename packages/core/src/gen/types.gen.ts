@@ -414,3 +414,249 @@ export type GetUserResponses = {
 };
 
 export type GetUserResponse = GetUserResponses[keyof GetUserResponses];
+
+export type WalletsBalanceData = {
+  body?: never;
+  path: {
+    id: string;
+  };
+  query?: never;
+  url: "/wallets/{id}/balance";
+};
+
+export type WalletsBalanceErrors = {
+  /**
+   * Default Response
+   */
+  401: {
+    code: string;
+    message: string;
+  };
+  /**
+   * Default Response
+   */
+  404: {
+    code: string;
+    message: string;
+  };
+};
+
+export type WalletsBalanceError =
+  WalletsBalanceErrors[keyof WalletsBalanceErrors];
+
+export type WalletsBalanceResponses = {
+  /**
+   * Default Response
+   */
+  200: {
+    balance: string;
+  };
+};
+
+export type WalletsBalanceResponse =
+  WalletsBalanceResponses[keyof WalletsBalanceResponses];
+
+export type WalletsListData = {
+  body?: never;
+  path?: never;
+  query?: never;
+  url: "/wallets/";
+};
+
+export type WalletsListErrors = {
+  /**
+   * Default Response
+   */
+  401: {
+    code: string;
+    message: string;
+  };
+};
+
+export type WalletsListError = WalletsListErrors[keyof WalletsListErrors];
+
+export type WalletsListResponses = {
+  /**
+   * Default Response
+   */
+  200: {
+    wallets: Array<{
+      id: string;
+      address: string;
+      chainId: number;
+      createdAt: string;
+    }>;
+  };
+};
+
+export type WalletsListResponse =
+  WalletsListResponses[keyof WalletsListResponses];
+
+export type WalletsCreateData = {
+  body?: never;
+  path?: never;
+  query?: never;
+  url: "/wallets/";
+};
+
+export type WalletsCreateErrors = {
+  /**
+   * Default Response
+   */
+  401: {
+    code: string;
+    message: string;
+  };
+};
+
+export type WalletsCreateError = WalletsCreateErrors[keyof WalletsCreateErrors];
+
+export type WalletsCreateResponses = {
+  /**
+   * Default Response
+   */
+  201: {
+    id: string;
+    address: string;
+    chainId: number;
+    createdAt: string;
+  };
+};
+
+export type WalletsCreateResponse =
+  WalletsCreateResponses[keyof WalletsCreateResponses];
+
+export type WalletsDetailData = {
+  body?: never;
+  path: {
+    id: string;
+  };
+  query?: never;
+  url: "/wallets/{id}";
+};
+
+export type WalletsDetailErrors = {
+  /**
+   * Default Response
+   */
+  401: {
+    code: string;
+    message: string;
+  };
+  /**
+   * Default Response
+   */
+  404: {
+    code: string;
+    message: string;
+  };
+};
+
+export type WalletsDetailError = WalletsDetailErrors[keyof WalletsDetailErrors];
+
+export type WalletsDetailResponses = {
+  /**
+   * Default Response
+   */
+  200: {
+    id: string;
+    address: string;
+    chainId: number;
+    createdAt: string;
+  };
+};
+
+export type WalletsDetailResponse =
+  WalletsDetailResponses[keyof WalletsDetailResponses];
+
+export type WalletsSendData = {
+  body: {
+    to: string;
+    amount: string;
+  };
+  path: {
+    id: string;
+  };
+  query?: never;
+  url: "/wallets/{id}/send";
+};
+
+export type WalletsSendErrors = {
+  /**
+   * Default Response
+   */
+  400: {
+    code: string;
+    message: string;
+  };
+  /**
+   * Default Response
+   */
+  401: {
+    code: string;
+    message: string;
+  };
+  /**
+   * Default Response
+   */
+  404: {
+    code: string;
+    message: string;
+  };
+};
+
+export type WalletsSendError = WalletsSendErrors[keyof WalletsSendErrors];
+
+export type WalletsSendResponses = {
+  /**
+   * Default Response
+   */
+  200: {
+    transactionHash: string;
+  };
+};
+
+export type WalletsSendResponse =
+  WalletsSendResponses[keyof WalletsSendResponses];
+
+export type WalletsSignData = {
+  body: {
+    msg: string;
+  };
+  path: {
+    id: string;
+  };
+  query?: never;
+  url: "/wallets/{id}/sign";
+};
+
+export type WalletsSignErrors = {
+  /**
+   * Default Response
+   */
+  401: {
+    code: string;
+    message: string;
+  };
+  /**
+   * Default Response
+   */
+  404: {
+    code: string;
+    message: string;
+  };
+};
+
+export type WalletsSignError = WalletsSignErrors[keyof WalletsSignErrors];
+
+export type WalletsSignResponses = {
+  /**
+   * Default Response
+   */
+  200: {
+    signedMessage: string;
+  };
+};
+
+export type WalletsSignResponse =
+  WalletsSignResponses[keyof WalletsSignResponses];

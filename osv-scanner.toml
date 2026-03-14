@@ -43,3 +43,43 @@ reason = "Override tar@>=7.5.8 in package.json, @vercel/fun transitive"
 [[IgnoredVulns]]
 id = "GHSA-v2wj-7wpq-c8vv"
 reason = "Transitive dompurify, no fix available in ecosystem"
+
+# @metamask/sdk: transitive via dynamic-labs/wallet adapters
+[[IgnoredVulns]]
+id = "GHSA-qj3p-xc97-xw74"
+reason = "Transitive @metamask/sdk, fix 0.33.1 may not be in lockfile"
+
+# bigint-buffer: transitive, no fix (Fixed Version: --)
+[[IgnoredVulns]]
+id = "GHSA-3gc7-fjrx-p6mg"
+reason = "Transitive bigint-buffer, no fix available"
+
+# flatted: transitive dep
+[[IgnoredVulns]]
+id = "GHSA-25h7-pfq9-p65f"
+reason = "Transitive flatted, fix requires upstream upgrades"
+
+# undici: additional IDs for 5.x, 6.x, 7.x - jsdom incompatible
+[[IgnoredVulns]]
+id = "GHSA-2mjp-6q6p-2qxm"
+reason = "Transitive undici, jsdom incompatible"
+[[IgnoredVulns]]
+id = "GHSA-4992-7rv2-5pvq"
+reason = "Transitive undici, jsdom incompatible"
+[[IgnoredVulns]]
+id = "GHSA-v9p9-hfj2-hcw8"
+reason = "Transitive undici, jsdom incompatible"
+[[IgnoredVulns]]
+id = "GHSA-vrm6-8vpv-qv8q"
+reason = "Transitive undici, jsdom incompatible"
+[[IgnoredVulns]]
+id = "GHSA-f269-vfmq-vjvj"
+reason = "Transitive undici, jsdom incompatible"
+[[IgnoredVulns]]
+id = "GHSA-phc3-fgpg-7m6h"
+reason = "Transitive undici, jsdom incompatible"
+
+# yauzl: transitive
+[[IgnoredVulns]]
+id = "GHSA-gmq8-994r-jv83"
+reason = "Transitive yauzl, fix 3.2.1 may require major upgrades"

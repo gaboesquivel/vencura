@@ -176,6 +176,8 @@
         "**/scripts/**",
         "**/*.test.ts",
         "**/*.test.tsx",
+        "**/*.spec.ts",
+        "**/*.spec.tsx",
         "**/routes/**",
         "**/test/**",
         "**/e2e/**",

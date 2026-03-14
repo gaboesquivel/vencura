@@ -4,25 +4,38 @@ import {
   Blocks,
   Bot,
   FileCode2,
+  Key,
   MessageCircle,
   PackageCheck,
   Palette,
   ShieldCheck,
-  Zap,
+  Wallet,
 } from 'lucide-react'
 
 const features = [
   {
-    icon: Zap,
-    title: 'Production-Ready REST API',
+    icon: Wallet,
+    title: 'Custodial Wallet API',
     description:
-      'Fastify-powered backend with automatic OpenAPI documentation, JWT authentication, AI and Crypto wallet integration out of the box.',
+      'getBalance(), signMessage(), sendTransaction() — all wallet operations via backend API. Create and manage custodial wallets without exposing private keys.',
+  },
+  {
+    icon: Key,
+    title: 'Dynamic Auth',
+    description:
+      'Magic link, OAuth, Web3 sign-in, and API keys for programmatic access. Dynamic powers the authentication layer for Vencura Wallet.',
+  },
+  {
+    icon: ShieldCheck,
+    title: 'Encrypted Keys at Rest',
+    description:
+      'Private keys encrypted with AES-256-GCM; never logged or exposed. Rate limiting and address validation on wallet operations.',
   },
   {
     icon: PackageCheck,
     title: 'Auto-Generated SDKs',
     description:
-      'Automatically generate fully typed client SDKs from your OpenAPI specs for both server and browser. One source of truth, zero manual sync.',
+      'Type-safe clients from OpenAPI for web, mobile, and CLI. One source of truth, zero manual sync.',
   },
   {
     icon: FileCode2,
@@ -32,11 +45,10 @@ const features = [
   },
   {
     icon: Blocks,
-    title: 'Next.js and Expo Starters',
+    title: 'Next.js and Expo',
     description:
-      'Launch-ready boilerplates for AI applications, crypto wallet connectivity, and more. Build MVPs in days, not months.',
+      'Dashboard and wallets UI for web; Expo app for mobile. Launch Vencura Wallet clients in days, not months.',
   },
-
   {
     icon: MessageCircle,
     title: 'AI Assistant Component',
@@ -49,18 +61,11 @@ const features = [
     description:
       'Portable architecture that runs anywhere—your VPS, AWS, Vercel, or locally. Own your stack, control your costs.',
   },
-
   {
     icon: Bot,
     title: 'AI-Assisted Development',
     description:
       'Pre-configured rules and skills for Cursor and Claude. Ship features faster with AI pair programming that understands your codebase.',
-  },
-  {
-    icon: ShieldCheck,
-    title: 'Quality & Security Built-In',
-    description:
-      'Pre-commit hooks for secret scanning (Gitleaks) and dependency checks (OSV), plus blocked secret files.',
   },
   {
     icon: Palette,
@@ -80,11 +85,10 @@ export function Features() {
             Features
           </p>
           <h2 className="text-balance text-2xl font-bold tracking-tight text-foreground sm:text-3xl md:text-4xl">
-            Everything you need to ship fast
+            Everything you need for custodial wallets
           </h2>
           <p className="mx-auto mt-3 max-w-2xl text-pretty text-sm text-muted-foreground md:mt-4 md:text-base">
-            A batteries-included framework designed for real-world backend development, with tools
-            that adapt to your workflow.
+            Backend API, Dynamic auth, encrypted keys, and typed SDKs. Build the Venmo of wallets.
           </p>
         </div>
 

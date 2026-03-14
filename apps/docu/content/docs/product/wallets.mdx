@@ -1,0 +1,137 @@
+---
+title: "Custodial Wallet API"
+description: "Create, list, balance, sign, and send — all wallet operations via the API."
+---
+
+The custodial wallet API lives under `/wallets`. All routes require Bearer authentication (Dynamic JWT or API key). Wallets are scoped to the authenticated user.
+
+## Endpoints
+
+| Method | Path | Description |
+|--------|------|-------------|
+| POST | `/wallets` | Create custodial wallet |
+| GET | `/wallets` | List user's wallets |
+| GET | `/wallets/:id` | Get wallet details |
+| GET | `/wallets/:id/balance` | Get balance (wei) |
+| POST | `/wallets/:id/sign` | Sign message |
+| POST | `/wallets/:id/send` | Send transaction |
+
+## Create Wallet
+
+```http
+POST /wallets
+Authorization: Bearer <jwt_or_api_key>
+```
+
+**Response (201):**
+
+```json
+{
+  "id": "uuid",
+  "address": "0x...",
+  "chainId": 11155111,
+  "createdAt": "2025-03-14T..."
+}
+```
+
+Chain is Sepolia (11155111). The private key is generated server-side, encrypted with AES-256-GCM, and stored. Only the address and metadata are returned.
+
+## Get Balance
+
+```http
+GET /wallets/:id/balance
+Authorization: Bearer <jwt_or_api_key>
+```
+
+**Response (200):**
+
+```json
+{
+  "balance": "1000000000000000000"
+}
+```
+
+Balance is returned in wei (string). Use viem's `formatEther` to display in ETH.
+
+## Sign Message
+
+```http
+POST /wallets/:id/sign
+Authorization: Bearer <jwt_or_api_key>
+Content-Type: application/json
+
+{ "msg": "Hello, Web3!" }
+```
+
+**Response (200):**
+
+```json
+{
+  "signedMessage": "0x..."
+}
+```
+
+## Send Transaction
+
+```http
+POST /wallets/:id/send
+Authorization: Bearer <jwt_or_api_key>
+Content-Type: application/json
+
+{ "to": "0x...", "amount": "0.001" }
+```
+
+**Response (200):**
+
+```json
+{
+  "transactionHash": "0x..."
+}
+```
+
+- `amount` is in ETH (e.g. `"0.001"`). Internally converted to wei via viem's `parseEther`.
+- `to` must be a valid Ethereum address (viem `getAddress` validation).
+- Returns `400 INSUFFICIENT_FUNDS` when the wallet lacks enough ETH.
+
+## Using the Generated Client
+
+`@repo/core` exposes typed methods for all wallet routes:
+
+```typescript
+import { createClient } from '@repo/core'
+
+const client = createClient({
+  baseUrl: process.env.NEXT_PUBLIC_API_URL!,
+  getAuthToken: async () => session?.token,
+})
+
+// Create wallet
+const { id, address } = await client.walletsCreate()
+
+// List wallets
+const { wallets } = await client.walletsList()
+
+// Balance (id from create or list)
+const { balance } = await client.wallets.id.balance({ path: { id } })
+
+// Sign
+const { signedMessage } = await client.wallets.id.sign({
+  path: { id },
+  body: { msg: 'Hello' },
+})
+
+// Send
+const { transactionHash } = await client.wallets.id.send({
+  path: { id },
+  body: { to: '0x...', amount: '0.001' },
+})
+```
+
+## OpenAPI and Scalar
+
+Full schema: `/reference/openapi.json`. Interactive docs: `/reference` (Scalar).
+
+## Related
+
+- [Security Model](/docs/product/security) — Encrypted keys, rate limiting
+- [API Architecture](/docs/architecture/api) — Route structure, OpenAPI generation

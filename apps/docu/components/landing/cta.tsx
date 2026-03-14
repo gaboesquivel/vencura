@@ -7,10 +7,10 @@ export function CTA() {
     <section className="px-4 py-16 sm:px-6 md:py-24">
       <div className="mx-auto max-w-6xl text-center">
         <h2 className="text-balance text-2xl font-bold tracking-tight text-foreground sm:text-3xl">
-          Start building in minutes
+          Start building with Vencura Wallet
         </h2>
         <p className="mx-auto mt-3 max-w-xl text-pretty text-sm text-muted-foreground md:mt-4 md:text-base">
-          Read the docs and scaffold your next API with a single command.
+          Read the docs and run the custodial wallet API in minutes.
         </p>
         <div className="mt-8 flex flex-col items-center gap-3 sm:flex-row sm:justify-center sm:gap-4">
           <Button size="lg" asChild>

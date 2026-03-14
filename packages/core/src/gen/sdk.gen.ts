@@ -29,6 +29,24 @@ import type {
   LogoutData,
   LogoutErrors,
   LogoutResponses,
+  WalletsBalanceData,
+  WalletsBalanceErrors,
+  WalletsBalanceResponses,
+  WalletsCreateData,
+  WalletsCreateErrors,
+  WalletsCreateResponses,
+  WalletsDetailData,
+  WalletsDetailErrors,
+  WalletsDetailResponses,
+  WalletsListData,
+  WalletsListErrors,
+  WalletsListResponses,
+  WalletsSendData,
+  WalletsSendErrors,
+  WalletsSendResponses,
+  WalletsSignData,
+  WalletsSignErrors,
+  WalletsSignResponses,
 } from "./types.gen";
 
 export type Options<
@@ -213,4 +231,120 @@ export const getUser = <ThrowOnError extends boolean = false>(
     security: [{ scheme: "bearer", type: "http" }],
     url: "/auth/session/user",
     ...options,
+  });
+
+/**
+ * Get balance
+ *
+ * Get custodial wallet balance (wei)
+ */
+export const walletsBalance = <ThrowOnError extends boolean = false>(
+  options: Options<WalletsBalanceData, ThrowOnError>,
+) =>
+  (options.client ?? client).get<
+    WalletsBalanceResponses,
+    WalletsBalanceErrors,
+    ThrowOnError
+  >({
+    security: [{ scheme: "bearer", type: "http" }],
+    url: "/wallets/{id}/balance",
+    ...options,
+  });
+
+/**
+ * List wallets
+ *
+ * List custodial wallets for authenticated user
+ */
+export const walletsList = <ThrowOnError extends boolean = false>(
+  options?: Options<WalletsListData, ThrowOnError>,
+) =>
+  (options?.client ?? client).get<
+    WalletsListResponses,
+    WalletsListErrors,
+    ThrowOnError
+  >({
+    security: [{ scheme: "bearer", type: "http" }],
+    url: "/wallets/",
+    ...options,
+  });
+
+/**
+ * Create custodial wallet
+ *
+ * Create custodial wallet
+ */
+export const walletsCreate = <ThrowOnError extends boolean = false>(
+  options?: Options<WalletsCreateData, ThrowOnError>,
+) =>
+  (options?.client ?? client).post<
+    WalletsCreateResponses,
+    WalletsCreateErrors,
+    ThrowOnError
+  >({
+    security: [{ scheme: "bearer", type: "http" }],
+    url: "/wallets/",
+    ...options,
+  });
+
+/**
+ * Get wallet
+ *
+ * Get custodial wallet by id
+ */
+export const walletsDetail = <ThrowOnError extends boolean = false>(
+  options: Options<WalletsDetailData, ThrowOnError>,
+) =>
+  (options.client ?? client).get<
+    WalletsDetailResponses,
+    WalletsDetailErrors,
+    ThrowOnError
+  >({
+    security: [{ scheme: "bearer", type: "http" }],
+    url: "/wallets/{id}",
+    ...options,
+  });
+
+/**
+ * Send transaction
+ *
+ * Send transaction from custodial wallet
+ */
+export const walletsSend = <ThrowOnError extends boolean = false>(
+  options: Options<WalletsSendData, ThrowOnError>,
+) =>
+  (options.client ?? client).post<
+    WalletsSendResponses,
+    WalletsSendErrors,
+    ThrowOnError
+  >({
+    security: [{ scheme: "bearer", type: "http" }],
+    url: "/wallets/{id}/send",
+    ...options,
+    headers: {
+      "Content-Type": "application/json",
+      ...options.headers,
+    },
+  });
+
+/**
+ * Sign message
+ *
+ * Sign message with custodial wallet
+ */
+export const walletsSign = <ThrowOnError extends boolean = false>(
+  options: Options<WalletsSignData, ThrowOnError>,
+) =>
+  (options.client ?? client).post<
+    WalletsSignResponses,
+    WalletsSignErrors,
+    ThrowOnError
+  >({
+    security: [{ scheme: "bearer", type: "http" }],
+    url: "/wallets/{id}/sign",
+    ...options,
+    headers: {
+      "Content-Type": "application/json",
+      ...options.headers,
+    },
   });

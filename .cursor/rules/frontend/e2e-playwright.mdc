@@ -1,6 +1,6 @@
 ---
 description: Playwright E2E patterns for Next.js and Fastify API
-glob: "apps/web/e2e/**/*, apps/web/playwright.config.ts, apps/api/test/**/*, apps/api/playwright.config.ts"
+glob: "apps/web/e2e/**/*, apps/web/playwright.config.ts, apps/mathler/e2e/**/*, apps/mathler/playwright.config.ts, apps/api/test/**/*, apps/api/playwright.config.ts"
 ---
 
 ## Config
@@ -11,15 +11,23 @@ glob: "apps/web/e2e/**/*, apps/web/playwright.config.ts, apps/api/test/**/*, app
 - CI: test:e2e:local only (spawn local servers; no Vercel URLs)
 - Local: Next `test:e2e:local` = spawn Fastify + Next, poll, run, kill. Fastify `test:e2e:local` = spawn API only. Root `pnpm test:e2e` = run both via scripts/run-e2e.mjs
 - workers: 1, fullyParallel: false — PGLite does not support concurrent writers; tests must run in series
-- projects: auth first (magic-link-auth), then chromium (chat-assistant), then security (authenticator, passkeys, api-keys)
+- projects: setup first (auth), then chromium (tests using storageState)
+
+## Dynamic Sandbox (Web, Mathler)
+- Auth via `auth.setup.ts`: runs before chromium project, saves `storageState` to `playwright/.auth/user.json`
+- Use `loginWithDynamicSandbox` from `@repo/e2e-helpers` — navigates, fills email/OTP, waits for `authSuccessSelector`
+- Env: `E2E_TEST_EMAIL`, `E2E_STATIC_OTP` (from [Dynamic Test Accounts](https://docs.dynamic.xyz/developer-dashboard/test-accounts))
+- Web: `authSuccessSelector: 'text=Signed In'`, `loginPath: '/auth/login'`
+- Mathler: `authSuccessSelector: 'h1:has-text("Mathler")'`, `loginPath: '/'`
+- Root `pnpm test:e2e` runs API E2E, Web E2E, Mathler E2E via scripts/run-e2e.mjs
 
 ## Session Model
 - Context = browser profile; authenticatedPage = single shared page reused across all authed tests (worker-scoped)
 - One login per worker, then navigate and assert. No per-test login for authed tests
 - Session reused via worker-scoped storageState (saved after login, new context per test)
 ## Test Order
-- Auth project first: magic-link-auth (auth-helpers magic link flow). Use `/auth/login` for login page
-- Chromium project: chat-assistant (uses authenticatedPage; fixture triggers magic link login)
+- Setup project first: `auth.setup.ts` (Dynamic sandbox or magic-link). Use `/auth/login` for login page when applicable
+- Chromium project: chat-assistant, wallets, app (use authenticatedPage; storageState from setup)
 - Security project: authenticator, passkeys, api-keys (use authenticatedPage; TOTP spec uses extractSessionToken for test endpoint)
 
 ## Auth Fixtures

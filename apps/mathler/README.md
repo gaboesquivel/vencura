@@ -1,0 +1,666 @@
+# Mathler
+
+A Mathler game built with Next.js - like Wordle but with numbers. Users have 6 guesses to find the equation that equals a daily number.
+
+## Current Status
+
+✅ **Game engine fully implemented** - The core game logic, equation generation, validation, and feedback systems are complete and functional.
+
+## Features
+
+- ✅ Daily puzzles with changing target numbers
+- ✅ Dynamic SDK integration for authentication (Ethereum & Solana wallet support)
+- ✅ Authentication guard - game requires sign-in before play
+- ✅ User history stored in Dynamic metadata
+- ✅ Color-coded feedback (green/yellow/grey tiles)
+- ✅ Order of operations support
+- ✅ Cumulative solutions support (e.g., `1+5*15` and `15*5+1` both win)
+- ✅ Keyboard and mouse controls
+- ✅ Responsive UI/UX design
+- ✅ Accessibility improvements (ARIA labels, keyboard navigation, screen reader support)
+- ✅ Concurrent rendering with React transitions for better performance
+- 🔜 Crypto-related features (NFT minting, token rewards, etc.)
+
+## Tech Stack
+
+- Next.js 16.0.0
+- React 19.1.1
+- TypeScript
+- Dynamic SDK
+- Tailwind CSS
+- Shadcn/ui components (via `@repo/ui`)
+- react-error-boundary for error handling
+- zod-validation-error for better validation error messages
+
+## Design System & Dependencies
+
+This app uses `@repo/ui` as the centralized design system:
+
+- **UI Components**: Import from `@repo/ui/components/*`
+- **Radix Primitives**: Import from `@repo/ui/radix`
+- **Utilities**: Import from `@repo/ui/lib/utils`
+- **Icons**: Import from `lucide-react` via `@repo/ui`
+
+**Do NOT install** these design system dependencies directly in this app - they are managed centrally in `@repo/ui`:
+
+- Any `@radix-ui/react-*` packages
+- `class-variance-authority`, `clsx`, `tailwind-merge`
+
+**Do install** these app-level dependencies:
+
+- `next-themes` - Theme provider (configured per app)
+- `lucide-react` - If you need icons directly (UI components already include it)
+
+## Mobile-First Design
+
+This app follows **mobile-first responsive design**:
+
+- Base styles target mobile devices (default)
+- Enhancements added for larger screens using Tailwind breakpoints (`sm:`, `md:`, `lg:`, `xl:`, `2xl:`)
+- All components are designed mobile-first, then enhanced for desktop
+
+See [Mobile-First Rules](../../.cursor/rules/frontend/mobile-first.mdc) for detailed guidelines.
+
+## Authentication
+
+Mathler requires authentication before playing. The app uses **Dynamic Labs** for wallet-based authentication supporting both **Ethereum** and **Solana** wallets.
+
+### How Authentication Works
+
+1. **Auth Guard Component**: The `AuthGuard` component wraps the game and checks authentication state:
+   - Shows loading spinner while Dynamic SDK initializes
+   - Displays `DynamicWidget` (login/register UI) if user is not authenticated
+   - Renders game content once user is authenticated
+
+2. **Authentication Flow**:
+   - User visits the app → Auth guard checks authentication
+   - If not authenticated → Shows DynamicWidget with sign-in options
+   - User signs in via email or wallet → Game becomes accessible
+   - Authentication state persists across sessions
+
+3. **Wallet Support**:
+   - **Ethereum wallets**: MetaMask, WalletConnect, Coinbase Wallet, etc.
+   - **Solana wallets**: Phantom, Solflare, etc.
+   - **Email authentication**: Magic link or OTP via Dynamic Labs
+
+### Authentication Implementation
+
+The authentication system consists of:
+
+- **`components/providers.tsx`**: Sets up `DynamicContextProvider` with Ethereum and Solana wallet connectors
+- **`components/auth-guard.tsx`**: Client component that guards game access and shows auth UI when needed
+- **`app/page.tsx`**: Wraps `MathlerGame` with `AuthGuard` to enforce authentication
+
+**Key Features:**
+- ✅ SSR-safe (client-side only initialization)
+- ✅ Graceful degradation when environment ID is missing
+- ✅ Loading states during SDK initialization
+- ✅ Automatic authentication state management
+- ✅ Multi-chain wallet support (Ethereum + Solana)
+- ✅ Error logging and monitoring for authentication events
+- ✅ Error boundary integration for graceful error handling
+
+### Authentication Monitoring
+
+The app includes logging and error handling for authentication events:
+
+- **Initialization Logging**: Logs when Dynamic SDK initializes with wallet connectors
+- **Authentication State Changes**: Logs when users authenticate or sign out (includes user ID, email, wallet address)
+- **Error Handling**: Authentication errors are captured via error boundary and Sentry (if configured)
+- **Production Monitoring**: Monitor authentication success/failure rates via logs
+
+Authentication events are logged using `@repo/utils/logger` and can be monitored in production environments. Configure Sentry (via `NEXT_PUBLIC_SENTRY_DSN`) for error tracking and monitoring.
+
+## Getting Started
+
+### Prerequisites
+
+- Bun >= 1.3.2
+- Node.js >= 20.0.0
+- Dynamic SDK environment ID (see Environment Variables below)
+
+### Installation
+
+```bash
+# From monorepo root
+bun install
+
+# Or from this directory
+cd apps/mathler
+bun install
+```
+
+### Running the Application
+
+```bash
+# From monorepo root
+bun run dev
+
+# Or from this directory
+cd apps/mathler
+bun run dev
+```
+
+The application will be available at `http://localhost:3002` (or the next available port).
+
+### Environment Variables
+
+This Next.js app uses environment-specific configuration files. Next.js automatically loads environment files in priority order:
+
+1. `.env` (highest priority, sensitive data, never committed, overrides everything)
+2. `.env.development` / `.env.staging` / `.env.production` (based on NODE_ENV, committed configs)
+
+**File Structure:**
+
+- `.env` - Sensitive data (API keys, tokens, secrets) - **NEVER COMMIT**
+- `.env.development` - Development configuration (committed, non-sensitive)
+- `.env.staging` - Staging configuration (committed, non-sensitive)
+- `.env.production` - Production configuration (committed, non-sensitive)
+- `.env-example` - Template for `.env` file (shows required sensitive variables)
+
+**Setup for Local Development:**
+
+```bash
+# Copy the example file for sensitive data
+cp .env-example .env
+
+# Fill in your actual sensitive values in .env
+# NEXT_PUBLIC_DYNAMIC_ENVIRONMENT_ID=your_dynamic_environment_id
+
+# .env.development is already committed with non-sensitive configs
+```
+
+**Required Environment Variables:**
+
+- `NEXT_PUBLIC_DYNAMIC_ENVIRONMENT_ID`: Your Dynamic environment ID from the [Dynamic Dashboard](https://app.dynamic.xyz/). Required for authentication to work properly.
+
+**Optional Environment Variables:**
+
+- `NEXT_PUBLIC_SENTRY_DSN`: Sentry DSN URL for error tracking (optional, defaults to disabled)
+- `NEXT_PUBLIC_SENTRY_ENVIRONMENT`: Environment name for Sentry (optional, defaults to `NODE_ENV`)
+
+**Using Environment Variables in Code:**
+
+This app exports a validated environment configuration object (`env`) from `lib/env.ts`. Always import and use `env` instead of accessing `process.env` directly:
+
+```typescript
+import { env } from '@/lib/env'
+
+// Use env instead of process.env
+const envId = env.NEXT_PUBLIC_DYNAMIC_ENVIRONMENT_ID
+```
+
+The `env` object is validated at module load using `@t3-oss/env-nextjs` with Zod schemas. Validation fails fast in production if required variables are missing.
+
+**Environment-Specific Configuration:**
+
+- **Development** (`.env.development` + `.env`): Local development
+- **Staging** (`.env.staging` + `.env`): Staging environment
+- **Production** (`.env.production` + `.env`): Production environment
+
+**Note**: `.env.development`, `.env.staging`, and `.env.production` are committed files with non-sensitive configuration. Sensitive data (like `NEXT_PUBLIC_DYNAMIC_ENVIRONMENT_ID`) should be in `.env` file (never committed).
+
+**Getting Your Dynamic Environment ID:**
+
+1. Go to [app.dynamic.xyz](https://app.dynamic.xyz/)
+2. Sign up for a free account (if you don't have one)
+3. Create a new project or select an existing one
+4. Copy the Environment ID from your project settings
+5. Add it to your `.env.local` file as `NEXT_PUBLIC_DYNAMIC_ENVIRONMENT_ID`
+
+**Note**: If `NEXT_PUBLIC_DYNAMIC_ENVIRONMENT_ID` is not set, the app will use a placeholder ID and show warnings in development mode. Authentication will not work properly without a valid environment ID.
+
+See [ADR 014: Environment Strategy](../docs/content/docs/adrs/014-environment-strategy/index.mdx) for the complete architecture decision and [Environment Rules](../../.cursor/rules/base/environment.mdc) for implementation patterns.
+
+## Development
+
+```bash
+# Development mode
+bun run dev
+
+# Build for production
+bun run build
+
+# Start production server
+bun run start
+
+# Lint
+bun run lint
+
+# Type check
+bun run typecheck
+```
+
+## Testing
+
+### Unit Tests
+
+```bash
+# Run unit tests
+bun run test
+
+# Run tests in watch mode
+bun run test:watch
+
+# Run tests with UI mode (interactive)
+bun run test:ui
+
+# Run tests with coverage
+bun run test:cov
+```
+
+**Testing Stack:**
+- **Vitest** - Fast unit testing framework with native ESM support
+- **@testing-library/react** - React component testing utilities
+- **jsdom** - DOM environment for browser-like testing
+- **@vitejs/plugin-react** - React JSX transform for Vitest (automatic runtime)
+
+**Testing Notes:**
+- Vitest is configured with `@vitejs/plugin-react` to handle JSX transforms automatically, matching Next.js's React runtime
+- Date-dependent tests (e.g., `getRandomTarget`, `generateSolutionEquation`) use `vi.useFakeTimers()` and `vi.setSystemTime()` for deterministic testing
+- All component tests use React Testing Library for black-box testing through public APIs
+
+### E2E Tests
+
+E2E tests use Playwright to test the application in a real browser environment.
+
+```bash
+# Run e2e tests (builds and starts the app automatically)
+bun run test:e2e
+
+# Run e2e tests with UI mode (interactive)
+bun run test:e2e:ui
+
+# Run e2e tests in debug mode
+bun run test:e2e:debug
+```
+
+**E2E Test Coverage:**
+
+- Authentication flow (automatic sign-in via Sandbox environment)
+- Page loading and hydration
+- Game UI rendering (header, game board, keypad)
+- User interactions (keypad input, submit, backspace)
+- Responsive design on mobile viewports
+- Error handling and console error detection
+
+**E2E Test Configuration:**
+
+E2E tests use Dynamic Labs Sandbox environment for authentication. Configure the following in `.env.test`:
+
+```bash
+# Dynamic Labs Sandbox Environment ID (same as your .env file)
+NEXT_PUBLIC_DYNAMIC_ENVIRONMENT_ID=your_sandbox_environment_id
+
+# Base URL for E2E tests
+BASE_URL=http://localhost:3000
+
+# Test email for E2E authentication (must be configured in Dynamic Labs Sandbox)
+# This should be a test account email configured in your Dynamic Sandbox environment
+E2E_TEST_EMAIL=test@example.com
+
+# Static OTP for E2E authentication (configured in Dynamic Labs Sandbox environment)
+# This allows deterministic authentication in tests without email automation
+E2E_STATIC_OTP=123456
+```
+
+**Setting Up E2E Authentication:**
+
+1. **Configure Dynamic Labs Sandbox Test Account:**
+   - Go to your [Dynamic Labs Dashboard](https://app.dynamic.xyz/)
+   - Navigate to your Sandbox environment settings
+   - Enable "Test Accounts" or "Static OTP" feature
+   - Configure a test email and static OTP code
+
+2. **Update `.env.test`:**
+   - Copy `.env.test` if it doesn't exist
+   - Fill in `E2E_TEST_EMAIL` with your test account email
+   - Fill in `E2E_STATIC_OTP` with your configured static OTP
+
+3. **Run Tests:**
+   - The `auth.setup.ts` file automatically authenticates before running tests
+   - Authentication state is saved to `playwright/.auth/user.json`
+   - All E2E tests run with authenticated state
+
+**Note**: E2E tests require the app to be built. The test runner will automatically build and start the production server before running tests. Authentication happens automatically via the setup project in `playwright.config.ts`.
+
+## Game Engine Documentation
+
+### Game Rules & Constraints
+
+Mathler is a daily puzzle game where players have **6 guesses** to find the equation that equals a target number.
+
+#### Core Rules
+
+1. **Target Number**: Each puzzle has a target number between 10-100, generated deterministically based on the date
+2. **Maximum Guesses**: Players have exactly 6 attempts to find the solution
+3. **Equation Length**: Solutions are always ≤ 9 characters (including operators and parentheses)
+4. **Win Condition**: To win, the guess must evaluate to the target number. **Cumulative solutions are supported** - any equation that evaluates to the target wins, not just the exact solution string.
+   - Examples: For target `76`, both `1+5*15` and `15*5+1` are winning solutions
+   - This allows multiple valid paths to the same answer
+
+#### Expression Constraints
+
+Valid expressions must follow these rules:
+
+- **Operators**: Only `+`, `-`, `*`, `/` are allowed (Unicode variants `×` and `÷` are normalized)
+- **Numbers**: Only positive integers (no decimals, no negative numbers)
+- **No Leading Zeros**: Expressions like `01+2` or `03*5` are invalid
+- **No Leading/Trailing Operators**: Cannot start with `+`, `-`, `*`, `/` or end with any operator
+- **No Consecutive Operators**: Patterns like `++`, `**`, `//` are invalid
+- **No Unary Minus**: Expressions cannot start with `-` (e.g., `-3+4` is invalid)
+- **Integer Division Only**: Division operations must result in whole numbers (e.g., `8/2` is valid, `7/2` is invalid)
+- **No Division by Zero**: Division by zero is rejected
+- **Parentheses Support**: Parentheses can be used for grouping (e.g., `(2+3)*4`)
+
+#### Order of Operations
+
+Expressions follow standard mathematical order of operations (PEDMAS):
+
+1. **P**arentheses
+2. **E**xponents (not supported)
+3. **D**ivision and **M**ultiplication (left-to-right)
+4. **A**ddition and **S**ubtraction (left-to-right)
+
+Examples:
+
+- `2+3*4` = `2+(3*4)` = `14` (not `20`)
+- `10/2+3` = `(10/2)+3` = `8` (not `2`)
+- `(2+3)*4` = `20` (parentheses override precedence)
+
+### Validation Logic
+
+The game uses a multi-layer validation approach:
+
+#### 1. Character Set Validation
+
+- Regex check: `/^[\d+\-*/.()]+$/` ensures only valid characters
+- Rejects any non-numeric, non-operator characters
+
+#### 2. Syntax Validation
+
+- **Leading/Trailing Operators**: Rejects expressions starting with `+`, `-`, `*`, `/` or ending with any operator
+- **Consecutive Operators**: Rejects patterns like `++`, `**`, `//`, `*/`, etc.
+- **Leading Zeros**: Explicit check `/\b0\d/` rejects numbers with leading zeros (e.g., `01`, `02`)
+
+#### 3. Expression Evaluation
+
+- Uses `expr-eval` parser (restricted to basic arithmetic only)
+- Parser handles operator precedence automatically
+- Results rounded to 6 decimal places to avoid floating-point precision issues
+- Returns `null` for invalid expressions or non-finite results
+
+#### 4. Result Validation
+
+- Checks if result is a finite number
+- Validates that the expression evaluates correctly
+
+### Equation Generation Strategy
+
+The game engine generates valid equations using a two-phase approach:
+
+#### Phase 1: Two-Number Equations
+
+Generates simple equations of the form `a op b = target`:
+
+- Iterates through all combinations of numbers (1-99) and operators
+- Validates operations using operator guards:
+  - **Addition**: Always valid
+  - **Subtraction**: Only when `a > b` (avoids negative results)
+  - **Multiplication**: Always valid
+  - **Division**: Only when `b ≠ 0` and `a` is divisible by `b` (integer results)
+- Filters equations that exceed the 9-character limit
+
+**Examples**: `5+10=15`, `20-5=15`, `3*5=15`, `30/2=15`
+
+#### Phase 2: Three-Number Equations with Order of Operations
+
+Generates equations with three numbers considering operator precedence:
+
+**Left-Associative**: `(a op1 b) op2 c`
+
+- Example: `(2+3)*4` evaluates as `(5)*4 = 20`
+- Parentheses added when:
+  - `op2` has higher precedence than `op1` (e.g., `(2+3)*4`)
+  - Equal precedence but non-commutative (e.g., `(10-2)/2`)
+
+**Right-Associative**: `a op1 (b op2 c)`
+
+- Example: `2+(3*4)` evaluates as `2+(12) = 14`
+- Parentheses added when `op2` has lower precedence than `op1`
+- Example: `2+(3*4)` needs parens, but `2*(3+4)` doesn't (due to precedence)
+
+#### Selection Strategy
+
+1. **Candidate Collection**: All valid equations collected in a `Set` (automatic deduplication)
+2. **Seeded Random Selection**: Uses date-based seed combined with target number for daily consistency
+3. **Fallback**: Returns `target+0` if no valid equations found (shouldn't happen in practice)
+
+#### Daily Consistency
+
+- Uses date-based seeding: `YYYYMMDD` format
+- Same date + same target = same equation for all players
+- Ensures fair, consistent daily puzzles
+
+### Feedback Calculation Algorithm (Wordle-style)
+
+The game uses a two-pass algorithm to calculate feedback for each guess:
+
+#### Feedback States
+
+- **`correct`** (Green): Character is in the correct position
+- **`present`** (Yellow): Character exists in solution but in wrong position
+- **`absent`** (Grey): Character does not exist in solution
+
+#### Algorithm Steps
+
+**Pass 1: Mark Correct Positions**
+
+```typescript
+for each position i:
+  if guess[i] === solution[i]:
+    feedback[i] = 'correct'
+```
+
+**Pass 2: Mark Present Characters**
+
+1. Create working copies of solution and guess characters
+2. Remove characters already marked as `correct` from consideration
+3. For each remaining character in guess:
+   - If character exists in remaining solution characters:
+     - Mark as `present`
+     - Remove that character from solution (to avoid double-counting)
+
+**Example**:
+
+- Solution: `"2+3*4"`
+- Guess: `"2*3+4"`
+- Result: `["correct", "present", "present", "present", "correct"]`
+  - Position 0: `'2'` is correct
+  - Position 1: `'*'` is present (exists in solution at position 2)
+  - Position 2: `'3'` is present (exists in solution at position 1)
+  - Position 3: `'+'` is present (exists in solution at position 1)
+  - Position 4: `'4'` is correct
+
+#### Important Notes
+
+- Characters are matched position-by-position for `correct`
+- Each solution character can only match one guess character
+- Once a character is marked `correct`, it's excluded from `present` matching
+- This prevents double-counting of repeated characters
+
+### Complete Game Flow
+
+#### 1. Initialization
+
+When the game starts or resets:
+
+```typescript
+1. Generate target number (10-100) using date-based seeded random
+2. Generate solution equation for target using generateSolutionEquation()
+3. Initialize game state:
+   - target: generated target number
+   - solution: generated equation string
+   - guesses: empty array
+   - gameStatus: 'playing'
+   - feedback: empty array
+4. Reset input field and cursor position
+```
+
+#### 2. Input Phase
+
+Players can input guesses through multiple methods:
+
+- **Keyboard**: Type numbers and operators directly
+- **On-screen Keypad**: Click buttons to input characters
+- **Cursor Navigation**: Click tiles or use arrow keys to move cursor
+
+**Input Constraints**:
+
+- Maximum length: 9 characters
+- Only valid characters accepted (digits, operators, parentheses)
+- Invalid characters are rejected
+
+#### 3. Submission Phase
+
+When player submits a guess:
+
+```typescript
+1. Validate expression:
+   - Check character set
+   - Check syntax (no leading zeros, no consecutive operators, etc.)
+   - Evaluate expression using parser
+   - Return null if invalid → show error alert
+
+2. If valid:
+   - Normalize guess (× → *, ÷ → /)
+   - Calculate feedback using calculateFeedback()
+   - Add guess to guesses array
+   - Add feedback to feedback array
+
+3. Check win condition:
+   - result === target AND normalizedGuess === solution
+   - If win: set gameStatus to 'won', show success modal
+   - If loss: check if guesses.length >= 6, set to 'lost'
+
+4. If game over:
+   - Save game history to Dynamic metadata
+   - Include: date, target, solution, guesses, status, guessCount
+```
+
+#### 4. Feedback Display
+
+After each guess:
+
+- Each character in the guess row displays color-coded feedback:
+  - **Green tile**: Character is correct (right character, right position)
+  - **Yellow tile**: Character is present (right character, wrong position)
+  - **Grey tile**: Character is absent (not in solution)
+- Previous guesses remain visible with their feedback
+- Current input row shows live typing
+
+#### 5. Win Condition
+
+Player wins when:
+
+- The guess evaluates to the target number
+
+**Cumulative Solutions Support**: Any equation that evaluates to the target wins, not just the exact solution string. This allows multiple valid paths to the same answer.
+
+**Example**:
+
+- Target: `76`
+- Solution: `"1+5*15"` (which equals 76)
+- Valid winning guesses:
+  - `"1+5*15"` ✅ (exact match)
+  - `"15*5+1"` ✅ (different order, same result)
+  - `"5*15+1"` ✅ (different order, same result)
+- Invalid (doesn't evaluate to target): `"1+5*14"` ❌ (equals 71, not 76)
+
+**Breaking Change**: Previously, the game required an exact character-for-character match with the solution. This has been changed to accept any equation that evaluates to the target. Existing saved games may show different win states after this change.
+
+#### 6. Loss Condition
+
+Player loses when:
+
+- 6 guesses have been made without finding the solution
+- Game status changes to `'lost'`
+- Solution is revealed
+
+#### 7. Game History
+
+When a game ends (win or loss):
+
+- Game data is saved to Dynamic user metadata:
+  - Date (YYYY-MM-DD format)
+  - Target number
+  - Solution equation
+  - All guesses made
+  - Final status (`'won'` or `'lost'`)
+  - Number of guesses used
+  - Completion timestamp
+- History persists across sessions
+- Users can view their game statistics
+
+#### 8. Reset Flow
+
+When player clicks "Play Again" or game resets:
+
+- New target number generated (based on new date if day changed)
+- New solution equation generated for new target
+- All game state reset to initial values
+- Input field cleared
+- Ready for new game
+
+### Technical Implementation Details
+
+#### Key Files
+
+- **`lib/math-utils.ts`**: Expression evaluation, equation generation, validation
+- **`lib/feedback-utils.ts`**: Wordle-style feedback calculation
+- **`components/mathler-game.tsx`**: Main game component, state management
+- **`hooks/use-mathler-input.ts`**: Input handling, cursor management, keyboard events
+- **`hooks/use-game-history.ts`**: Game history persistence via Dynamic SDK
+
+#### Expression Parser
+
+- Uses `expr-eval` library (restricted to basic arithmetic)
+- Singleton parser instance for performance
+- All functions and constants disabled for security
+- Handles operator precedence automatically
+- Supports parentheses for grouping
+
+#### Performance Considerations
+
+- Equation generation happens once per game (on initialization)
+- Parser instance reused across evaluations
+- Feedback calculation is O(n) where n is equation length
+- Game history saved asynchronously (doesn't block UI)
+
+## Project Structure
+
+```
+mathler/
+├── app/                    # Next.js app directory
+│   ├── page.tsx           # Main page component
+│   └── layout.tsx         # Root layout
+├── components/             # React components
+│   ├── auth-guard.tsx     # Authentication guard component
+│   ├── providers.tsx      # App providers (Dynamic, Theme, etc.)
+│   ├── mathler-game.tsx   # Main game component
+│   ├── guess-row.tsx      # Individual guess row display
+│   ├── game-keypad.tsx    # On-screen keypad
+│   └── game-status.tsx    # Win/loss status display
+├── lib/                    # Utilities
+│   ├── math-utils.ts      # Expression evaluation & equation generation
+│   └── feedback-utils.ts  # Feedback calculation algorithm
+├── hooks/                  # React hooks
+│   ├── use-mathler-input.ts    # Input handling hook
+│   └── use-game-history.ts     # Game history persistence
+└── types/                  # TypeScript type definitions
+    └── user-metadata.ts    # Shared UserMetadata type for Dynamic SDK (extensible for crypto features)
+```
+
+## License
+
+PROPRIETARY

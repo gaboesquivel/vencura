@@ -145,7 +145,7 @@ async function main() {
   const pwArgs = ['exec', 'playwright', 'test', ...(hasWorkers ? [] : ['--workers=1']), ...userArgs]
   const hasProjectArg = pwArgs.some(a => a.startsWith('--project='))
   // Security (authenticator, api-keys, passkeys) excluded from default run - flaky in headless/CI
-  const finalPwArgs = !hasProjectArg ? [...pwArgs, '--project=auth', '--project=chromium'] : pwArgs
+  const finalPwArgs = !hasProjectArg ? [...pwArgs, '--project=setup', '--project=chromium'] : pwArgs
 
   const pw = spawn('pnpm', finalPwArgs, {
     cwd: nextDir,

@@ -102,6 +102,8 @@
         "WEBAUTHN_RP_NAME",
         "TOTP_ISSUER",
         "RATE_LIMIT_MAX",
+        "RATE_LIMIT_TEST_OVERRIDE",
+        "RATE_LIMIT_TEST_TIME_WINDOW",
         "TEST_LOG_LEVEL"
       ]
     },
@@ -148,6 +150,8 @@
         "WEBAUTHN_RP_NAME",
         "TOTP_ISSUER",
         "RATE_LIMIT_MAX",
+        "RATE_LIMIT_TEST_OVERRIDE",
+        "RATE_LIMIT_TEST_TIME_WINDOW",
         "TEST_LOG_LEVEL"
       ]
     },
@@ -209,7 +213,9 @@
         "NEXT_PUBLIC_AUTH_COOKIE_NAME",
         "WEBAUTHN_RP_NAME",
         "TOTP_ISSUER",
-        "RATE_LIMIT_MAX"
+        "RATE_LIMIT_MAX",
+        "RATE_LIMIT_TEST_OVERRIDE",
+        "RATE_LIMIT_TEST_TIME_WINDOW"
       ]
     },
     "test:e2e": {
@@ -227,13 +233,17 @@
         "OLLAMA_BASE_URL",
         "OPEN_ROUTER_API_KEY",
         "NEXT_PUBLIC_API_URL",
+        "NEXT_PUBLIC_APP_URL",
+        "BASE_URL",
         "PLAYWRIGHT_REUSE_SERVER",
         "JWT_SECRET",
         "PLAYWRIGHT_APP_URL",
         "PLAYWRIGHT_API_URL",
         "VERCEL_AUTOMATION_BYPASS_SECRET",
         "AUTH_COOKIE_NAME",
-        "NEXT_PUBLIC_AUTH_COOKIE_NAME"
+        "NEXT_PUBLIC_AUTH_COOKIE_NAME",
+        "E2E_TEST_EMAIL",
+        "E2E_STATIC_OTP"
       ]
     },
     "dev": {

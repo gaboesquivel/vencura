@@ -12,13 +12,21 @@ import {
   SidebarMenuButton,
   SidebarMenuItem,
 } from '@repo/ui/components/sidebar'
-import { BarChart3Icon, GalleryVerticalEnd, LogOut, NewspaperIcon, UserIcon } from 'lucide-react'
+import {
+  BarChart3Icon,
+  GalleryVerticalEnd,
+  LogOut,
+  NewspaperIcon,
+  UserIcon,
+  Wallet,
+} from 'lucide-react'
 import Link from 'next/link'
 import { usePathname } from 'next/navigation'
 
 const navItems = [
   { href: '/', label: 'News', icon: NewspaperIcon },
   { href: '/markets', label: 'Markets', icon: BarChart3Icon },
+  { href: '/wallets', label: 'Wallets', icon: Wallet },
 ] as const
 
 const settingsItems: Array<{

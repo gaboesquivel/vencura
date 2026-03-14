@@ -1,0 +1,30 @@
+{
+  "name": "@repo/e2e-helpers",
+  "version": "0.0.1",
+  "type": "module",
+  "private": true,
+  "description": "Shared E2E utilities for Playwright tests",
+  "license": "PROPRIETARY",
+  "exports": {
+    ".": {
+      "types": "./src/index.ts",
+      "import": "./src/index.ts",
+      "default": "./src/index.ts"
+    }
+  },
+  "scripts": {
+    "checktypes": "tsgo --noEmit",
+    "lint:eslint": "eslint . --max-warnings 0"
+  },
+  "peerDependencies": {
+    "@playwright/test": "^1.58.0"
+  },
+  "devDependencies": {
+    "@playwright/test": "^1.58.2",
+    "@repo/eslint-config": "workspace:*",
+    "@repo/typescript-config": "workspace:*",
+    "@types/node": "^25.2.3",
+    "@typescript/native-preview": "7.0.0-dev.20260213.1",
+    "eslint": "^9.0.0"
+  }
+}

@@ -35,12 +35,11 @@ export function Hero() {
         </Badge>
 
         <h1 className="text-balance text-3xl font-bold leading-[1.1] tracking-tight text-foreground sm:text-4xl md:text-6xl lg:text-7xl">
-          API-First TypeScript FullStack Starter
+          Vencura Wallet
         </h1>
 
         <p className="mx-auto mt-4 max-w-2xl text-pretty text-sm leading-relaxed text-muted-foreground sm:text-base md:mt-6 md:text-lg">
-          Build production-ready APIs and apps with typed SDKs, out-of-the-box authentication, a
-          portable architecture, AI tooling, and crypto integrations.
+          The Venmo of wallets — custodial wallets for Web3, with backend API and Dynamic auth.
           <br /> Fastify • OpenAPI • Next.js • Expo — one stack, multiple platforms.
         </p>
 

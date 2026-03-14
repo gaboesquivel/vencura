@@ -1,5 +1,3 @@
-import type { Page } from '@playwright/test'
-
 const appUrl =
   process.env.PLAYWRIGHT_APP_URL ?? process.env.NEXT_PUBLIC_APP_URL ?? 'http://localhost:3000'
 const apiUrl =
@@ -8,11 +6,5 @@ const apiUrl =
 export const authHelpers = {
   appUrl,
   apiUrl,
-  testEmail: 'test@test.ai',
-
-  async loginAsTestUser(_page: Page) {
-    throw new Error(
-      'E2E auth: loginAsTestUser needs Dynamic sandbox or storageState—magic link removed.',
-    )
-  },
+  testEmail: process.env.E2E_TEST_EMAIL ?? 'test+dynamic_test@example.com',
 }

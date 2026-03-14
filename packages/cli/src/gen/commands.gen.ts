@@ -86,6 +86,69 @@ export const operationMeta = {
         "name": "temperature"
       }
     ]
+  },
+  "walletsBalance": {
+    "summary": "Get balance",
+    "description": "Get custodial wallet balance (wei)",
+    "pathParams": [
+      {
+        "name": "id"
+      }
+    ],
+    "bodyParams": []
+  },
+  "walletsDetail": {
+    "summary": "Get wallet",
+    "description": "Get custodial wallet by id",
+    "pathParams": [
+      {
+        "name": "id"
+      }
+    ],
+    "bodyParams": []
+  },
+  "walletsSend": {
+    "summary": "Send transaction",
+    "description": "Send transaction from custodial wallet",
+    "pathParams": [
+      {
+        "name": "id"
+      }
+    ],
+    "bodyParams": [
+      {
+        "name": "to"
+      },
+      {
+        "name": "amount"
+      }
+    ]
+  },
+  "walletsSign": {
+    "summary": "Sign message",
+    "description": "Sign message with custodial wallet",
+    "pathParams": [
+      {
+        "name": "id"
+      }
+    ],
+    "bodyParams": [
+      {
+        "name": "msg"
+      }
+    ]
+  },
+  "walletsCreate": {
+    "summary": "Create custodial wallet",
+    "description": "Create custodial wallet",
+    "pathParams": [],
+    "bodyParams": []
+  },
+  "walletsList": {
+    "summary": "List wallets",
+    "description": "List custodial wallets for authenticated user",
+    "pathParams": [],
+    "bodyParams": []
   }
 } as const
 
@@ -140,5 +203,49 @@ export const commandSpecs = [
       "generate"
     ],
     "operationId": "generate"
+  },
+  {
+    "path": [
+      "wallets",
+      "id",
+      "balance"
+    ],
+    "operationId": "walletsBalance"
+  },
+  {
+    "path": [
+      "wallets",
+      "id",
+      "detail"
+    ],
+    "operationId": "walletsDetail"
+  },
+  {
+    "path": [
+      "wallets",
+      "id",
+      "send"
+    ],
+    "operationId": "walletsSend"
+  },
+  {
+    "path": [
+      "wallets",
+      "id",
+      "sign"
+    ],
+    "operationId": "walletsSign"
+  },
+  {
+    "path": [
+      "wallets-create"
+    ],
+    "operationId": "walletsCreate"
+  },
+  {
+    "path": [
+      "wallets-list"
+    ],
+    "operationId": "walletsList"
   }
 ] as const

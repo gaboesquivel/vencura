@@ -1,0 +1,45 @@
+---
+title: "Custodial Wallet Security"
+description: "Encrypted keys, rate limiting, auth, and address validation for the wallet API."
+---
+
+Vencura Wallet implements security measures for custodial wallet operations. Private keys never leave the server and are never logged.
+
+## Private Key Encryption
+
+- **At rest:** AES-256-GCM via `ENCRYPTION_KEY` environment variable
+- **In memory:** Keys are decrypted only when performing an operation (balance, sign, send), then discarded
+- **Logging:** Private keys and plaintext secrets are never logged
+
+If `ENCRYPTION_KEY` is missing or invalid, wallet creation fails. Rotating the key requires re-encrypting existing wallets (migration path).
+
+## Address Validation
+
+- All recipient addresses (`to` in send) are validated with viem's `getAddress()`
+- Invalid addresses return `400 INVALID_ADDRESS`
+- Prevents malformed or incorrect addresses from reaching the chain
+
+## Rate Limiting
+
+Wallet creation and send endpoints use `@fastify/rate-limit`. Limits are configured per deployment to prevent abuse and DoS.
+
+## Authentication
+
+All wallet routes require Bearer authentication:
+
+- **Dynamic JWT** — From web/mobile login (magic link, OAuth, Web3)
+- **API key** — For programmatic access (CLI, scripts, integrations)
+
+Unauthenticated requests return `401 UNAUTHORIZED`. Wallet access is scoped to the authenticated user; users cannot access other users' wallets.
+
+## Ownership Enforcement
+
+`getWalletForUser(db, walletId, userId)` ensures that the requested wallet belongs to the authenticated user. If not, the API returns `404 NOT_FOUND` (no information leakage about existence of other wallets).
+
+## Insufficient Funds
+
+Send operations check balance before broadcasting. `INSUFFICIENT_FUNDS` returns `400` with a clear message.
+
+## Security Baseline
+
+For repository-wide security (secret scanning, dependency checks, blocked files), see [Security Baseline](/docs/architecture/security).

@@ -20,6 +20,18 @@ import type {
   HealthCheckResponse,
   LogoutData,
   LogoutResponse,
+  WalletsBalanceData,
+  WalletsBalanceResponse,
+  WalletsCreateData,
+  WalletsCreateResponse,
+  WalletsDetailData,
+  WalletsDetailResponse,
+  WalletsListData,
+  WalletsListResponse,
+  WalletsSendData,
+  WalletsSendResponse,
+  WalletsSignData,
+  WalletsSignResponse,
 } from './gen/types.gen'
 
 export type CoreApiClient = {
@@ -41,5 +53,15 @@ export type CoreApiClient = {
       logout: (opts?: Options<LogoutData>) => Promise<LogoutResponse>;
       user: (opts?: Options<GetUserData>) => Promise<GetUserResponse>
     }
-  }
+  };
+  wallets: {
+    id: {
+      balance: (opts: Options<WalletsBalanceData>) => Promise<WalletsBalanceResponse>;
+      detail: (opts: Options<WalletsDetailData>) => Promise<WalletsDetailResponse>;
+      send: (opts: Options<WalletsSendData>) => Promise<WalletsSendResponse>;
+      sign: (opts: Options<WalletsSignData>) => Promise<WalletsSignResponse>
+    }
+  };
+  walletsCreate: (opts?: Options<WalletsCreateData>) => Promise<WalletsCreateResponse>;
+  walletsList: (opts?: Options<WalletsListData>) => Promise<WalletsListResponse>
 }

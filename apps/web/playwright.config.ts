@@ -27,10 +27,18 @@ export default defineConfig({
   },
   projects: [
     {
+      name: 'setup',
+      testMatch: /.*\.setup\.ts/,
+    },
+    {
       name: 'chromium',
-      testMatch: ['**/chat-assistant.spec.ts'],
+      testMatch: ['**/chat-assistant.spec.ts', '**/wallets.spec.ts'],
       timeout: 60_000,
-      use: { ...devices['Desktop Chrome'] },
+      use: {
+        ...devices['Desktop Chrome'],
+        storageState: 'playwright/.auth/user.json',
+      },
+      dependencies: ['setup'],
     },
   ],
 })

@@ -43,10 +43,13 @@ kill_port() {
   echo "Warning: No suitable tool found (ss/netstat/fuser/lsof). Cannot kill processes on port $port"
 }
 
-# Kill port 3000 (Next.js)
+# Kill port 3000 (Next.js web)
 kill_port 3000
 
 # Kill port 3001 (Fastify)
 kill_port 3001
+
+# Kill port 3002 (Mathler)
+kill_port 3002
 
 echo "Done."

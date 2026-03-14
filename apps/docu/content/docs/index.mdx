@@ -1,26 +1,37 @@
 ---
 title: "Introduction"
-description: "App Development Toolkit that provides starters, guidelines, and tools for rapid development."
+description: "Vencura Wallet — custodial wallet platform for Web3. The Venmo of wallets."
 ---
+
+Vencura Wallet is a custodial wallet platform for Web3. Authenticated users create wallets on the backend; all operations (balance, sign, send) run via API. No private keys leave the server.
 
 ## Features
 
-- Portable architecture that avoids vendor lock-in
-- REST API starter with OpenAPI support
-- Type-safe SDK generation from OpenAPI specs
-- Self-hosted Web2 and Web3 authentication, JWT and refresh tokens
-- Designed for Multichain support ( EVM, Solana, Cosmos )
-- Minimal boilerplate for AI features
-- Automated security scanning and testing
-- AI-assisted development workflow
-- Monorepo with shared packages and clear app boundaries
-- Consistent conventions across frontend, backend, and tooling
-- Documentation for developers and AI agents
-- Robust logging and error handling strategies
+- **Custodial wallet API** — getBalance, signMessage, sendTransaction — all via backend
+- **Dynamic auth** — Magic link, OAuth, Web3 sign-in, API keys
+- **Encrypted keys at rest** — AES-256-GCM; never logged or exposed
+- **Basic UI** — Web dashboard and Expo mobile app
+- **Portable architecture** — Run on VPS, AWS, Vercel, or local
+- **Type-safe SDKs** — Generated from OpenAPI for web, mobile, CLI
 
 ## Explore the docs
 
 <div className="grid grid-cols-1 gap-4 md:grid-cols-2 my-8">
+  <div className="rounded-lg border border-border bg-card p-6">
+    <div className="mb-2 flex items-center gap-2">
+      <span className="text-2xl">🔐</span>
+      <h3 className="text-lg font-semibold">Vencura Wallet</h3>
+    </div>
+    <p className="text-sm text-muted-foreground">
+      Product overview, custodial wallet API, security model, and architecture.
+    </p>
+    <div className="mt-4">
+      <a href="/docs/product" className="text-sm font-medium text-primary hover:underline">
+        Learn more →
+      </a>
+    </div>
+  </div>
+
   <div className="rounded-lg border border-border bg-card p-6">
     <div className="mb-2 flex items-center gap-2">
       <span className="text-2xl">🏗️</span>
@@ -51,7 +62,7 @@ description: "App Development Toolkit that provides starters, guidelines, and to
     </div>
   </div>
 
-    <div className="rounded-lg border border-border bg-card p-6">
+  <div className="rounded-lg border border-border bg-card p-6">
     <div className="mb-2 flex items-center gap-2">
       <span className="text-2xl">📦</span>
       <h3 className="text-lg font-semibold">Packages</h3>
@@ -80,7 +91,5 @@ description: "App Development Toolkit that provides starters, guidelines, and to
       </a>
     </div>
   </div>
-
-
 </div>
 

@@ -1,15 +1,18 @@
-# Vencura: API-First TypeScript FullStack Starter
+# Vencura Wallet
 
-Build production-ready APIs and apps with typed SDKs, out-of-the-box authentication, a portable architecture, AI tooling, and crypto integrations.
+The Venmo of wallets — custodial wallets for Web3. An API platform to generate custodial wallets on the backend with backend-only operations (getBalance, signMessage, sendTransaction). Dynamic auth, typed SDKs, and a portable architecture.
 Fastify • OpenAPI • Next.js • Expo — one stack, multiple platforms.
 
 > 🚧 **Active development** — Explore, fork, and contribute. 🏗️
 
 ## Features
 
+- 🔐 **Custodial wallet API** — `getBalance()`, `signMessage()`, `sendTransaction()` — all wallet operations via backend API
+- 🔑 **Dynamic auth** — Magic link, OAuth, Web3 sign-in, and API keys for programmatic access
+- 🔒 **Encrypted keys at rest** — AES-256-GCM for private keys; never logged or exposed
+- 📦 **SDK generation** — Type-safe clients from OpenAPI via HeyAPI for web, mobile, and CLI
 - 🤖 **AI-first dev workflow** — Agent rules, skills, MCP integrations, and automated CodeRabbit reviews
 - 🔌 **REST API & JWT** — OpenAPI spec, Swagger UI, JWT and API key auth for all clients
-- 📦 **SDK generation** — Type-safe clients from OpenAPI via HeyAPI
 - 🧩 **Web3 & AI starters** — Ready-to-use templates for Next.js, React, Expo, Fastify, and Ponder
 - 🔓 **Zero vendor lock-in** — Run on VPS, AWS, Vercel, or local
 - 🎨 **Turbo monorepo + design system** — ShadcnUI components with shared utilities
@@ -29,10 +32,10 @@ Fastify • OpenAPI • Next.js • Expo — one stack, multiple platforms.
 
 ## Apps
 
-- **[API](apps/api/README.md)** — Type-safe REST API built with Fastify & OpenAPI
-- **[Web App](apps/web/README.md)** — Next.js app with monorepo integration
-- **[Mobile App](apps/mobile/README.md)** — Expo app (Android, iOS, Web)
-- **[Documentation](apps/docu/README.md)** — Fumadocs-based docs site for architecture, ADRs, and development workflows
+- **[API](apps/api/README.md)** — Backend API for Vencura Wallet — custodial wallet operations (balance, sign, send), Fastify & OpenAPI
+- **[Web App](apps/web/README.md)** — Next.js dashboard and wallets UI for Vencura Wallet
+- **[Mobile App](apps/mobile/README.md)** — Expo app for Vencura Wallet (Android, iOS, Web)
+- **[Documentation](apps/docu/README.md)** — Documentation site for Vencura Wallet — architecture, ADRs, development workflows
 
 ## Packages
 

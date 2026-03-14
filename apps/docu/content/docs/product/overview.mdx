@@ -1,0 +1,39 @@
+---
+title: "Product Definition"
+description: "Required and optional features, alignment with Dynamic's Take-Home Backend."
+---
+
+Vencura Wallet aligns with [Dynamic's Take-Home Backend](https://dynamic-labs.notion.site/Dynamic-s-Take-Home-Backend-cb8efc5140154eea83deb25738a04e91). The product delivers custodial wallets for Web3 with backend-only operations.
+
+## Required Features
+
+| Feature | Status | Description |
+|---------|--------|-------------|
+| **Dynamic auth** | Yes | Magic link, OAuth, Web3 sign-in, API keys |
+| **Create account/wallet** | Yes | Authenticated users create at least one custodial wallet |
+| **getBalance()** | Yes | `GET /wallets/:id/balance` returns balance (wei) |
+| **signMessage(msg)** | Yes | `POST /wallets/:id/sign` with `{ msg }` returns signed message |
+| **sendTransaction(to, amount)** | Yes | `POST /wallets/:id/send` with `{ to, amount }` returns transaction hash |
+| **Basic UI** | Yes | Web dashboard and Expo app to interact with the API |
+
+All wallet interactions are done on the backend via the API. The UI calls the API with a Bearer token (Dynamic JWT or API key).
+
+## Optional Ideas (Future)
+
+The take-home suggests optional enhancements:
+
+- **Multiple accounts per user** — Users can have many wallets
+- **Accounts interact** — Saving/checking style flows between wallets
+- **Shared wallets** — Invite users to share access
+- **Transaction history** — On-chain and off-chain history
+- **XMTP** — Messaging integration
+- **Hardened security** — Additional guardrails
+- **Non-custodial** — Migration path to user-held keys
+
+## Tech Stack
+
+- **Backend:** Fastify, TypeBox, Drizzle, PostgreSQL
+- **Auth:** Dynamic SDK (JWT) + API keys for programmatic access
+- **Web3:** Viem (Sepolia testnet)
+- **Frontend:** Next.js (web), Expo (mobile)
+- **CLI:** `@repo/cli` for API key–based access

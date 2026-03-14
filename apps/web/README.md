@@ -1,6 +1,6 @@
 # Web App
 
-A Next.js application in this monorepo. This is a minimal hello world application demonstrating the integration of Next.js with the monorepo architecture.
+Next.js dashboard and wallets UI for Vencura Wallet. Integrates with the custodial wallet API and Dynamic auth.
 
 ## Tech Stack
 
@@ -139,6 +139,16 @@ E2E tests automatically start both servers:
 - Next.js frontend on port 3000
 
 Tests wait for both servers to be ready before running. All E2E tests use real infrastructure - no mocks.
+
+**E2E Auth (Dynamic sandbox):**
+
+E2E tests use real Dynamic sandbox authentication. Set these in `.env.local` (never commit):
+
+- `E2E_TEST_EMAIL` — Use `+dynamic_test` before `@` (e.g. `test+dynamic_test@yourdomain.com`)
+- `E2E_STATIC_OTP` — Static OTP from [Dynamic Dashboard Test Accounts](https://app.dynamic.xyz/dashboard/developer/test-accounts)
+- `NEXT_PUBLIC_DYNAMIC_ENVIRONMENT_ID` — Sandbox environment ID
+
+Without these, `auth.setup.ts` will throw and E2E will not run.
 
 See [Frontend Testing Documentation](@apps/docu/content/docs/testing/frontend-testing.mdx) for complete testing patterns and examples.
 

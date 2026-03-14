@@ -72,6 +72,7 @@
     "zod": "^4.3.6"
   },
   "devDependencies": {
+    "@repo/e2e-helpers": "workspace:*",
     "@playwright/test": "^1.58.2",
     "@repo/eslint-config": "workspace:*",
     "@repo/typescript-config": "workspace:*",
