@@ -10,7 +10,7 @@
     "build": "next build",
     "start": "next start",
     "lint": "eslint .",
-    "test": "NODE_OPTIONS=--max-old-space-size=4096 vitest run",
+    "test": "NODE_OPTIONS=--max-old-space-size=4096 ../../node_modules/.bin/vitest run",
     "test:watch": "vitest",
     "test:ui": "vitest --ui",
     "test:cov": "vitest run --coverage",
