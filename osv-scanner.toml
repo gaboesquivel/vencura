@@ -1,0 +1,5 @@
+# ESLint/@eslint/eslintrc requires ajv <8.18; upgrading breaks schema validation.
+# See https://github.com/eslint/eslint/issues/20508
+[[IgnoredVulns]]
+id = "GHSA-2g4f-4pwh-qvx6"
+reason = "ajv 8.18+ breaks @eslint/eslintrc; patched upgrade not yet compatible"

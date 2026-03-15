@@ -152,6 +152,8 @@ const create = async <T extends keyof NotificationTypes>({
     }
 
     const firstUser = validatedData.users[0]
+    if (!firstUser)
+      return { type: type as string, activities, emails: { sent: 0, skipped: 0, failed: 0 } }
 
     // Type assertion is safe here because handler and validatedData are already matched by generic T
     const sampleEmail = (
