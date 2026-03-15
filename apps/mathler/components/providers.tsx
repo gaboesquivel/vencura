@@ -3,7 +3,7 @@
 import { EthereumWalletConnectors } from '@dynamic-labs/ethereum'
 import { DynamicContextProvider } from '@dynamic-labs/sdk-react-core'
 import { SolanaWalletConnectors } from '@dynamic-labs/solana'
-import { logger } from '@repo/utils/logger'
+import { logger } from '@repo/utils/logger/client'
 import { ThemeProvider as NextThemesProvider } from 'next-themes'
 import { NuqsAdapter } from 'nuqs/adapters/next/app'
 import * as React from 'react'
@@ -72,7 +72,8 @@ export function Providers({ children }: { children: React.ReactNode }) {
       settings={{
         environmentId,
         appName: 'Mathler',
-        walletConnectors: [EthereumWalletConnectors, SolanaWalletConnectors],
+        // biome-ignore lint/suspicious/noExplicitAny: Dynamic multi-wallet/ethereum/solana use conflicting wallet-connector-core versions
+        walletConnectors: [EthereumWalletConnectors, SolanaWalletConnectors] as any,
       }}
     >
       {baseProviders}

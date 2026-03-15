@@ -8,7 +8,7 @@ import {
   SidebarTrigger,
   useSidebar,
 } from '@repo/ui/components/sidebar'
-import { logger } from '@repo/utils/logger'
+import { logger } from '@repo/utils/logger/client'
 import { useEffect, useTransition } from 'react'
 import { useSetState } from 'react-use'
 import { toast } from 'sonner'

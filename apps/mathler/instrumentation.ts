@@ -1,4 +1,4 @@
-import { initSentry } from '@repo/error/nextjs'
+import { initErrorReporting } from '@repo/error/nextjs'
 import { env } from './lib/env'
 
 export async function register() {
@@ -8,7 +8,7 @@ export async function register() {
     const environment = env.NEXT_PUBLIC_SENTRY_ENVIRONMENT
 
     if (dsn) {
-      initSentry({ dsn, environment })
+      initErrorReporting({ dsn, environment })
     }
   }
 

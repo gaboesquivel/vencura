@@ -109,7 +109,7 @@ The app includes logging and error handling for authentication events:
 - **Error Handling**: Authentication errors are captured via error boundary and Sentry (if configured)
 - **Production Monitoring**: Monitor authentication success/failure rates via logs
 
-Authentication events are logged using `@repo/utils/logger` and can be monitored in production environments. Configure Sentry (via `NEXT_PUBLIC_SENTRY_DSN`) for error tracking and monitoring.
+Authentication events are logged using `@repo/utils/logger/client` and can be monitored in production environments. Configure Sentry (via `NEXT_PUBLIC_SENTRY_DSN`) for error tracking and monitoring.
 
 ## Getting Started
 
