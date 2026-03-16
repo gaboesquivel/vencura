@@ -5,11 +5,32 @@
  * Used by pnpm qa.
  */
 import { spawnSync } from 'node:child_process'
-import { dirname } from 'node:path'
+import { existsSync, unlinkSync } from 'node:fs'
+import { dirname, join } from 'node:path'
 import { fileURLToPath } from 'node:url'
 
 const scriptDir = dirname(fileURLToPath(import.meta.url))
 const repoRoot = dirname(scriptDir)
+
+function killPorts() {
+  if (process.env.SKIP_KILL_PORTS) return
+  const killScript = join(repoRoot, 'scripts', 'kill-test-servers.sh')
+  if (existsSync(killScript)) {
+    try {
+      spawnSync('bash', [killScript], { cwd: repoRoot, stdio: 'pipe' })
+    } catch {
+      /* ignore */
+    }
+  }
+  const nextLock = join(repoRoot, 'apps', 'web', '.next', 'lock')
+  if (existsSync(nextLock)) {
+    try {
+      unlinkSync(nextLock)
+    } catch {
+      /* ignore */
+    }
+  }
+}
 
 const qaBuildEnv = process.env.JWT_SECRET
   ? undefined
@@ -34,6 +55,8 @@ const phases = [
       ]),
 ]
 
+killPorts()
+
 for (const { name, cmd, args, env } of phases) {
   const result = spawnSync(cmd, args, {
     cwd: repoRoot,
@@ -41,8 +64,11 @@ for (const { name, cmd, args, env } of phases) {
     env: { ...process.env, ...(env ?? {}) },
   })
   if (result.status !== 0) {
+    killPorts()
     const code = result.status ?? 1
     console.error('\n---\nQA FAILED at phase "%s" (exit code %d)\n---\n', name, code)
     process.exit(code)
   }
 }
+
+killPorts()

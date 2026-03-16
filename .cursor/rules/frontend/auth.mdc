@@ -18,14 +18,12 @@ See @apps/docu/content/docs/architecture/authentication.mdx for full architectur
 | Mode | Config | Refresh on 401 |
 | --- | --- | --- |
 | **apiKey** | `apiKey: 'venc_xxx'` | Never |
-| **JWT** | `getAuthToken`, `getRefreshToken`, `onTokensRefreshed` (all three required) | Yes—calls Fastify `POST /auth/session/refresh` directly |
+| **dynamicAuth** | `dynamicAuth: { getAuthToken }` | Dynamic Labs SDK handles refresh; no backend refresh |
 | **no-auth** | `baseUrl` only | Never |
 
-## Refresh Flow
+## Token Refresh
 
-- Core calls Fastify `POST /auth/session/refresh` directly on 401 (no BFF proxy)
-- `onTokensRefreshed` → `updateAuthTokens` → `POST /api/auth/update-tokens` persists new tokens in cookie
-- Proxy (`proxy.ts`) refreshes on navigation; core refreshes on client-side 401 (e.g. `useUser`)
+- Dynamic Labs owns token refresh; clients use Dynamic SDK. No Fastify refresh endpoint.
 
 ## Auth Protection (proxy.ts)
 

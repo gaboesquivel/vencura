@@ -7,7 +7,7 @@
  * @example
  * ```ts
  * try {
- *   await client.auth.magiclink.request({ body: { email } })
+ *   await client.auth.session.user()
  * } catch (error) {
  *   if (error instanceof ApiError) {
  *     console.error(`API error ${error.status}: ${error.message}`)

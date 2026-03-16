@@ -2,8 +2,8 @@
  * Configuration options for creating an API client.
  *
  * Three auth modes:
- * - **apiKey**: Static Bearer token (e.g. venc_xxx_secret). No callbacks. Never refresh.
- * - **JWT**: getAuthToken, getRefreshToken, onTokensRefreshed required. Refresh on 401.
+ * - **apiKey**: Static Bearer token (e.g. venc_xxx_secret). No callbacks.
+ * - **dynamicAuth**: Dynamic Labs token via getAuthToken. Token refresh handled by Dynamic SDK.
  * - **No auth**: baseUrl only. No Authorization header.
  *
  * @example API key mode
@@ -11,16 +11,11 @@
  * createClient({ baseUrl: 'https://api.example.com', apiKey: 'venc_xxx_secret' })
  * ```
  *
- * @example JWT mode
+ * @example Dynamic Labs mode (web/mobile)
  * ```ts
  * createClient({
  *   baseUrl: 'https://api.example.com',
- *   getAuthToken: async () => localStorage.getItem('accessToken'),
- *   getRefreshToken: async () => localStorage.getItem('refreshToken'),
- *   onTokensRefreshed: async ({ token, refreshToken }) => {
- *     localStorage.setItem('accessToken', token)
- *     localStorage.setItem('refreshToken', refreshToken)
- *   },
+ *   dynamicAuth: { getAuthToken: () => getAuthToken() ?? null },
  * })
  * ```
  *
@@ -35,14 +30,6 @@ export type ApiKeyOptions = {
   getHeaders?: () => Record<string, string> | Promise<Record<string, string>>
 }
 
-export type JwtOptions = {
-  baseUrl: string
-  getAuthToken: () => string | null | Promise<string | null>
-  getRefreshToken: () => string | null | Promise<string | null>
-  onTokensRefreshed: (tokens: { token: string; refreshToken: string }) => void | Promise<void>
-  getHeaders?: () => Record<string, string> | Promise<Record<string, string>>
-}
-
 export type NoAuthOptions = {
   baseUrl: string
   getHeaders?: () => Record<string, string> | Promise<Record<string, string>>
@@ -54,4 +41,4 @@ export type DynamicAuthOptions = {
   getHeaders?: () => Record<string, string> | Promise<Record<string, string>>
 }
 
-export type CoreClientOptions = ApiKeyOptions | JwtOptions | NoAuthOptions | DynamicAuthOptions
+export type CoreClientOptions = ApiKeyOptions | NoAuthOptions | DynamicAuthOptions

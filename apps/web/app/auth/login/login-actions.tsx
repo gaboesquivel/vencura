@@ -6,9 +6,26 @@ import { useEffect } from 'react'
 import { toast } from 'sonner'
 import { env } from '@/lib/env'
 
-type LoginActionsProps = { initialError?: string }
+function isValidParentOrigin(origin: string): boolean {
+  try {
+    const u = new URL(origin)
+    return (u.protocol === 'http:' || u.protocol === 'https:') && !!u.hostname
+  } catch {
+    return false
+  }
+}
 
-export function LoginActions({ initialError }: LoginActionsProps): React.JSX.Element {
+export type LoginActionsProps = {
+  initialError?: string
+  embedded?: boolean
+  parentOrigin?: string
+}
+
+export function LoginActions({
+  initialError,
+  embedded = false,
+  parentOrigin,
+}: LoginActionsProps): React.JSX.Element {
   const router = useRouter()
   const isLoggedIn = useIsLoggedIn()
 
@@ -16,7 +33,11 @@ export function LoginActions({ initialError }: LoginActionsProps): React.JSX.Ele
     if (!isLoggedIn) return
     const token = getAuthToken()
     if (!token) {
-      router.push('/')
+      if (!embedded) router.push('/')
+      return
+    }
+    if (embedded && parentOrigin && isValidParentOrigin(parentOrigin)) {
+      window.parent.postMessage({ type: 'DYNAMIC_AUTH_TOKEN', token }, parentOrigin)
       return
     }
     void (async () => {
@@ -33,7 +54,7 @@ export function LoginActions({ initialError }: LoginActionsProps): React.JSX.Ele
         toast.error(data?.message ?? 'Sign-in failed')
       }
     })()
-  }, [isLoggedIn, router])
+  }, [isLoggedIn, router, embedded, parentOrigin])
 
   const envId = env.NEXT_PUBLIC_DYNAMIC_ENVIRONMENT_ID
 

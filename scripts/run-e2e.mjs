@@ -5,7 +5,7 @@
  * Kills processes on ports 3000/3001/3002 before starting (unless SKIP_KILL_PORTS=1).
  */
 import { spawn, spawnSync } from 'node:child_process'
-import { existsSync } from 'node:fs'
+import { existsSync, unlinkSync } from 'node:fs'
 import { dirname, join } from 'node:path'
 import { fileURLToPath } from 'node:url'
 
@@ -15,11 +15,20 @@ const repoRoot = dirname(dirname(scriptFile))
 function killPorts() {
   if (process.env.SKIP_KILL_PORTS) return
   const killScript = join(repoRoot, 'scripts', 'kill-test-servers.sh')
-  if (!existsSync(killScript)) return
-  try {
-    spawnSync('bash', [killScript], { cwd: repoRoot, stdio: 'pipe' })
-  } catch {
-    /* ignore - ports may not be in use or bash unavailable */
+  if (existsSync(killScript)) {
+    try {
+      spawnSync('bash', [killScript], { cwd: repoRoot, stdio: 'pipe' })
+    } catch {
+      /* ignore - ports may not be in use or bash unavailable */
+    }
+  }
+  const nextLock = join(repoRoot, 'apps', 'web', '.next', 'lock')
+  if (existsSync(nextLock)) {
+    try {
+      unlinkSync(nextLock)
+    } catch {
+      /* ignore */
+    }
   }
 }
 
@@ -44,6 +53,7 @@ async function main() {
 }
 
 main().catch(err => {
+  killPorts()
   console.error(err.message)
   process.exit(1)
 })

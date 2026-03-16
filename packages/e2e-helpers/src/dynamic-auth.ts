@@ -1,5 +1,4 @@
 import type { Page } from '@playwright/test'
-import { expect } from '@playwright/test'
 
 export interface LoginWithDynamicSandboxOptions {
   baseURL: string
@@ -46,7 +45,7 @@ export async function loginWithDynamicSandbox(
       'input[type="email"], input[name="email"], input[placeholder*="email" i], input[placeholder*="Email" i]',
     )
     .first()
-  await expect(emailInput).toBeVisible({ timeout: 10_000 })
+  await emailInput.waitFor({ state: 'visible', timeout: 10_000 })
   await emailInput.fill(testEmail)
 
   const submitButton = page
@@ -54,7 +53,7 @@ export async function loginWithDynamicSandbox(
       'button[type="submit"], button:has-text("Continue"), button:has-text("Next"), button:has-text("Send Code")',
     )
     .first()
-  await expect(submitButton).toBeVisible({ timeout: 5_000 })
+  await submitButton.waitFor({ state: 'visible', timeout: 5_000 })
   await submitButton.click()
 
   await page.waitForTimeout(2000)
@@ -79,7 +78,7 @@ export async function loginWithDynamicSandbox(
         'input[type="text"][maxlength="1"], input[type="number"][maxlength="1"], input[name*="otp" i], input[name*="code" i]',
       )
       .first()
-    await expect(otpInput).toBeVisible({ timeout: 10_000 })
+    await otpInput.waitFor({ state: 'visible', timeout: 10_000 })
     await otpInput.fill(staticOTP)
   }
 
@@ -88,7 +87,7 @@ export async function loginWithDynamicSandbox(
       'button[type="submit"], button:has-text("Verify"), button:has-text("Continue"), button:has-text("Confirm")',
     )
     .first()
-  await expect(otpSubmitButton).toBeVisible({ timeout: 5_000 })
+  await otpSubmitButton.waitFor({ state: 'visible', timeout: 5_000 })
   await otpSubmitButton.click()
 
   await page.waitForSelector(authSuccessSelector, { timeout: 15_000 })

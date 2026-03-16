@@ -2,7 +2,8 @@ import { ApiHealthBadge } from 'components/shared/api-health-badge'
 import { AuthBadge } from 'components/shared/auth-badge'
 import { GalleryVerticalEnd } from 'lucide-react'
 import Image from 'next/image'
-import { LoginActions } from './login-actions'
+import Link from 'next/link'
+import { LoginActionsClient } from './login-actions-client'
 
 const authErrorMessages: Record<string, string> = {
   unexpected_error: 'Something went wrong. Please try again.',
@@ -18,6 +19,8 @@ type LoginPageProps = {
   searchParams: Promise<{
     error?: string
     message?: string
+    embedded?: string
+    parentOrigin?: string
   }>
 }
 
@@ -25,18 +28,35 @@ export default async function LoginPage({ searchParams }: LoginPageProps) {
   const params = await searchParams
   const errorParam = params.error || params.message
   const errorMessage = getAuthErrorMessage(errorParam)
+  const embedded = params.embedded === '1'
+  const parentOrigin = params.parentOrigin ?? undefined
+
+  const loginActions = (
+    <LoginActionsClient
+      initialError={errorMessage}
+      embedded={embedded}
+      parentOrigin={parentOrigin}
+    />
+  )
+
+  if (embedded)
+    return (
+      <div className="flex min-h-svh flex-col items-center justify-center bg-background p-4">
+        <div className="w-full max-w-xs">{loginActions}</div>
+      </div>
+    )
 
   return (
     <div className="grid min-h-svh lg:grid-cols-[40fr_60fr]">
       <div className="flex flex-col gap-4 p-6 md:p-10">
         <div className="flex items-center justify-between">
           <div className="flex justify-center gap-2 md:justify-start">
-            <a href="#" className="flex items-center gap-2 font-medium">
+            <Link href="/" className="flex items-center gap-2 font-medium">
               <div className="bg-primary text-primary-foreground flex size-6 items-center justify-center rounded-md">
                 <GalleryVerticalEnd className="size-4" />
               </div>
               Vencura
-            </a>
+            </Link>
           </div>
           <div className="flex gap-2">
             <ApiHealthBadge />
@@ -44,9 +64,7 @@ export default async function LoginPage({ searchParams }: LoginPageProps) {
           </div>
         </div>
         <div className="flex flex-1 items-center justify-center">
-          <div className="w-full max-w-xs">
-            <LoginActions initialError={errorMessage} />
-          </div>
+          <div className="w-full max-w-xs">{loginActions}</div>
         </div>
       </div>
       <div className="bg-muted relative hidden lg:block">

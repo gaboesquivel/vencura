@@ -96,13 +96,14 @@ export function getInitScript(opts: {
   openApiUrl: string
   webAppUrl: string
 }): string {
-  const { apiUrl, openApiUrl } = opts
+  const { apiUrl, openApiUrl, webAppUrl } = opts
   const buttonScript = getButtonInjectionScript()
 
   return `
 (function() {
   const apiUrl = ${JSON.stringify(apiUrl)};
   const openApiUrl = ${JSON.stringify(openApiUrl)};
+  const webAppUrl = ${JSON.stringify(webAppUrl)};
   
   function updateScalarAuth(scalarApiReference, token) {
     const authConfig = {
@@ -152,6 +153,19 @@ export function getInitScript(opts: {
   if (closeModal) closeModal.addEventListener('click', hideModal);
   modalOverlay?.addEventListener('click', (e) => {
     if (e.target === modalOverlay) hideModal();
+  });
+
+  window.addEventListener('message', (event) => {
+    if (event.data?.type !== 'DYNAMIC_AUTH_TOKEN') return;
+    let allowedOrigin = webAppUrl;
+    try { allowedOrigin = new URL(webAppUrl).origin; } catch (_) {}
+    if (event.origin !== allowedOrigin) return;
+    const token = event.data.token;
+    if (!token || typeof token !== 'string') return;
+    localStorage.setItem('scalar-token', token);
+    updateScalarAuth(scalarApiReference, token);
+    hideModal();
+    if (window.updateLoginButton) window.updateLoginButton();
   });
   
   if (applyBtn && tokenInput) {

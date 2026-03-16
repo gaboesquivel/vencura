@@ -1,5 +1,5 @@
 #!/bin/bash
-# Kill any processes running on test server ports (3000 and 3001)
+# Kill any processes on test/dev ports (3000, 3001, 3002, 8081, 19000, 19001, 19002)
 # This is useful for cleaning up after failed e2e tests
 
 set -e
@@ -51,5 +51,11 @@ kill_port 3001
 
 # Kill port 3002 (Mathler)
 kill_port 3002
+
+# Kill Expo/Metro ports (mobile dev servers)
+kill_port 8081
+kill_port 19000
+kill_port 19001
+kill_port 19002
 
 echo "Done."

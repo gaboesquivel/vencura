@@ -1,15 +1,11 @@
 import { createClient, getClientConfig } from './client'
 
 describe('getClientConfig', () => {
-  it('returns config when client was created with JWT mode (getAuthToken, getRefreshToken, onTokensRefreshed)', () => {
+  it('returns config when client was created with dynamicAuth mode', () => {
     const getAuthToken = () => Promise.resolve('token-123')
-    const getRefreshToken = () => Promise.resolve('refresh-456')
-    const onTokensRefreshed = () => Promise.resolve()
     const client = createClient({
       baseUrl: 'https://api.example.com',
-      getAuthToken,
-      getRefreshToken,
-      onTokensRefreshed,
+      dynamicAuth: { getAuthToken },
     })
     const config = getClientConfig(client)
     expect(config).toEqual({

@@ -66,6 +66,15 @@ const security: FastifyPluginAsync<SecurityPluginOptions> = async fastify => {
       reply.header('Content-Security-Policy', cspDirectives.join('; '))
     } else {
       // Relaxed CSP for Swagger UI (/reference routes) or development
+      const frameSrc = ["'self'"]
+      if (env.WEB_APP_URL)
+        try {
+          const u = new URL(env.WEB_APP_URL)
+          frameSrc.push(`${u.origin}`)
+        } catch {
+          /* ignore invalid WEB_APP_URL */
+        }
+
       const cspDirectives = [
         "default-src 'self'",
         "script-src 'self' 'unsafe-inline' 'unsafe-eval' https://cdn.jsdelivr.net", // Allow Scalar CDN
@@ -73,6 +82,7 @@ const security: FastifyPluginAsync<SecurityPluginOptions> = async fastify => {
         "img-src 'self' data: https:",
         "font-src 'self' data: https://cdn.jsdelivr.net https://fonts.scalar.com", // Allow Scalar fonts
         "connect-src 'self' http://localhost:* https://fonts.scalar.com", // Allow localhost with any port and Scalar fonts
+        `frame-src ${frameSrc.join(' ')}`, // Allow Dynamic Labs login iframe from WEB_APP_URL
         "frame-ancestors 'none'",
       ]
       reply.header('Content-Security-Policy', cspDirectives.join('; '))

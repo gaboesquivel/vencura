@@ -24,7 +24,12 @@ const referenceRoutes: FastifyPluginAsync = async fastify => {
       const apiUrl = `${request.protocol}://${host}`
       const openApiUrl = `${apiUrl}/reference/openapi.json`
       const webAppUrl = env.WEB_APP_URL ?? apiUrl.replace(/\/$/, '').replace(/:\d+$/, ':3000')
-      const html = getReferenceHtml({ apiUrl, openApiUrl, webAppUrl })
+      const html = getReferenceHtml({
+        apiUrl,
+        openApiUrl,
+        webAppUrl,
+        dynamicEnvId: env.DYNAMIC_ENVIRONMENT_ID,
+      })
       return reply.type('text/html').send(html)
     },
   )

@@ -13,10 +13,9 @@ const scriptDir = dirname(fileURLToPath(import.meta.url))
 const nextDir = dirname(scriptDir)
 const repoRoot = dirname(dirname(nextDir))
 
-function loadEnvTest() {
-  const path = join(repoRoot, 'apps/api/.env.test')
-  if (!existsSync(path)) return {}
-  const lines = readFileSync(path, 'utf8').split('\n')
+function loadEnvFile(filePath) {
+  if (!existsSync(filePath)) return {}
+  const lines = readFileSync(filePath, 'utf8').split('\n')
   const out = {}
   for (const line of lines) {
     const idx = line.indexOf('=')
@@ -29,6 +28,14 @@ function loadEnvTest() {
     out[key] = val
   }
   return out
+}
+
+function loadEnvTest() {
+  return loadEnvFile(join(repoRoot, 'apps/api/.env.test'))
+}
+
+function loadEnvLocal() {
+  return loadEnvFile(join(nextDir, '.env.local'))
 }
 
 function waitForUrl(url, timeoutMs = 60_000) {
@@ -80,7 +87,7 @@ async function main() {
     if (buildCode !== 0) process.exit(buildCode)
   }
 
-  const loaded = loadEnvTest()
+  const loaded = { ...loadEnvTest(), ...loadEnvLocal() }
   const env = {
     ...process.env,
     ...loaded,
