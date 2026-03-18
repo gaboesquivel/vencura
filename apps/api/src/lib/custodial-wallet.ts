@@ -64,6 +64,10 @@ export function getPublicClient(chainId: number): PublicClient {
 }
 
 export async function getWalletBalance(wallet: CustodialWallet): Promise<string> {
+  // Test-only: read at call time so tests can set process.env per test; NODE_ENV guard prevents prod misuse
+  const testBalance = process.env.NODE_ENV === 'test' && process.env.TEST_BALANCE_OVERRIDE // eslint-disable-line no-restricted-properties
+  if (testBalance) return testBalance
+
   const decrypted = decryptPrivateKey(wallet.encryptedPrivateKey)
   if (!decrypted) throw new Error('Failed to decrypt private key')
 
@@ -86,6 +90,10 @@ export async function sendWalletTransaction(
   to: string,
   amount: string,
 ): Promise<Hash> {
+  // Test-only: read at call time so tests can set process.env per test; NODE_ENV guard prevents prod misuse
+  const testOverride = process.env.NODE_ENV === 'test' && process.env.TEST_SEND_HASH_OVERRIDE // eslint-disable-line no-restricted-properties
+  if (testOverride) return testOverride as Hash
+
   const decrypted = decryptPrivateKey(wallet.encryptedPrivateKey)
   if (!decrypted) throw new Error('Failed to decrypt private key')
 

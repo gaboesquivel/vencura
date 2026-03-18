@@ -86,6 +86,10 @@ Run with `pnpm <script>`.
 **Misc**
   - `update-deps` — Update pnpm and all dependencies
 
+## Spec alignment
+
+Implementation and tests follow [`__dev/dynamic-api.md`](__dev/dynamic-api.md) (Dynamic Take-Home Backend). See [Product Definition](https://vencura-docs.vercel.app/docs/product/overview) for the mapping of spec requirements to features.
+
 ## Documentation
 
 Full docs: [vencura-docs.vercel.app](https://vencura-docs.vercel.app/docs)

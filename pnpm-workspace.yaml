@@ -6,6 +6,9 @@ packages:
 nodeLinker: hoisted
 
 overrides:
+  h3: 1.15.6
+  next: 16.1.7
+  socket.io-parser: 4.2.6
   axios: 1.13.5
   esbuild: 0.25.10
   glob: 10.5.0

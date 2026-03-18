@@ -3,7 +3,7 @@ title: "Product Definition"
 description: "Required and optional features, alignment with Dynamic's Take-Home Backend."
 ---
 
-Vencura Wallet aligns with [Dynamic's Take-Home Backend](https://dynamic-labs.notion.site/Dynamic-s-Take-Home-Backend-cb8efc5140154eea83deb25738a04e91). The product delivers custodial wallets for Web3 with backend-only operations.
+Vencura Wallet aligns with [Dynamic's Take-Home Backend](https://dynamic-labs.notion.site/Dynamic-s-Take-Home-Backend-cb8efc5140154eea83deb25738a04e91). The canonical spec is [`__dev/dynamic-api.md`](https://github.com/blockmatic/vencura/blob/main/__dev/dynamic-api.md) in the repo. The product delivers custodial wallets for Web3 with backend-only operations.
 
 ## Required Features
 
@@ -11,12 +11,14 @@ Vencura Wallet aligns with [Dynamic's Take-Home Backend](https://dynamic-labs.no
 |---------|--------|-------------|
 | **Dynamic auth** | Yes | Magic link, OAuth, Web3 sign-in, API keys |
 | **Create account/wallet** | Yes | Authenticated users create at least one custodial wallet |
-| **getBalance()** | Yes | `GET /wallets/:id/balance` returns balance (wei) |
-| **signMessage(msg)** | Yes | `POST /wallets/:id/sign` with `{ msg }` returns signed message |
-| **sendTransaction(to, amount)** | Yes | `POST /wallets/:id/send` with `{ to, amount }` returns transaction hash |
+| **getBalance()** | Yes | `GET /wallets/:id/balance` returns `balance` (string, wei) for safe handling of large numbers |
+| **signMessage(msg)** | Yes | `POST /wallets/:id/sign` with `{ msg }` returns `signedMessage` (string) |
+| **sendTransaction(to, amount)** | Yes | `POST /wallets/:id/send` with `{ to, amount }` — `amount` in ETH (string); returns `transactionHash` (string) |
 | **Basic UI** | Yes | Web dashboard and Expo app to interact with the API |
 
 All wallet interactions are done on the backend via the API. The UI calls the API with a Bearer token (Dynamic JWT or API key).
+
+**API types:** The spec uses `balance: number` and `amount: number` informally. The implementation uses `string` for both: `balance` in wei (18 decimals), `amount` in ETH (e.g. `"0.001"`). Strings avoid JavaScript number precision issues with large wei values.
 
 ## Optional Ideas (Future)
 

@@ -20,6 +20,8 @@ Uses `framework: "fastify"` in vercel.json. Vercel auto-detects `server.ts` as t
 
 Copy `.env.test.example` to `.env.test` (gitignored) for unit tests. Vitest loads it when present. `ALLOWED_ORIGINS` (default `*`) controls CORS and URL validation for auth callbacks.
 
+**Auth in integration tests:** Wallet route tests use API key auth via `getOrCreateSession`. Dynamic JWT auth is exercised in E2E (web wallets spec with Dynamic sandbox).
+
 ## pnpm commands
 
 - `pnpm dev` — Dev server with hot reload (requires db)

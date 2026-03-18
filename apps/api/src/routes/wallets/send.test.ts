@@ -1,5 +1,6 @@
 import { describe, expect, it } from 'vitest'
 import { getOrCreateSession } from '../../../test/utils/auth-helper.js'
+import { withTestEnvOverride } from '../../../test/utils/test-env-override.js'
 import { fastify } from './wallets.spec.js'
 
 describe('POST /wallets/:id/send', () => {
@@ -93,5 +94,33 @@ describe('POST /wallets/:id/send', () => {
       },
     })
     expect(sendRes.statusCode).toBe(404)
+  })
+
+  it('should return 200 with transactionHash for successful send', async () => {
+    const fakeHash = '0x1234567890abcdef1234567890abcdef1234567890abcdef1234567890abcd'
+    await withTestEnvOverride('TEST_SEND_HASH_OVERRIDE', fakeHash, async () => {
+      const token = await getOrCreateSession(fastify, 'wallets-send-success@test.ai')
+
+      const createRes = await fastify.inject({
+        method: 'POST',
+        url: '/wallets',
+        headers: { Authorization: `Bearer ${token}` },
+      })
+      expect(createRes.statusCode).toBe(201)
+      const { id } = JSON.parse(createRes.body)
+
+      const sendRes = await fastify.inject({
+        method: 'POST',
+        url: `/wallets/${id}/send`,
+        headers: { Authorization: `Bearer ${token}` },
+        payload: {
+          to: '0x0000000000000000000000000000000000000001',
+          amount: '0.001',
+        },
+      })
+      expect(sendRes.statusCode).toBe(200)
+      const body = JSON.parse(sendRes.body)
+      expect(body.transactionHash).toBe(fakeHash)
+    })
   })
 })
