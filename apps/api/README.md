@@ -34,9 +34,9 @@ Copy `.env.test.example` to `.env.test` (gitignored) for unit tests. Vitest load
 - `pnpm test:e2e:debug` — Debug E2E tests
 - `pnpm checktypes` — Type-check
 - `pnpm db:start` — Start Supabase (local)
-- `pnpm db:stop` — Stop Supabase (required before starting another instance with a different `project_id` in supabase/config.toml)
-- `pnpm db:reset` — Reset Supabase database (recreates from scratch)
-- `pnpm db:reset-and-migrate` — Reset DB then run Drizzle migrations
+- `pnpm db:stop` — Stop Supabase (run before switching to another project’s Supabase)
+- `pnpm db:reset` — Reset Supabase database (drops and recreates; no Supabase seed.sql)
+- `pnpm db:reset-and-migrate` — Reset DB, then run Drizzle migrations. Seeding via Drizzle (no Supabase seed.sql)
 - `pnpm db:migrate` — Run migrations (skips when PGLITE=true; use `RUN_PG_MIGRATE=true` to force PostgreSQL)
 - `pnpm db:generate` — Generate migrations from schema
 - `pnpm db:push` — Push schema (dev only)
