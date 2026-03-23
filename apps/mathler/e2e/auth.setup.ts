@@ -2,7 +2,11 @@ import { test as setup } from '@playwright/test'
 import { loginWithDynamicSandbox } from '@repo/e2e-helpers'
 
 const authFile = 'playwright/.auth/user.json'
-const baseURL = process.env.PLAYWRIGHT_APP_URL ?? process.env.BASE_URL ?? 'http://localhost:3002'
+const baseURL =
+  process.env.PLAYWRIGHT_APP_URL ??
+  process.env.PLAYWRIGHT_TEST_BASE_URL ??
+  process.env.BASE_URL ??
+  'http://localhost:3002'
 
 setup('authenticate', async ({ page }) => {
   const testEmail = process.env.E2E_TEST_EMAIL

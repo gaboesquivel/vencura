@@ -27,6 +27,7 @@ env:
   DATABASE_URL: postgresql://localhost/test
   JWT_SECRET: e2e-jwt-secret-min-32-chars-for-tests
   NEXT_PUBLIC_API_URL: http://localhost:3001
+  AI_PROVIDER: anthropic
   ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
 
 jobs:
@@ -60,6 +61,8 @@ jobs:
       - name: E2E tests (local)
         env:
           SKIP_BUILD: '1'
+          E2E_TEST_EMAIL: ${{ secrets.E2E_TEST_EMAIL }}
+          E2E_STATIC_OTP: ${{ secrets.E2E_STATIC_OTP }}
         run: pnpm --filter @repo/web test:e2e:local
       - name: Upload Playwright report
         if: always()

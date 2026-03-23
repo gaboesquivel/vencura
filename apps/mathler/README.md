@@ -141,31 +141,31 @@ cd apps/mathler
 bun run dev
 ```
 
-The application will be available at `http://localhost:3002` (or the next available port).
+The application will be available at `http://localhost:3002` when `PORT=3002` is set (see `.env.development` / `.env.local`).
 
 ### Environment Variables
 
 This Next.js app uses environment-specific configuration files. Next.js automatically loads environment files in priority order:
 
-1. `.env` (highest priority, sensitive data, never committed, overrides everything)
+1. `.env.local` / `.env` (local secrets, never committed, highest priority)
 2. `.env.development` / `.env.staging` / `.env.production` (based on NODE_ENV, committed configs)
 
 **File Structure:**
 
-- `.env` - Sensitive data (API keys, tokens, secrets) - **NEVER COMMIT**
+- `.env.local` - Sensitive data (recommended for Next) - **NEVER COMMIT**
+- `.env` - Alternative local secrets file - **NEVER COMMIT**
 - `.env.development` - Development configuration (committed, non-sensitive)
 - `.env.staging` - Staging configuration (committed, non-sensitive)
 - `.env.production` - Production configuration (committed, non-sensitive)
-- `.env-example` - Template for `.env` file (shows required sensitive variables)
+- `.env.local.example` - Template for `.env.local` (required Dynamic ID, E2E vars)
+- `.env.test.example` - Template for Playwright `.env.test` (gitignored)
 
 **Setup for Local Development:**
 
 ```bash
-# Copy the example file for sensitive data
-cp .env-example .env
+cp .env.local.example .env.local
 
-# Fill in your actual sensitive values in .env
-# NEXT_PUBLIC_DYNAMIC_ENVIRONMENT_ID=your_dynamic_environment_id
+# Fill in NEXT_PUBLIC_DYNAMIC_ENVIRONMENT_ID and optional E2E_* / PLAYWRIGHT_APP_URL
 
 # .env.development is already committed with non-sensitive configs
 ```
@@ -292,8 +292,8 @@ E2E tests use Dynamic Labs Sandbox environment for authentication. Configure the
 # Dynamic Labs Sandbox Environment ID (same as your .env file)
 NEXT_PUBLIC_DYNAMIC_ENVIRONMENT_ID=your_sandbox_environment_id
 
-# Base URL for E2E tests
-BASE_URL=http://localhost:3000
+PORT=3002
+PLAYWRIGHT_APP_URL=http://localhost:3002
 
 # Test email for E2E authentication (must be configured in Dynamic Labs Sandbox)
 # This should be a test account email configured in your Dynamic Sandbox environment

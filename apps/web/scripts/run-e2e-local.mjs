@@ -5,30 +5,14 @@
  * When SKIP_BUILD=1, skip build step (assumes .next exists with NEXT_PUBLIC_API_URL=http://localhost:3001).
  */
 import { spawn, spawnSync } from 'node:child_process'
-import { existsSync, readFileSync } from 'node:fs'
 import { dirname, join } from 'node:path'
 import { fileURLToPath } from 'node:url'
+
+import { loadEnvFile } from '../../../scripts/load-dotenv-files.mjs'
 
 const scriptDir = dirname(fileURLToPath(import.meta.url))
 const nextDir = dirname(scriptDir)
 const repoRoot = dirname(dirname(nextDir))
-
-function loadEnvFile(filePath) {
-  if (!existsSync(filePath)) return {}
-  const lines = readFileSync(filePath, 'utf8').split('\n')
-  const out = {}
-  for (const line of lines) {
-    const idx = line.indexOf('=')
-    if (idx < 0 || line.startsWith('#')) continue
-    const key = line.slice(0, idx).trim()
-    let val = line.slice(idx + 1).trim()
-    if ((val.startsWith('"') && val.endsWith('"')) || (val.startsWith("'") && val.endsWith("'")))
-      val = val.slice(1, -1)
-
-    out[key] = val
-  }
-  return out
-}
 
 function loadEnvTest() {
   return loadEnvFile(join(repoRoot, 'apps/api/.env.test'))
