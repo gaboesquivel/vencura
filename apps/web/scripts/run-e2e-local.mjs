@@ -54,14 +54,7 @@ async function main() {
   // eslint-disable-next-line turbo/no-undeclared-env-vars -- set by root test:e2e or user
   if (!process.env.SKIP_BUILD) {
     const loadedForBuild = loadEnvTest()
-    const buildEnv = {
-      ...process.env,
-      ...loadedForBuild,
-      JWT_SECRET:
-        loadedForBuild.JWT_SECRET ??
-        process.env.JWT_SECRET ??
-        'e2e-jwt-secret-min-32-chars-for-tests',
-    }
+    const buildEnv = { ...process.env, ...loadedForBuild }
     const build = spawn('pnpm', ['-F', '@repo/web', 'run', 'build:e2e'], {
       cwd: repoRoot,
       stdio: 'inherit',
