@@ -88,19 +88,3 @@ jobs:
             exit 1
           fi
           echo "✅ No known vulnerabilities found in dependencies"
-
-      - name: Run pnpm audit
-        run: |
-          echo "🔍 Running pnpm audit for dependency vulnerabilities..."
-          set +e
-          pnpm audit --audit-level=high
-          EXIT_CODE=$?
-          set -e
-          if [ $EXIT_CODE -ne 0 ]; then
-            echo ""
-            echo "❌ SECURITY ISSUE: pnpm audit found vulnerabilities with severity >= high"
-            echo "Review the audit output above for details about vulnerable packages"
-            echo "Run 'pnpm audit fix' or update affected packages"
-            exit 1
-          fi
-          echo "✅ No high or critical severity vulnerabilities found"

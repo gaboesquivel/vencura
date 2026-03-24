@@ -30,6 +30,9 @@ importers:
       '@biomejs/biome':
         specifier: ^2.4.0
         version: 2.4.2
+      '@repo/eslint-config':
+        specifier: workspace:*
+        version: link:tools/eslint
       '@repo/typescript-config':
         specifier: workspace:*
         version: link:tools/typescript

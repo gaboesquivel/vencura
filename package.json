@@ -34,6 +34,7 @@
   },
   "devDependencies": {
     "@biomejs/biome": "^2.4.0",
+    "@repo/eslint-config": "workspace:*",
     "@repo/typescript-config": "workspace:*",
     "@tailwindcss/postcss": "^4.1.18",
     "@types/node": "~25.2.3",
