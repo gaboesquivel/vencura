@@ -95,7 +95,7 @@ See [E2E Testing](@apps/docu/content/docs/testing/e2e-testing.mdx) for full deta
 
 ### Environment Variables
 
-Optional environment variables (see `.env-example`):
+Optional environment variables — see `.env.local.example` (copy to `.env.local`) and `lib/env.ts` for the validated schema:
 
 ## Project Structure
 
@@ -148,7 +148,7 @@ E2E tests use real Dynamic sandbox authentication. Set these in `.env.local` (ne
 - `E2E_STATIC_OTP` — Static OTP from [Dynamic Dashboard Test Accounts](https://app.dynamic.xyz/dashboard/developer/test-accounts)
 - `NEXT_PUBLIC_DYNAMIC_ENVIRONMENT_ID` — Sandbox environment ID
 
-Without these, `auth.setup.ts` will throw and E2E will not run.
+**Paused:** Dynamic-auth flows are skipped in Playwright (`setup.skip` / `test.describe.skip` in `e2e/`). To re-enable full E2E, remove those skips and set the env vars above.
 
 See [Frontend Testing Documentation](@apps/docu/content/docs/testing/frontend-testing.mdx) for complete testing patterns and examples.
 

@@ -29,10 +29,12 @@
     "setup:gitleaks": "node scripts/setup-gitleaks.mjs",
     "setup:osv": "node scripts/setup-osv-scanner.mjs",
     "setup:database": "node scripts/setup-database.mjs",
+    "reset": "pnpm --filter @repo/api reset",
     "update-deps": "pnpm self-update && pnpm update --latest --recursive"
   },
   "devDependencies": {
     "@biomejs/biome": "^2.4.0",
+    "@repo/eslint-config": "workspace:*",
     "@repo/typescript-config": "workspace:*",
     "@tailwindcss/postcss": "^4.1.18",
     "@types/node": "~25.2.3",
@@ -50,7 +52,7 @@
   "engines": {
     "node": "22.x"
   },
-  "packageManager": "pnpm@10.29.3",
+  "packageManager": "pnpm@10.32.1",
   "simple-git-hooks": {
     "pre-commit": "pnpm hooks:pre-commit"
   },
@@ -60,7 +62,8 @@
       "esbuild"
     ],
     "overrides": {
-      "h3": "1.15.6",
+      "flatted": ">=3.4.2",
+      "h3": "1.15.9",
       "next": "16.1.7",
       "socket.io-parser": "4.2.6",
       "axios@<1.13.5": ">=1.13.5",
@@ -73,7 +76,9 @@
       "minimatch@3.1.2": "3.1.4",
       "minimatch@9.0.5": "9.0.7",
       "rollup@<4.59.0": "4.59.0",
-      "@tootallnate/once@<3.0.1": "3.0.1"
+      "@tootallnate/once@<3.0.1": "3.0.1",
+      "playwright-core": "1.58.2",
+      "@playwright/test": "1.58.2"
     }
   },
   "overrides": {

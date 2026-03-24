@@ -27,6 +27,7 @@ env:
   DATABASE_URL: postgresql://localhost/test
   JWT_SECRET: e2e-jwt-secret-min-32-chars-for-tests
   NEXT_PUBLIC_API_URL: http://localhost:3001
+  AI_PROVIDER: anthropic
   ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
 
 jobs:
@@ -38,8 +39,6 @@ jobs:
         with:
           node-version: '22'
       - uses: pnpm/action-setup@v4
-        with:
-          version: 10.29.3
       - name: Get pnpm store directory
         shell: bash
         run: echo "STORE_PATH=$(pnpm store path --silent)" >> "$GITHUB_ENV"

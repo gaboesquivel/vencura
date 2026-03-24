@@ -33,9 +33,8 @@ export async function loginWithDynamicSandbox(
           'button:has-text("Sign in"), button:has-text("Connect Wallet"), button:has-text("Get Started")',
         )
         .first()
-      if (await signInButton.isVisible({ timeout: 5_000 }).catch(() => false)) {
+      if (await signInButton.isVisible({ timeout: 5_000 }).catch(() => false))
         await signInButton.click()
-      }
     })
 
   await page.waitForTimeout(1000)

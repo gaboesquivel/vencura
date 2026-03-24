@@ -13,7 +13,6 @@ Fastify • OpenAPI • Next.js • Expo — one stack, multiple platforms.
 - 📦 **SDK generation** — Type-safe clients from OpenAPI via HeyAPI for web, mobile, and CLI
 - 🤖 **AI-first dev workflow** — Agent rules, skills, MCP integrations, and automated CodeRabbit reviews
 - 🔌 **REST API & JWT** — OpenAPI spec, Swagger UI, JWT and API key auth for all clients
-- 🧩 **Web3 & AI starters** — Ready-to-use templates for Next.js, React, Expo, Fastify, and Ponder
 - 🔓 **Zero vendor lock-in** — Run on VPS, AWS, Vercel, or local
 - 🎨 **Turbo monorepo + design system** — ShadcnUI components with shared utilities
 - ⚙️ **Preconfigured dev tools** — Biome, Git workflows, hooks, and security checks
@@ -56,7 +55,9 @@ Run with `pnpm <script>`.
 **Setup**
   - `setup` — Full setup (install, hooks, gitleaks, osv, database)
   - `setup:gitleaks`, `setup:osv` — Install Gitleaks, OSV scanner
-  - `setup:database` — Database tools
+  - `setup:database` — Database tools (Docker, Supabase CLI)
+  - `reset` — Local API database: Supabase reset + Drizzle migrations + seed (`pnpm --filter @repo/api reset`). See [apps/api/README.md](apps/api/README.md)
+
 **Primary**
   - `build` — Build packages and apps
   - `dev` — Start dev (core, react, error, utils, api, web)
@@ -86,9 +87,6 @@ Run with `pnpm <script>`.
 **Misc**
   - `update-deps` — Update pnpm and all dependencies
 
-## Spec alignment
-
-Implementation and tests follow [`__dev/dynamic-api.md`](__dev/dynamic-api.md) (Dynamic Take-Home Backend). See [Product Definition](https://vencura-docs.vercel.app/docs/product/overview) for the mapping of spec requirements to features.
 
 ## Documentation
 

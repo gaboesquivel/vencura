@@ -9,8 +9,21 @@ import { existsSync, unlinkSync } from 'node:fs'
 import { dirname, join } from 'node:path'
 import { fileURLToPath } from 'node:url'
 
+import { mergeEnvFromFiles } from './load-dotenv-files.mjs'
+
 const scriptFile = fileURLToPath(import.meta.url)
 const repoRoot = dirname(dirname(scriptFile))
+
+function mergeRepoE2eEnv() {
+  mergeEnvFromFiles(
+    [
+      join(repoRoot, 'apps/api/.env.test'),
+      join(repoRoot, 'apps/web/.env.local'),
+      join(repoRoot, 'apps/mathler/.env.local'),
+    ],
+    process.env,
+  )
+}
 
 function killPorts() {
   if (process.env.SKIP_KILL_PORTS) return
@@ -40,6 +53,7 @@ function run(cmd, args, opts = {}) {
 }
 
 async function main() {
+  mergeRepoE2eEnv()
   killPorts()
   await run('pnpm', ['-F', '@repo/api', 'test:e2e:local'])
   killPorts()
