@@ -262,6 +262,8 @@ bun run test:cov
 
 ### E2E Tests
 
+**Paused:** Dynamic-auth Playwright suites are skipped (`setup.skip` / `test.describe.skip` in `e2e/`). Re-enable by removing those skips and configuring `E2E_*` below.
+
 E2E tests use Playwright to test the application in a real browser environment.
 
 ```bash
