@@ -1,3 +1,4 @@
+/// <reference lib="dom" />
 /**
  * Browser-only entry: bundled to reference-dynamic-auth.bundle.js for the Scalar reference page.
  */
@@ -24,7 +25,7 @@ export async function initReferenceDynamic({
   const url = window.location.origin
   const client = createDynamicClient({
     environmentId,
-    metadata: { name: appName, url },
+    metadata: { name: appName, universalLink: url },
   })
   clientRef = client
   await waitForClientInitialized(client)
