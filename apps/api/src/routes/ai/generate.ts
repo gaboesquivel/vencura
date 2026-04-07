@@ -93,7 +93,9 @@ const generateRoute: FastifyPluginAsync = async fastify => {
         if (shouldStream) {
           const result = streamText(baseOptions)
           const response = result.toUIMessageStreamResponse()
-          for (const [k, v] of response.headers) reply.raw.setHeader(k, v)
+          response.headers.forEach((v, k) => {
+            reply.raw.setHeader(k, v)
+          })
           reply.raw.statusCode = response.status
           request.log.info(
             {

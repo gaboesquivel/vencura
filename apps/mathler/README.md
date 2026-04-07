@@ -67,15 +67,13 @@ Mathler requires authentication before playing. The app uses **Dynamic Labs** fo
 
 ### How Authentication Works
 
-1. **Auth Guard Component**: The `AuthGuard` component wraps the game and checks authentication state:
-   - Shows loading spinner while Dynamic SDK initializes
-   - Displays `DynamicWidget` (login/register UI) if user is not authenticated
-   - Renders game content once user is authenticated
+1. **Auth modal**: After the Dynamic SDK loads, if the user is not signed in the app opens the Dynamic auth flow (`setShowAuthFlow(true)`). The full game board is visible; **playing** (input, submit, simulate, row tiles) requires sign-in—closing the modal and trying those actions opens the auth flow again.
 
 2. **Authentication Flow**:
-   - User visits the app → Auth guard checks authentication
-   - If not authenticated → Shows DynamicWidget with sign-in options
-   - User signs in via email or wallet → Game becomes accessible
+   - User visits the app → skeleton until client hydration, then Dynamic initializes
+   - If not authenticated → auth modal opens automatically; user can close it and still see the board
+   - Any play action while logged out reopens the modal
+   - User signs in via email or wallet → normal play and cloud-saved settings/history
    - Authentication state persists across sessions
 
 3. **Wallet Support**:
@@ -87,9 +85,9 @@ Mathler requires authentication before playing. The app uses **Dynamic Labs** fo
 
 The authentication system consists of:
 
-- **`components/providers.tsx`**: Sets up `DynamicContextProvider` with Ethereum and Solana wallet connectors
-- **`components/auth-guard.tsx`**: Client component that guards game access and shows auth UI when needed
-- **`app/page.tsx`**: Wraps `MathlerGame` with `AuthGuard` to enforce authentication
+- **`components/providers.tsx`**: Sets up `DynamicContextProvider` with Ethereum and Solana wallet connectors (TronLink is filtered out via `walletsFilter` to avoid a known browser extension Proxy error during EVM wallet discovery)
+- **`components/mathler-game.tsx`**: Opens the Dynamic auth modal when the SDK has loaded and there is no user; guards play actions to reopen the modal if still logged out
+- **`app/page.tsx`**: Renders `MathlerGame` inside `ClientHydrationWrapper`
 
 **Key Features:**
 - ✅ SSR-safe (client-side only initialization)
@@ -141,7 +139,7 @@ cd apps/mathler
 bun run dev
 ```
 
-The application will be available at `http://localhost:3002` when `PORT=3002` is set (see `.env.development` / `.env.local`).
+Dev and local production use **[`next dev -p 3002`](https://nextjs.org/docs/app/api-reference/cli/next)** and **`next start -p 3002`** in `package.json` so Mathler stays on **3002** and avoids clashing with the web app on **3000**. For a one-off, you can run `PORT=3002 pnpm dev` from the shell (see [Next.js CLI](https://nextjs.org/docs/app/api-reference/cli/next)). `.env*` files still supply **app** variables (`NEXT_PUBLIC_*`, etc.); **do not rely on `PORT` inside `.env` alone** to set the dev server listen port—the CLI chooses the port before those files affect the initial bind. Run from `apps/mathler` or `pnpm --filter @repo/mathler dev`.
 
 ### Environment Variables
 

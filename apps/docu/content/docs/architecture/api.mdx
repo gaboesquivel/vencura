@@ -117,7 +117,13 @@ const { data } = useHealthCheck()
 
 ### API Reference auth
 
-The Scalar UI at `/reference` supports two sign-in flows. **Dynamic Labs** (primary): embedded iframe to the web app login; on success the Dynamic JWT is passed via `postMessage` and applied as Bearer. **API key fallback**: collapsible "Use API key instead" section for pasting `venc_*` or Bearer tokens. Requires `WEB_APP_URL` and `DYNAMIC_ENVIRONMENT_ID` for the Dynamic flow; when unset, only the paste flow is shown.
+The Scalar UI at `/reference` (served by `apps/api`) includes:
+
+- **Dynamic Labs** (when `DYNAMIC_ENVIRONMENT_ID` is set): sign-in via the **JavaScript SDK** bundle (social OAuth redirect back to `/reference`, wallet connect, passkey). The returned **Dynamic JWT** is stored and applied as **Bearer** for Try it requests.
+- **Manual token entry**: Scalar’s native **Configure** / auth fields and a collapsible **paste** section for **Dynamic JWT** or **`venc_*` API keys** (syncs `localStorage` + Scalar auth).
+- If Dynamic is **not** configured, only the paste flow is shown.
+
+`WEB_APP_URL` is **not** required for this reference page (no iframe to the Next.js app).
 
 ### SDK Generation
 

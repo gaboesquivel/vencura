@@ -363,6 +363,15 @@ All endpoints below are served by `apps/api`. The API does not set cookies; toke
   - `POST /auth/session/logout` (Bearer) → `204`
   - `POST /auth/session/refresh` → `{ token, refreshToken }`
 
+### Why `POST /auth/session/logout` exists alongside Dynamic
+
+[Dynamic](https://www.dynamic.xyz/) owns **its** identity product and SDK/browser state. The API still ships logout because Vencura keeps **separate** session and credential concerns:
+
+- **Postgres `sessions`** — Logout deletes the row for the current session id when it exists. Dynamic does not manage that table.
+- **Bearer JWTs** — A JWT remains valid until expiry unless you maintain a denylist (this API does not). Logout does not invalidate Dynamic JWKS. Clients must stop sending the token and clear storage; use the Dynamic SDK where you need to clear **their** UI/session state.
+- **API keys** — `venc_…` keys are not revoked by session logout; use `DELETE /account/apikeys/:id`.
+- **Stable contract** — Web and OpenAPI expose one “end session” call. For principals that never had a local row (for example some Dynamic-only API Reference flows), the delete may affect **zero** rows; clients should still discard tokens.
+
 ## Next.js Auth (web)
 
 **Callback pages** (`/auth/callback/magiclink`, `/auth/callback/change-email`, `/auth/callback/oauth/github`, `/auth/callback/oauth/google`, `/auth/callback/oauth/facebook`, `/auth/callback/oauth/twitter`, `/auth/callback/web3`, `/auth/callback/passkey`) exchange credentials with Fastify, set cookies, and redirect. **Logout** (`/auth/logout`) calls Fastify to revoke the session and clears cookies.

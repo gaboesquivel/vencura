@@ -1,6 +1,6 @@
 'use client'
 
-import { DynamicConnectButton, getAuthToken, useIsLoggedIn } from '@dynamic-labs/sdk-react-core'
+import { DynamicEmbeddedAuthFlow, getAuthToken, useIsLoggedIn } from '@dynamic-labs/sdk-react-core'
 import { useRouter } from 'next/navigation'
 import { useEffect } from 'react'
 import { toast } from 'sonner'
@@ -72,9 +72,7 @@ export function LoginActions({
           {initialError}
         </div>
       )}
-      <div className="flex justify-center">
-        <DynamicConnectButton>Sign in</DynamicConnectButton>
-      </div>
+      <DynamicEmbeddedAuthFlow background="with-border" className="w-full" />
     </div>
   )
 }

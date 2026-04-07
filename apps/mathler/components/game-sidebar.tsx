@@ -42,10 +42,18 @@ export function GameSidebar({ onSimulateGame }: GameSidebarProps) {
   }, [theme, currentTheme, setNextTheme])
 
   const handleDifficultyChange = async (value: 'easy' | 'medium' | 'hard') => {
+    if (!user) {
+      setShowAuthFlow(true)
+      return
+    }
     await setDifficulty(value)
   }
 
   const handleThemeChange = async (checked: boolean) => {
+    if (!user) {
+      setShowAuthFlow(true)
+      return
+    }
     const newTheme = checked ? 'dark' : 'light'
     await setTheme(newTheme)
     setNextTheme(newTheme)
@@ -83,6 +91,7 @@ export function GameSidebar({ onSimulateGame }: GameSidebarProps) {
               <TabsContent value="how-to-play" className="space-y-4 mt-4">
                 <div className="space-y-4">
                   <Button
+                    type="button"
                     onClick={onSimulateGame}
                     className="w-full cursor-pointer"
                     variant="default"

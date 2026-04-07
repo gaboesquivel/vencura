@@ -1,3 +1,4 @@
+import { appendFile } from 'node:fs/promises'
 import type { FastifyPluginAsync, FastifyReply, FastifyRequest } from 'fastify'
 import fp from 'fastify-plugin'
 import { env } from '../lib/env.js'
@@ -66,7 +67,7 @@ const security: FastifyPluginAsync<SecurityPluginOptions> = async fastify => {
       reply.header('Content-Security-Policy', cspDirectives.join('; '))
     } else {
       // Relaxed CSP for Swagger UI (/reference routes) or development
-      const frameSrc = ["'self'"]
+      const frameSrc = ["'self'", 'https://app.dynamic.xyz']
       if (env.WEB_APP_URL)
         try {
           const u = new URL(env.WEB_APP_URL)
@@ -81,11 +82,31 @@ const security: FastifyPluginAsync<SecurityPluginOptions> = async fastify => {
         "style-src 'self' 'unsafe-inline' https://cdn.jsdelivr.net",
         "img-src 'self' data: https:",
         "font-src 'self' data: https://cdn.jsdelivr.net https://fonts.scalar.com", // Allow Scalar fonts
-        "connect-src 'self' http://localhost:* https://fonts.scalar.com", // Allow localhost with any port and Scalar fonts
-        `frame-src ${frameSrc.join(' ')}`, // Allow Dynamic Labs login iframe from WEB_APP_URL
+        "connect-src 'self' http://localhost:* https://fonts.scalar.com https://api.scalar.com https://app.dynamic.xyz https://*.dynamicauth.com https://*.ably.io https://*.ably.net wss://*.ably.io wss://*.ably.net",
+        `frame-src ${frameSrc.join(' ')}`, // Dynamic (JS SDK / OAuth); optional WEB_APP_URL iframe
         "frame-ancestors 'none'",
       ]
-      reply.header('Content-Security-Policy', cspDirectives.join('; '))
+      const cspHeaderValue = cspDirectives.join('; ')
+      // #region agent log
+      if (isReferenceRoute)
+        void appendFile(
+          '/home/gabo/code/vencura/.cursor/debug-9de6da.log',
+          `${JSON.stringify({
+            sessionId: '9de6da',
+            hypothesisId: 'H7',
+            location: 'apps/api/src/plugins/security.ts:reference-csp',
+            message: 'CSP connect-src for /reference',
+            data: {
+              connectSrcAllowsDynamicauthWildcard: cspHeaderValue.includes('*.dynamicauth.com'),
+              connectSrcAllowsApiScalar: cspHeaderValue.includes('api.scalar.com'),
+              isProductionStrictBranch: false,
+            },
+            timestamp: Date.now(),
+            runId: 'csp-verify',
+          })}\n`,
+        ).catch(() => {})
+      // #endregion
+      reply.header('Content-Security-Policy', cspHeaderValue)
     }
 
     // Strict Transport Security (HTTPS only in production)

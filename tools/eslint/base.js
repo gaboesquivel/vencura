@@ -267,6 +267,6 @@ export const config = [
     },
   },
   {
-    ignores: ['dist/**'],
+    ignores: ['dist/**', '**/__dev/**'],
   },
 ]

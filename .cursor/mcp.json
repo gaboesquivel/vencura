@@ -46,15 +46,15 @@
       "args": ["-y", "next-devtools-mcp@latest"],
       "description": "Next.js runtime diagnostics (errors, routes, logs) and migration tools for coding agents"
     },
-    "docu": {
+    "vencura-docu": {
       "url": "https://mcp.vercel.com/gaboesquivel/vencura-docu",
       "description": "Vercel project documentation context"
     },
-    "fastify": {
-      "url": "https://mcp.vercel.com/gaboesquivel/vencura-fastify",
+    "vencura-api": {
+      "url": "https://mcp.vercel.com/gaboesquivel/vencura-api",
       "description": "Vercel Fastify API package context"
     },
-    "next": {
+    "vencura-web": {
       "url": "https://mcp.vercel.com/gaboesquivel/vencura-next",
       "description": "Next.js web application context"
     }

@@ -16,6 +16,8 @@ const openapi: FastifyPluginAsync = async fastify => {
           bearerAuth: {
             type: 'http',
             scheme: 'bearer',
+            description:
+              'Dynamic Labs JWT (verified with Dynamic JWKS), or `Authorization: Bearer venc_<prefix>_<secret>` for API keys.',
           },
         },
       },

@@ -1,85 +1,44 @@
-# Ignore elliptic 6.6.1 - no fix available (Fixed Version: --)
+# fast-jwt@6.1.0 is latest npm; OSV lists no fixed version.
+[[IgnoredVulns]]
+id = "GHSA-mvf2-f6gm-w987"
+reason = "fast-jwt: no release beyond 6.1.0; transitive via @fastify/jwt"
+
+[[IgnoredVulns]]
+id = "GHSA-hm7r-c7qw-ghp6"
+reason = "fast-jwt: no release beyond 6.1.0; transitive via @fastify/jwt"
+
+# Next advisory: OSV shows no fixed version for current line.
+[[IgnoredVulns]]
+id = "GHSA-5f7q-jpqc-wp7h"
+reason = "Next.js: OSV fixed version empty; upgrade when Next publishes a patch"
+
+# elliptic@6.6.1: no ecosystem fix (OSV fixed empty).
 [[IgnoredVulns]]
 id = "GHSA-848j-6mx2-7j84"
-reason = "Transitive dep, no fix available in ecosystem"
+reason = "Transitive elliptic, no fix available"
 
-[[IgnoredVulns]]
-id = "GHSA-3mv9-4h5g-vhg3"
-reason = "Transitive (tsup), no fix in ecosystem"
-# Override in package.json (esbuild@>=0.25.0), lockfile has transitive old versions
-[[IgnoredVulns]]
-id = "GHSA-67mh-4wv8-2f99"
-reason = "Transitive esbuild, override to >=0.25.0 in package.json"
-# Override in package.json (lodash/lodash-es >=4.17.23)
-[[IgnoredVulns]]
-id = "GHSA-xxjr-mmjv-4gpg"
-reason = "Transitive lodash/lodash-es, override in package.json"
-# Undici: can't override to 6.23 (breaks jsdom), 5.28.5 breaks jsdom wrap-handler. Tracked for vercel/node upstream.
-[[IgnoredVulns]]
-id = "GHSA-g9mf-h72j-4rw9"
-reason = "Transitive undici (@vercel/node), jsdom incompatible with patched undici"
-[[IgnoredVulns]]
-id = "GHSA-c76h-2ccp-4975"
-reason = "Transitive undici (@vercel/node), jsdom incompatible with patched undici"
-[[IgnoredVulns]]
-id = "GHSA-cxrh-j4jr-qwg3"
-reason = "Transitive undici (@vercel/node), jsdom incompatible with patched undici"
-# path-to-regexp: override in pnpm-workspace
-[[IgnoredVulns]]
-id = "GHSA-9wv6-86v2-598j"
-reason = "Transitive path-to-regexp, override in pnpm-workspace.yaml"
-
-# ajv: transitive deps, fix requires package upgrades
-[[IgnoredVulns]]
-id = "GHSA-2g4f-4pwh-qvx6"
-reason = "Transitive ajv (6.12.6, 8.6.3), fix in 8.18.0"
-
-# tar: override tar@<7.5.8 -> 7.5.8 in package.json, @vercel/fun pins 7.5.7
-[[IgnoredVulns]]
-id = "GHSA-83g3-92jg-28cx"
-reason = "Override tar@>=7.5.8 in package.json, @vercel/fun transitive"
-
-# dompurify 3.3.1: transitive, no fix in ecosystem
-[[IgnoredVulns]]
-id = "GHSA-v2wj-7wpq-c8vv"
-reason = "Transitive dompurify, no fix available in ecosystem"
-
-# @metamask/sdk: transitive via dynamic-labs/wallet adapters
-[[IgnoredVulns]]
-id = "GHSA-qj3p-xc97-xw74"
-reason = "Transitive @metamask/sdk, fix 0.33.1 may not be in lockfile"
-
-# bigint-buffer: transitive, no fix (Fixed Version: --)
+# bigint-buffer: workspace uses pnpm alias to bigint-buffer-fixed; OSV still reports legacy name.
 [[IgnoredVulns]]
 id = "GHSA-3gc7-fjrx-p6mg"
-reason = "Transitive bigint-buffer, no fix available"
+reason = "bigint-buffer: replaced via bigint-buffer-fixed alias; no clean upstream fix"
 
-# flatted: transitive dep
-[[IgnoredVulns]]
-id = "GHSA-25h7-pfq9-p65f"
-reason = "Transitive flatted, fix requires upstream upgrades"
-
-# undici: additional IDs for 5.x, 6.x, 7.x - jsdom incompatible
+# undici 5.x: @vercel/node chain; 6.x historically breaks jsdom / tooling.
 [[IgnoredVulns]]
 id = "GHSA-2mjp-6q6p-2qxm"
-reason = "Transitive undici, jsdom incompatible"
+reason = "undici@5.x via Vercel; cannot jump to 6.x without breaking jsdom"
+
 [[IgnoredVulns]]
 id = "GHSA-4992-7rv2-5pvq"
-reason = "Transitive undici, jsdom incompatible"
+reason = "undici@5.x via Vercel; cannot jump to 6.x without breaking jsdom"
+
+[[IgnoredVulns]]
+id = "GHSA-g9mf-h72j-4rw9"
+reason = "undici@5.x via Vercel; cannot jump to 6.x without breaking jsdom"
+
 [[IgnoredVulns]]
 id = "GHSA-v9p9-hfj2-hcw8"
-reason = "Transitive undici, jsdom incompatible"
+reason = "undici@5.x via Vercel; cannot jump to 6.x without breaking jsdom"
+
 [[IgnoredVulns]]
 id = "GHSA-vrm6-8vpv-qv8q"
-reason = "Transitive undici, jsdom incompatible"
-[[IgnoredVulns]]
-id = "GHSA-f269-vfmq-vjvj"
-reason = "Transitive undici, jsdom incompatible"
-[[IgnoredVulns]]
-id = "GHSA-phc3-fgpg-7m6h"
-reason = "Transitive undici, jsdom incompatible"
-
-# yauzl: transitive
-[[IgnoredVulns]]
-id = "GHSA-gmq8-994r-jv83"
-reason = "Transitive yauzl, fix 3.2.1 may require major upgrades"
+reason = "undici@5.x via Vercel; cannot jump to 6.x without breaking jsdom"

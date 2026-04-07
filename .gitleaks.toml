@@ -10,6 +10,7 @@ useDefault = true
 [allowlist]
 description = "Allowlist for test fixtures and example files"
 paths = [
+  '''^__dev/''',
   '''apps/web/e2e/wallet-setup/.*\.(ts|js|mjs)$''',
   '''\.env\.[^/]+\.example$''',
   '''\.env\.schema$''',

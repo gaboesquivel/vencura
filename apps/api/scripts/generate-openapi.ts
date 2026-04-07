@@ -125,11 +125,15 @@ async function generateOpenAPI() {
             bearerAuth: {
               type: 'http',
               scheme: 'bearer',
+              description:
+                'Dynamic Labs JWT (verified with Dynamic JWKS), or `Authorization: Bearer venc_<prefix>_<secret>` for API keys.',
             },
             apiKeyAuth: {
               type: 'apiKey',
               in: 'header',
               name: 'X-API-Key',
+              description:
+                'Programmatic API key: `venc_<prefix>_<secret>` (same value can be sent as Bearer).',
             },
           },
         },

@@ -8,5 +8,10 @@
     }
   },
   "include": ["server.ts", "src/**/*.ts", "api/**/*.ts"],
-  "exclude": ["**/*.spec.ts", "**/*.test.ts", "test"]
+  "exclude": [
+    "**/*.spec.ts",
+    "**/*.test.ts",
+    "test",
+    "src/routes/reference/dynamic-auth-browser.ts"
+  ]
 }
