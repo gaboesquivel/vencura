@@ -7,13 +7,13 @@ nodeLinker: hoisted
 
 overrides:
   h3: 1.15.6
-  next: 16.1.7
+  next: 16.2.2
   socket.io-parser: 4.2.6
   axios: 1.13.5
   esbuild: 0.25.10
   glob: 10.5.0
-  lodash: 4.17.23
-  lodash-es: 4.17.23
+  lodash: 4.18.0
+  lodash-es: 4.18.0
   path-to-regexp: 6.3.0
   vercel>@vercel/blob: 2.2.0
   webrtc-adapter: 9.0.3

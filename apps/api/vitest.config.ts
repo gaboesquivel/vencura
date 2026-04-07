@@ -105,7 +105,10 @@ const resolveJsToTsPlugin = (): Plugin => ({
 })
 
 export default defineConfig({
-  plugins: [resolveJsToTsPlugin(), tsconfigPaths()],
+  // Limit tsconfig crawl to this app; otherwise vite-tsconfig-paths uses the
+  // monorepo root and eagerly parses every tsconfig (e.g. __dev/infra), which
+  // can warn or fail though nothing in @repo/api imports those trees.
+  plugins: [resolveJsToTsPlugin(), tsconfigPaths({ root: '.' })],
   test: {
     include: ['**/*.spec.ts'],
     exclude: [

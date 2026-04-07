@@ -55,10 +55,12 @@ npm-debug.log*
 # Misc
 .DS_Store
 *.pem
-__dev__dev
 
 # TypeScript build info
 *.tsbuildinfo
+
+# API reference: esbuild output (run pnpm build:reference-dynamic)
+apps/api/src/routes/reference/reference-dynamic-auth.bundle.js
 
 # tsup temp config (bundled during build)
 tsup.config.bundled_*.mjs

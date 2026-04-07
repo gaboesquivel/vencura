@@ -94,27 +94,32 @@ function getButtonInjectionScript(): string {
 export function getInitScript(opts: {
   apiUrl: string
   openApiUrl: string
-  webAppUrl: string
+  dynamicEnvId: string
+  dynamicAppName: string
 }): string {
-  const { apiUrl, openApiUrl, webAppUrl } = opts
+  const { apiUrl, openApiUrl, dynamicEnvId, dynamicAppName } = opts
   const buttonScript = getButtonInjectionScript()
 
   return `
 (function() {
   const apiUrl = ${JSON.stringify(apiUrl)};
   const openApiUrl = ${JSON.stringify(openApiUrl)};
-  const webAppUrl = ${JSON.stringify(webAppUrl)};
+  const dynamicEnvId = ${JSON.stringify(dynamicEnvId)};
+  const dynamicAppName = ${JSON.stringify(dynamicAppName)};
   
   function updateScalarAuth(scalarApiReference, token) {
-    const authConfig = {
+    const prev = scalarApiReference?.getConfiguration?.() ?? {};
+    const prevAuth = prev.authentication && typeof prev.authentication === 'object' ? prev.authentication : {};
+    const prevSchemes =
+      prevAuth.securitySchemes && typeof prevAuth.securitySchemes === 'object' ? prevAuth.securitySchemes : {};
+    const mergedAuth = {
+      ...prevAuth,
       preferredSecurityScheme: 'bearerAuth',
-      securitySchemes: { bearerAuth: { token } },
+      securitySchemes: { ...prevSchemes, bearerAuth: { token } },
     };
-    if (scalarApiReference?.updateConfiguration) {
-      scalarApiReference.updateConfiguration({ authentication: authConfig });
-    } else if (scalarApiReference?.updateAuthentication) {
-      scalarApiReference.updateAuthentication(authConfig);
-    }
+    const next = { ...prev, authentication: mergedAuth };
+    if (scalarApiReference?.updateConfiguration) scalarApiReference.updateConfiguration(next);
+    else if (scalarApiReference?.updateAuthentication) scalarApiReference.updateAuthentication(mergedAuth);
   }
   
   const storedToken = localStorage.getItem('scalar-token');
@@ -139,38 +144,153 @@ export function getInitScript(opts: {
   const closeModal = document.getElementById('close-modal');
   const tokenInput = document.getElementById('token');
   const applyBtn = document.getElementById('apply-token');
-  
+
+  function setDynamicError(msg) {
+    const el = document.getElementById('dynamic-login-error');
+    if (!el) return;
+    if (msg) {
+      el.textContent = msg;
+      el.hidden = false;
+    } else {
+      el.textContent = '';
+      el.hidden = true;
+    }
+  }
+
+  function resetDynamicLoginUi() {
+    setDynamicError('');
+  }
+
   function showModal() {
     modalOverlay.classList.add('show');
+    resetDynamicLoginUi();
   }
-  
+
   function hideModal() {
     modalOverlay.classList.remove('show');
     if (tokenInput) tokenInput.value = '';
+    resetDynamicLoginUi();
   }
-  
+
   window.showLogin = showModal;
   if (closeModal) closeModal.addEventListener('click', hideModal);
   modalOverlay?.addEventListener('click', (e) => {
     if (e.target === modalOverlay) hideModal();
   });
 
-  window.addEventListener('message', (event) => {
-    if (event.data?.type !== 'DYNAMIC_AUTH_TOKEN') return;
-    let allowedOrigin = webAppUrl;
-    try { allowedOrigin = new URL(webAppUrl).origin; } catch (_) {}
-    if (event.origin !== allowedOrigin) return;
-    const token = event.data.token;
-    if (!token || typeof token !== 'string') return;
+  let dynamicModulePromise = null;
+  function getDynamicModule() {
+    if (!dynamicEnvId) return Promise.resolve(null);
+    if (!dynamicModulePromise) {
+      dynamicModulePromise = (async () => {
+        const mod = await import('/reference/dynamic-auth.js');
+        if (
+          !mod.initReferenceDynamic ||
+          !mod.getAuthJwt ||
+          !mod.completeReferenceOAuthIfNeeded ||
+          !mod.loginWithGoogle ||
+          !mod.loginWithGithub ||
+          !mod.loginWithPasskey
+        ) {
+          throw new Error('Dynamic bundle outdated. Run pnpm build:reference-dynamic in apps/api.');
+        }
+        await mod.initReferenceDynamic({ environmentId: dynamicEnvId, appName: dynamicAppName });
+        try {
+          if (await mod.completeReferenceOAuthIfNeeded()) {
+            const token = mod.getAuthJwt();
+            if (token) {
+              localStorage.setItem('scalar-token', token);
+              updateScalarAuth(scalarApiReference, token);
+              if (window.updateLoginButton) window.updateLoginButton();
+            }
+          }
+        } catch (e) {
+          console.error('Dynamic OAuth resume', e);
+        }
+        return mod;
+      })();
+    }
+    return dynamicModulePromise;
+  }
+
+  async function applyDynamicToken(mod) {
+    const token = mod.getAuthJwt();
+    if (!token) {
+      setDynamicError('Signed in but no JWT yet. Check Dynamic dashboard (allowed origins, sign-in methods).');
+      return;
+    }
     localStorage.setItem('scalar-token', token);
     updateScalarAuth(scalarApiReference, token);
     hideModal();
     if (window.updateLoginButton) window.updateLoginButton();
-  });
+  }
+
+  async function mountDynamicReferenceLogin() {
+    if (!dynamicEnvId) return;
+    const googleBtn = document.getElementById('dynamic-login-google');
+    const githubBtn = document.getElementById('dynamic-login-github');
+    const passkeyBtn = document.getElementById('dynamic-login-passkey');
+    try {
+      const mod = await getDynamicModule();
+      if (!mod) return;
+      if (googleBtn) {
+        googleBtn.addEventListener('click', async () => {
+          setDynamicError('');
+          try {
+            await mod.loginWithGoogle();
+          } catch (e) {
+            const msg = e && typeof e === 'object' && 'message' in e ? String(e.message) : String(e);
+            setDynamicError(msg || 'Google sign-in failed');
+          }
+        });
+      }
+      if (githubBtn) {
+        githubBtn.addEventListener('click', async () => {
+          setDynamicError('');
+          try {
+            await mod.loginWithGithub();
+          } catch (e) {
+            const msg = e && typeof e === 'object' && 'message' in e ? String(e.message) : String(e);
+            setDynamicError(msg || 'GitHub sign-in failed');
+          }
+        });
+      }
+      if (passkeyBtn) {
+        passkeyBtn.addEventListener('click', async () => {
+          setDynamicError('');
+          try {
+            await mod.loginWithPasskey();
+            await applyDynamicToken(mod);
+          } catch (e) {
+            const msg = e && typeof e === 'object' && 'message' in e ? String(e.message) : String(e);
+            setDynamicError(msg || 'Passkey sign-in failed');
+          }
+        });
+      }
+    } catch (e) {
+      const msg = e && typeof e === 'object' && 'message' in e ? String(e.message) : String(e);
+      setDynamicError(msg || 'Could not load Dynamic');
+    }
+  }
+
+  void mountDynamicReferenceLogin();
+
+  function normalizePastedAuthCredential(raw) {
+    let t = String(raw).trim();
+    // "Authorization: Bearer <token>" (curl / DevTools copy)
+    const authBearer = t.match(/^authorization:\\s*bearer\\s+(.+)$/i);
+    if (authBearer) return authBearer[1].trim();
+    // "Authorization: <token>" without the word Bearer
+    const authRest = t.match(/^authorization:\\s*(.+)$/i);
+    if (authRest) t = authRest[1].trim();
+    // "Bearer <token>" — Scalar adds Bearer; store token only
+    if (/^bearer\\s+/i.test(t)) t = t.replace(/^bearer\\s+/i, '').trim();
+    return t;
+  }
   
   if (applyBtn && tokenInput) {
     applyBtn.addEventListener('click', () => {
-      const token = tokenInput.value.trim();
+      const token = normalizePastedAuthCredential(tokenInput.value);
       if (token) {
         localStorage.setItem('scalar-token', token);
         updateScalarAuth(scalarApiReference, token);

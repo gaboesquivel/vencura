@@ -1,7 +1,7 @@
 'use client'
 
 import { EthereumWalletConnectors } from '@dynamic-labs/ethereum'
-import { DynamicContextProvider } from '@dynamic-labs/sdk-react-core'
+import { DynamicContextProvider, type WalletOption } from '@dynamic-labs/sdk-react-core'
 import { SolanaWalletConnectors } from '@dynamic-labs/solana'
 import { logger } from '@repo/utils/logger/client'
 import { ThemeProvider as NextThemesProvider } from 'next-themes'
@@ -9,6 +9,17 @@ import { NuqsAdapter } from 'nuqs/adapters/next/app'
 import * as React from 'react'
 import { Toaster } from 'sonner'
 import { env } from '@/lib/env'
+
+/** TronLink’s injected Proxy can throw on Dynamic’s EVM discovery (`tronlinkParams` set trap). */
+function excludeTronLinkFromWalletList(options: WalletOption[]): WalletOption[] {
+  return options
+    .filter(o => o.key !== 'tronlink')
+    .map(o =>
+      o.groupedWallets?.length
+        ? { ...o, groupedWallets: excludeTronLinkFromWalletList(o.groupedWallets) }
+        : o,
+    )
+}
 
 export function Providers({ children }: { children: React.ReactNode }) {
   const [mounted, setMounted] = React.useState(false)
@@ -72,6 +83,7 @@ export function Providers({ children }: { children: React.ReactNode }) {
       settings={{
         environmentId,
         appName: 'Mathler',
+        walletsFilter: excludeTronLinkFromWalletList,
         // biome-ignore lint/suspicious/noExplicitAny: Dynamic multi-wallet/ethereum/solana use conflicting wallet-connector-core versions
         walletConnectors: [EthereumWalletConnectors, SolanaWalletConnectors] as any,
       }}

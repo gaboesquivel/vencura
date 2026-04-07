@@ -5,6 +5,10 @@ import type { FastifyPluginAsync } from 'fastify'
 
 import { env } from './lib/env.js'
 
+// Non-plugin modules under routes/ (imported by route files only). Keeps autoload from logging DEBUG skips.
+const routeSupportModulesPattern =
+  /^\/(schemas|wallets\/get-wallet-for-user|ai\/(?:upstream-error|provider|account-info-tool|brave-search)|reference\/(?:template-scripts|template-styles|template|dynamic-auth-browser))\.(ts|js)$/u
+
 const appFile = fileURLToPath(import.meta.url)
 const appDir = path.dirname(appFile)
 
@@ -36,9 +40,10 @@ const app: FastifyPluginAsync<AppOptions> = async (fastify, opts): Promise<void>
     options: opts,
     forceESM: true,
     ignorePattern: /\.(spec|test)\.(ts|js)$/,
-    ignoreFilter: path => {
+    ignoreFilter: filePath => {
       const allowTest = opts?.allowTest ?? env.ALLOW_TEST
-      return !allowTest && /\/test\//.test(path)
+      if (!allowTest && /\/test\//.test(filePath)) return true
+      return routeSupportModulesPattern.test(filePath)
     },
   })
 }

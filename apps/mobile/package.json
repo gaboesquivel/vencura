@@ -21,9 +21,10 @@
     "test:e2e": "maestro test .maestro/flows/home.yml"
   },
   "dependencies": {
-    "@dynamic-labs/client": "^4.39.0",
-    "@dynamic-labs/react-hooks": "^4.39.0",
-    "@dynamic-labs/react-native-extension": "^4.39.0",
+    "@dynamic-labs/client": "^4.75.0",
+    "@dynamic-labs/react-hooks": "^4.75.0",
+    "@dynamic-labs/react-native-extension": "^4.75.0",
+    "@dynamic-labs-wallet/forward-mpc-client": "^0.5.4",
     "@react-navigation/bottom-tabs": "^7.7.3",
     "@repo/core": "workspace:*",
     "@repo/react": "workspace:*",

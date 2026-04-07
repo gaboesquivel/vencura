@@ -8,6 +8,13 @@ export interface LoginWithDynamicSandboxOptions {
   staticOTP: string
 }
 
+const emailInputLocator = (page: Page) =>
+  page
+    .locator(
+      'input[type="email"], input[name="email"], input[placeholder*="email" i], input[placeholder*="Email" i]',
+    )
+    .first()
+
 /**
  * Authenticate with Dynamic Labs sandbox: navigate, fill email, OTP, wait for success.
  * Caller is responsible for saving storage state after this returns.
@@ -25,26 +32,26 @@ export async function loginWithDynamicSandbox(
   const url = loginPath.startsWith('http') ? loginPath : new URL(loginPath, baseURL).href
   await page.goto(url)
 
-  await page
-    .waitForSelector('[data-testid="dynamic-widget"]', { timeout: 10_000 })
-    .catch(async () => {
-      const signInButton = page
-        .locator(
-          'button:has-text("Sign in"), button:has-text("Connect Wallet"), button:has-text("Get Started")',
-        )
-        .first()
-      if (await signInButton.isVisible({ timeout: 5_000 }).catch(() => false))
-        await signInButton.click()
-    })
+  const emailInput = emailInputLocator(page)
 
-  await page.waitForTimeout(1000)
+  try {
+    await emailInput.waitFor({ state: 'visible', timeout: 15_000 })
+  } catch {
+    await page
+      .waitForSelector('[data-testid="dynamic-widget"], .embedded-widget', { timeout: 8_000 })
+      .catch(() => {})
+    const signInButton = page
+      .locator(
+        'button:has-text("Sign in"), button:has-text("Connect Wallet"), button:has-text("Get Started")',
+      )
+      .first()
+    if (await signInButton.isVisible({ timeout: 5_000 }).catch(() => false))
+      await signInButton.click()
+    await emailInput.waitFor({ state: 'visible', timeout: 15_000 })
+  }
 
-  const emailInput = page
-    .locator(
-      'input[type="email"], input[name="email"], input[placeholder*="email" i], input[placeholder*="Email" i]',
-    )
-    .first()
-  await emailInput.waitFor({ state: 'visible', timeout: 10_000 })
+  await page.waitForTimeout(500)
+
   await emailInput.fill(testEmail)
 
   const submitButton = page

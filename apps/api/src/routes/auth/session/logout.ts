@@ -15,7 +15,8 @@ const sessionLogoutRoute: FastifyPluginAsync = async fastify => {
     {
       schema: {
         operationId: 'logout',
-        description: 'Logout user and invalidate session',
+        description:
+          'Deletes a matching row in `sessions` when present. Dynamic JWT sessions often have no local session row (delete is a no-op). Clients must discard tokens regardless.',
         summary: 'Logout',
         tags: ['auth'],
         security: [{ bearerAuth: [] }],
@@ -35,8 +36,6 @@ const sessionLogoutRoute: FastifyPluginAsync = async fastify => {
         })
 
       const db = await getDb()
-
-      // Revoke session
       await db.delete(sessions).where(eq(sessions.id, request.session.session.id))
 
       return reply.code(204).send()

@@ -7,6 +7,20 @@ interface UseMathlerInputProps {
   maxLength: number
   gameStatus: 'playing' | 'won' | 'lost'
   onSubmit: (value: string) => void
+  /** When false, no window keydown listener (e.g. auth modal open). Default true. */
+  isGlobalKeyCaptureEnabled?: boolean
+}
+
+function shouldDeferKeyboardToOverlay(e: KeyboardEvent): boolean {
+  const candidates: Node[] = []
+  if (document.activeElement instanceof Node) candidates.push(document.activeElement)
+  if (e.target instanceof Node) candidates.push(e.target)
+  for (const node of candidates) {
+    if (!(node instanceof Element)) continue
+    if (node.closest('[role="dialog"]')) return true
+    if (node.closest('input, textarea, select, [contenteditable="true"]')) return true
+  }
+  return false
 }
 
 interface InputState {
@@ -14,7 +28,12 @@ interface InputState {
   cursor: number
 }
 
-export function useMathlerInput({ maxLength, gameStatus, onSubmit }: UseMathlerInputProps) {
+export function useMathlerInput({
+  maxLength,
+  gameStatus,
+  onSubmit,
+  isGlobalKeyCaptureEnabled = true,
+}: UseMathlerInputProps) {
   const [state, setState] = useSetState<InputState>({ input: '', cursor: 0 })
 
   const insertAt = useCallback(
@@ -51,8 +70,11 @@ export function useMathlerInput({ maxLength, gameStatus, onSubmit }: UseMathlerI
   }, [gameStatus, setState])
 
   useEffect(() => {
+    if (gameStatus !== 'playing' || !isGlobalKeyCaptureEnabled) return
+
     const handleKey = (e: KeyboardEvent) => {
       if (gameStatus !== 'playing') return
+      if (shouldDeferKeyboardToOverlay(e)) return
 
       // Prevent default for game keys
       if (
@@ -114,7 +136,16 @@ export function useMathlerInput({ maxLength, gameStatus, onSubmit }: UseMathlerI
 
     window.addEventListener('keydown', handleKey)
     return () => window.removeEventListener('keydown', handleKey)
-  }, [gameStatus, state.input, moveCursor, clear, insertAt, backspace, onSubmit])
+  }, [
+    gameStatus,
+    isGlobalKeyCaptureEnabled,
+    state.input,
+    moveCursor,
+    clear,
+    insertAt,
+    backspace,
+    onSubmit,
+  ])
 
   const reset = () => {
     setState({ input: '', cursor: 0 })

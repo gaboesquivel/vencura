@@ -202,7 +202,7 @@ export const generate = <ThrowOnError extends boolean = false>(
 /**
  * Logout
  *
- * Logout user and invalidate session
+ * Deletes a matching row in `sessions` when present. Dynamic JWT sessions often have no local session row (delete is a no-op). Clients must discard tokens regardless.
  */
 export const logout = <ThrowOnError extends boolean = false>(
   options?: Options<LogoutData, ThrowOnError>,

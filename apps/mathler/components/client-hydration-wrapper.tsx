@@ -1,7 +1,7 @@
 'use client'
 
 import { useEffect, useState } from 'react'
-import { MathlerGameSkeleton } from './mathler-game-skeleton'
+import { MathlerShellSkeleton } from './mathler-shell-skeleton'
 
 export function ClientHydrationWrapper({ children }: { children: React.ReactNode }) {
   const [mounted, setMounted] = useState(false)
@@ -16,7 +16,7 @@ export function ClientHydrationWrapper({ children }: { children: React.ReactNode
   }, [])
 
   if (!mounted) {
-    return <MathlerGameSkeleton />
+    return <MathlerShellSkeleton />
   }
 
   return <>{children}</>

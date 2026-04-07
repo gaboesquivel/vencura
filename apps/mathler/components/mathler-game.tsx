@@ -46,7 +46,7 @@ interface GameState {
 }
 
 export function MathlerGame() {
-  const { user, primaryWallet, sdkHasLoaded, setShowAuthFlow } = useDynamicContext()
+  const { user, primaryWallet, sdkHasLoaded, setShowAuthFlow, showAuthFlow } = useDynamicContext()
   const { difficulty } = useUserSettings()
   const [gameState, setGameState] = useSetState<GameState>({
     target: 0,
@@ -59,7 +59,6 @@ export function MathlerGame() {
   const { saveGame, saveGameError } = useGameHistory()
   const [isPending, startTransition] = useTransition()
 
-  // Auto-open auth modal when SDK loads and user is not authenticated
   useEffect(() => {
     if (sdkHasLoaded && !user) {
       setShowAuthFlow(true)
@@ -85,7 +84,6 @@ export function MathlerGame() {
     // Urgent: Basic validation
     if (!value || gameState.gameStatus !== 'playing') return
 
-    // Check authentication before processing guess
     if (!user) {
       setShowAuthFlow(true)
       return
@@ -199,6 +197,7 @@ export function MathlerGame() {
     maxLength: 9,
     gameStatus: gameState.gameStatus,
     onSubmit: handleSubmit,
+    isGlobalKeyCaptureEnabled: !showAuthFlow,
   })
 
   const initializeGame = () => {
@@ -235,6 +234,11 @@ export function MathlerGame() {
   }, [difficulty])
 
   const simulateGame = async () => {
+    if (!user) {
+      setShowAuthFlow(true)
+      return
+    }
+
     // Generate new target and solution for simulation
     const newTarget = getRandomTarget(difficulty)
     const newSolution = generateSolutionEquation(newTarget, undefined, difficulty)
@@ -259,10 +263,14 @@ export function MathlerGame() {
 
   useEffect(() => {
     initializeGame()
-    // eslint-disable-next-line react-hooks/exhaustive-deps -- initializeGame should only run once on mount
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- initializeGame on mount only
   }, [])
 
   const resetGame = () => {
+    if (!user) {
+      setShowAuthFlow(true)
+      return
+    }
     initializeGame()
   }
 
@@ -282,7 +290,6 @@ export function MathlerGame() {
   const handleInputChange = (value: string) => {
     if (gameState.gameStatus !== 'playing') return
 
-    // Check authentication before processing input
     if (!user) {
       setShowAuthFlow(true)
       return
@@ -296,12 +303,19 @@ export function MathlerGame() {
   }
 
   const handleInputAtPositionWithAuth = (char: string) => {
-    // Check authentication before processing keypad clicks
     if (!user) {
       setShowAuthFlow(true)
       return
     }
     handleInputAtPosition(char)
+  }
+
+  const handleBackspaceWithAuth = () => {
+    if (!user) {
+      setShowAuthFlow(true)
+      return
+    }
+    handleBackspace()
   }
 
   return (
@@ -331,7 +345,17 @@ export function MathlerGame() {
                   isCurrentRow={isCurrentRow}
                   currentInput={isCurrentRow ? currentInput : ''}
                   cursorPosition={isCurrentRow ? cursorPosition : -1}
-                  onTileClick={isCurrentRow ? pos => setCursorPosition(pos) : undefined}
+                  onTileClick={
+                    isCurrentRow
+                      ? pos => {
+                          if (!user) {
+                            setShowAuthFlow(true)
+                            return
+                          }
+                          setCursorPosition(pos)
+                        }
+                      : undefined
+                  }
                 />
               )
             })}
@@ -351,7 +375,7 @@ export function MathlerGame() {
           {gameState.gameStatus === 'playing' ? (
             <GameKeypad
               onInput={handleInputChange}
-              onBackspace={handleBackspace}
+              onBackspace={handleBackspaceWithAuth}
               onSubmit={() => {
                 if (currentInput) handleSubmit(currentInput)
               }}
